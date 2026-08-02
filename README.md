@@ -1,0 +1,61 @@
+# Amber's Games
+
+A cozy collection of browser games for kids — no installs, no accounts. Open `index.html` and play.
+
+## Play it
+
+Any way you like:
+
+- Open `index.html` in a browser
+- Serve the folder (`python3 -m http.server 8080`) and visit `http://localhost:8080`
+- Hosted on GitHub Pages (if enabled): `https://ricky-ai-toys.github.io/games/`
+
+## The games
+
+| Game | File | What it is |
+|---|---|---|
+| Amber's Shark Hunt | `shark.html` | Eat, grow, and become the ocean's top shark |
+| Amber's Big Drop | `down100.html` | Fast mobile platformer through 100 floors |
+| Amber's Star Catcher | `starcatcher.html` | Catch stars, finish wave missions, ride the fever combo |
+| Amber's Crystal Match | `crystal.html` | Swap crystals, chain combos, clear each wave |
+| Amber's Greedy Snake | `snake.html` | Eat, grow, clear every level |
+| Amber's Starlight Pinball | `pinball.html` | Flip for moon gems, spell AMBER for a bonus |
+| Amber's Kite Runner | `kite.html` | Soar through clouds, grab stars, dodge birds |
+| Amber's Big Two | `bigtwo/index.html` | Hong Kong Big Two (鋤大D) with Maple, Finn & Pip |
+| Amber's Typing Adventure | `typing.html` | Falling words, bubble spell, word race, sentences |
+| Shop with Amber | `shop.html` | Make change, fill the cart, spot the best deal |
+| Amber's Space Math | `space.html` | Defend the rocket, race the clock, fill a bingo board |
+| Amber's Pet Clinic | `petclinic.html` | Feed, bathe, and cheer up little patients |
+| Amber's Style Studio | `dressup.html` | Design outfits and save favorite looks |
+| Amber's Beauty Salon | `salon.html` | Style hair, makeup, and nails for customers |
+| Amber's Farm | `farm/index.html` | Cozy Stardew-style farm: plant, fish, raise animals, cook |
+| Amber's 算籌大冒險 | `suanchou.html` | Learn ancient Chinese counting rods |
+| Amber's Binary Quest | `binary.html` | Crack the secret code of computers |
+
+## Amber's Farm (flagship)
+
+The biggest project in this repo — a full Stardew-style life sim:
+
+- 4 seasons, festivals, weather, day/night cycle with energy
+- Farming, fishing, foraging, mining gems, raising chickens/cows
+- Cottage interior with furniture + storybook
+- NPC friendship, gifting, mail, quests, cooking recipes
+- Save/load in the browser (localStorage), achievements, farm stars
+
+Docs live in `farm/MASTERPLAN.md` (roadmap + changelog) and `farm/README.md`.
+
+## Tech notes
+
+- Vanilla HTML/CSS/JS — no frameworks, no build step, no dependencies
+- All games run offline from the folder
+- Kids-first design: big touch targets, keyboard + touch controls, no ads, no tracking
+
+## Development
+
+```bash
+git clone https://github.com/ricky-ai-toys/games.git
+cd games
+python3 -m http.server 8080
+```
+
+Contributions welcome — keep it kid-friendly!
