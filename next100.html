@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>是男人就下一百层</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  width: 100%; height: 100%;
+  background: #111;
+  font-family: "Microsoft YaHei", sans-serif;
+  overflow: hidden; touch-action: none;
+  -webkit-user-select: none; user-select: none;
+  position: fixed; top: 0; left: 0;
+}
+#gameContainer {
+  position: relative;
+  width: 100%; height: 100%;
+  display: flex; justify-content: center; align-items: center;
+}
+canvas {
+  border: 8px solid #ffcc00;
+  box-shadow: 0 0 30px #ffcc00;
+  image-rendering: pixelated;
+  max-width: 100%; max-height: 100%;
+}
+#overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  color: white; text-align: center;
+  pointer-events: none;
+  background: rgba(0,0,0,0.7);
+}
+#overlay button {
+  pointer-events: auto;
+  margin-top: 20px; padding: 15px 40px;
+  font-size: 28px;
+  background: #ffcc00; color: #222;
+  border: none; border-radius: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+#overlay button:active { background: #ffe044; transform: scale(0.97); }
+h1 { font-size: 42px; margin: 10px; text-shadow: 0 0 15px #ffcc00; }
+#info { font-size: 16px; color: #ccc; margin: 10px; padding: 0 20px; line-height: 1.6; }
+/* 移动端虚拟按钮 */
+#controls {
+  position: absolute; bottom: 0; left: 0; right: 0; z-index: 5;
+  display: none; justify-content: space-between;
+  padding: 10px 15px 20px; pointer-events: none;
+}
+.ctrl-btn {
+  width: 70px; height: 70px; border-radius: 50%;
+  background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3);
+  color: white; font-size: 28px;
+  display: flex; justify-content: center; align-items: center;
+  pointer-events: auto;
+}
+.ctrl-btn:active { background: rgba(255,255,255,0.35); }
+.dpad { display: flex; gap: 10px; }
+@media (max-width: 768px) {
+  canvas { border-width: 4px; }
+  #controls { display: flex; }
+  h1 { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+<div id="gameContainer">
+  <canvas id="canvas" width="400" height="600"></canvas>
+  <div id="overlay">
+    <h1>🏔️ 是男人就下一百层</h1>
+    <p id="info">鼠标左右移动 / 手指滑动 / 键盘 ← → 控制</p>
+    <button id="btn" onclick="startGame()">开始挑战</button>
+  </div>
+  <div id="controls">
+    <div class="dpad">
+      <div class="ctrl-btn" id="btnLeft">◀</div>
+      <div class="ctrl-btn" id="btnRight">▶</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = 400, H = 600;
+
+let player = { x: 185, y: 260, w: 30, h: 45 };
+let obstacles = [];
+let floors = [];
+let gameSpeed = 3.2;
+let currentFloor = 0;
+let highestFloor = parseInt(localStorage.getItem('highest100') || '0');
+let isPlaying = false;
+let isOver = false;
+let isWin = false;
+let mouseX = 200;
+let lastTime = 0;
+let keys = {};
+
+document.addEventListener('keydown', e => { keys[e.key] = true; e.preventDefault(); });
+document.addEventListener('keyup', e => { keys[e.key] = false; });
+
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  mouseX = (e.clientX - rect.left) * (W / rect.width);
+});
+
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  mouseX = (e.touches[0].clientX - rect.left) * (W / rect.width);
+});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  mouseX = (e.touches[0].clientX - rect.left) * (W / rect.width);
+});
+canvas.addEventListener('touchend', e => { e.preventDefault(); });
+
+document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+document.addEventListener('gesturestart', e => e.preventDefault());
+
+// Mobile buttons
+function setupBtn(id, key) {
+  const btn = document.getElementById(id);
+  const on = () => { keys[key] = true; btn.style.background = 'rgba(255,255,255,0.35)'; };
+  const off = () => { keys[key] = false; btn.style.background = ''; };
+  btn.addEventListener('touchstart', e => { e.preventDefault(); on(); });
+  btn.addEventListener('touchend', e => { e.preventDefault(); off(); });
+  btn.addEventListener('touchcancel', off);
+  btn.addEventListener('mousedown', on);
+  btn.addEventListener('mouseup', off);
+  btn.addEventListener('mouseleave', off);
+}
+setupBtn('btnLeft', 'ArrowLeft');
+setupBtn('btnRight', 'ArrowRight');
+
+function rand(min, max) { return Math.random() * (max - min) + min; }
+
+function generateFloor() {
+  const lastY = floors.length ? floors[floors.length-1].y : H + 80;
+  const y = lastY + 88;
+  floors.push({ y: y, num: currentFloor + floors.length + 1 });
+
+  const hasLeft = Math.random() < 0.68;
+  const hasRight = Math.random() < 0.68;
+  obstacles.push({
+    y: y - 8,
+    leftW: hasLeft ? rand(72, 155) : 0,
+    rightX: hasRight ? rand(245, 325) : W
+  });
+}
+
+function resetGame() {
+  player.x = 185;
+  obstacles = [];
+  floors = [];
+  currentFloor = 0;
+  gameSpeed = 3.2;
+  isOver = false;
+  isWin = false;
+  lastTime = 0;
+  for (let i = 0; i < 7; i++) generateFloor();
+}
+
+function startGame() {
+  document.getElementById('btn').style.display = 'none';
+  document.getElementById('info').innerHTML = '第 <span id="floorNum">0</span> / 100 层';
+  resetGame();
+  isPlaying = true;
+  requestAnimationFrame(gameLoop);
+}
+
+function checkCollision() {
+  // Hit walls
+  if (player.x < 58 || player.x + player.w > 342) return true;
+
+  for (let o of obstacles) {
+    if (o.y > H + 10 || o.y < -50) continue;
+    if (o.leftW > 0 &&
+        player.x < 50 + o.leftW &&
+        player.y + player.h > o.y &&
+        player.y < o.y + 38) return true;
+
+    if (o.rightX < W &&
+        player.x + player.w > o.rightX &&
+        player.y + player.h > o.y &&
+        player.y < o.y + 38) return true;
+  }
+  return false;
+}
+
+function drawBackground() {
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.fillStyle = '#16213e';
+  ctx.fillRect(40, 0, 20, H);
+  ctx.fillRect(340, 0, 20, H);
+
+  ctx.strokeStyle = '#ffcc88';
+  ctx.lineWidth = 3;
+  for (let f of floors) {
+    if (f.y < -40 || f.y > H + 40) continue;
+    ctx.beginPath();
+    ctx.moveTo(60, f.y);
+    ctx.lineTo(340, f.y);
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffeeaa';
+    for (let i = 0; i < 3; i++) {
+      ctx.fillRect(68 + i*55, f.y - 18, 20, 11);
+    }
+    for (let i = 0; i < 3; i++) {
+      ctx.fillRect(225 + i*55, f.y - 18, 20, 11);
+    }
+  }
+}
+
+function drawPlayer() {
+  ctx.fillStyle = '#ff3366';
+  ctx.fillRect(player.x + 6, player.y + 18, 18, 25);
+  ctx.fillStyle = '#ffdd77';
+  ctx.beginPath();
+  ctx.arc(player.x + 15, player.y + 15, 11, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.fillRect(player.x + 9, player.y + 12, 5, 5);
+  ctx.fillRect(player.x + 21, player.y + 12, 5, 5);
+}
+
+function drawObstacles() {
+  ctx.fillStyle = '#ff6600';
+  for (let o of obstacles) {
+    if (o.leftW > 0) ctx.fillRect(50, o.y, o.leftW, 35);
+    if (o.rightX < W) ctx.fillRect(o.rightX, o.y, W - o.rightX, 35);
+  }
+}
+
+function gameLoop(timestamp = 0) {
+  if (!isPlaying) return;
+
+  if (!lastTime) lastTime = timestamp;
+  const dt = Math.min(timestamp - lastTime, 32);
+  lastTime = timestamp;
+  const factor = dt / 16.67;
+
+  // Speed ramp
+  gameSpeed = 3.2 + currentFloor * 0.035;
+
+  // Controls — FIXED: added || operators
+  if (keys['ArrowLeft'] || keys['a'] || keys['A']) player.x -= 7.5 * factor;
+  if (keys['ArrowRight'] || keys['d'] || keys['D']) player.x += 7.5 * factor;
+
+  player.x += (mouseX - player.x) * 0.28 * factor;
+  player.x = Math.max(58, Math.min(W - player.w - 58, player.x));
+
+  // World scroll
+  const move = gameSpeed * factor;
+  for (let o of obstacles) o.y -= move;
+  for (let f of floors) f.y -= move;
+
+  obstacles = obstacles.filter(o => o.y > -60);
+  floors = floors.filter(f => f.y > -60);
+
+  // Spawn new floor
+  if (floors.length === 0 || floors[floors.length-1].y < H + 20) {
+    currentFloor++;
+    generateFloor();
+  }
+
+  // Track which floor player has passed
+  while (floors.length > 0 && floors[0].y < player.y + 20) {
+    currentFloor = Math.max(currentFloor, floors[0].num);
+    floors.shift();
+  }
+
+  // Collision & win
+  if (checkCollision()) {
+    isOver = true; isPlaying = false;
+    if (currentFloor > highestFloor) {
+      highestFloor = currentFloor;
+      localStorage.setItem('highest100', highestFloor);
+    }
+  }
+
+  if (currentFloor >= 100) {
+    isWin = true; isPlaying = false;
+    if (currentFloor > highestFloor) highestFloor = currentFloor;
+    localStorage.setItem('highest100', highestFloor);
+  }
+
+  // Draw
+  drawBackground();
+  drawObstacles();
+  drawPlayer();
+
+  // UI
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 28px Microsoft YaHei';
+  ctx.fillText('第 ' + currentFloor + ' 层', 22, 45);
+  ctx.font = '20px Microsoft YaHei';
+  ctx.fillText('最高 ' + highestFloor, 245, 45);
+
+  // Game over
+  if (isOver || isWin) {
+    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.font = 'bold 42px Microsoft YaHei';
+    if (isWin) {
+      ctx.fillStyle = '#ffcc00';
+      ctx.fillText('你是真男人！', 38, 230);
+      ctx.font = '28px Microsoft YaHei';
+      ctx.fillStyle = 'white';
+      ctx.fillText('100层全部通过', 72, 290);
+    } else {
+      ctx.fillStyle = '#ff3366';
+      ctx.fillText('你不是男人', 48, 230);
+      ctx.font = '28px Microsoft YaHei';
+      ctx.fillStyle = 'white';
+      ctx.fillText('只下了 ' + currentFloor + ' 层', 85, 290);
+    }
+
+    document.getElementById('btn').textContent = '再来一次';
+    document.getElementById('btn').style.display = 'block';
+    document.getElementById('info').innerHTML = '最高纪录：<b>' + highestFloor + '</b> 层';
+  }
+
+  if (isPlaying) requestAnimationFrame(gameLoop);
+}
+
+document.getElementById('info').innerHTML += '<br>最高纪录：' + highestFloor + ' 层';
+</script>
+</body>
+</html>

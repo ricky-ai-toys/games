@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#14213d">
+<meta name="description" content="A fun ancient Chinese counting-rod (算籌) game made especially for Amber.">
+<title>算籌大冒險 · Amber's Counting Rods</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<style>
+:root{--navy:#14213d;--ink:#101828;--cream:#fff8e8;--coral:#ff7262;--yellow:#ffd85a;--sky:#5bc8ff;--green:#66d17a;--jade:#3fae86;--jade2:#8be6c4;--red:#f04452;--panel:rgba(14,25,54,.82);--glass:rgba(13,26,58,.72);--glass-line:rgba(255,255,255,.24)}
+*{box-sizing:border-box}html,body,#app{margin:0;width:100%;height:100%}body{font-family:ui-rounded,"PingFang TC","Microsoft JhengHei","SF Pro Rounded","Segoe UI",sans-serif;background:var(--navy);color:#fff;user-select:none;-webkit-user-select:none}
+.game{position:relative;width:100vw;height:100vh;height:100dvh;overflow:hidden;background:radial-gradient(circle at 50% -10%,#22346a,var(--navy) 60%)}
+.screen{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(180deg,rgba(13,28,64,.35),rgba(7,15,35,.76));overflow-y:auto}
+.card{width:min(560px,95vw);max-height:92vh;overflow:auto;padding:26px;border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.07));border:2px solid rgba(255,255,255,.2);box-shadow:0 24px 70px rgba(0,0,0,.42);text-align:center}
+.logo{font-size:clamp(34px,8vw,60px);font-weight:1000;line-height:1;letter-spacing:-1px;color:var(--cream);text-shadow:0 5px 0 #b84c45,0 10px 25px rgba(0,0,0,.3)}.logo b{color:var(--coral)}
+.logo .en{display:block;font-size:clamp(15px,3.4vw,22px);letter-spacing:.02em;color:var(--sky);text-shadow:none;margin-top:6px;font-weight:900}
+.tag{margin:16px auto 20px;max-width:430px;line-height:1.5;color:rgba(255,255,255,.86)}
+.amber-preview{font-size:60px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.3));animation:float 2.4s ease-in-out infinite}@keyframes float{50%{transform:translateY(-8px) rotate(3deg)}}
+button{font:inherit}
+.btn{border:0;border-radius:16px;padding:13px 22px;font-weight:900;cursor:pointer;color:#18213a;background:linear-gradient(#ff8d80,var(--coral));box-shadow:0 6px 0 #b94c43,0 10px 20px rgba(0,0,0,.22);transition:.12s transform,.12s filter}.btn:hover{filter:brightness(1.08);transform:translateY(-2px)}.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #b94c43}.btn.big{font-size:20px;padding:15px 40px}.btn.blue{color:#fff;background:linear-gradient(#74d4ff,#269ed7);box-shadow:0 6px 0 #12658e}.btn.ghost{color:#fff;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.22);box-shadow:none}.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.small{font-size:12px;opacity:.72}
+.brand-chip{display:inline-flex;align-items:center;gap:8px;margin-bottom:12px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid var(--glass-line);font-size:12px;font-weight:900;letter-spacing:.06em}.brand-chip i{width:8px;height:8px;border-radius:50%;background:var(--yellow);box-shadow:0 0 12px var(--yellow)}
+.hero-scene{position:relative;width:170px;height:132px;margin:0 auto 5px}.hero-glow{position:absolute;inset:18px 15px 0;border-radius:50%;background:radial-gradient(circle,rgba(255,216,90,.5),rgba(91,200,255,.16) 55%,transparent 72%);filter:blur(2px)}
+.amber-avatar{position:absolute;left:50%;top:50%;transform:translate(-50%,-47%);width:84px;height:100px;animation:heroBob 2.5s ease-in-out infinite;filter:drop-shadow(0 12px 10px rgba(0,0,0,.28))}.amber-avatar .hair{position:absolute;left:11px;top:4px;width:62px;height:57px;border-radius:50% 50% 42% 42%;background:#503227;border:4px solid #2c2430}.amber-avatar .hair:before,.amber-avatar .hair:after{content:"";position:absolute;top:30px;width:27px;height:34px;border-radius:50%;background:#503227;border:4px solid #2c2430}.amber-avatar .hair:before{left:-18px;transform:rotate(18deg)}.amber-avatar .hair:after{right:-18px;transform:rotate(-18deg)}.amber-avatar .face{position:absolute;left:18px;top:16px;width:48px;height:47px;border-radius:48% 48% 52% 52%;background:#ffd09c;border:3px solid #2c2430;z-index:2}.amber-avatar .eyes:before,.amber-avatar .eyes:after{content:"";position:absolute;top:17px;width:5px;height:7px;border-radius:50%;background:#172033}.amber-avatar .eyes:before{left:11px}.amber-avatar .eyes:after{right:11px}.amber-avatar .smile{position:absolute;left:50%;bottom:8px;width:13px;height:7px;border:2px solid #a74d4f;border-top:0;border-radius:0 0 12px 12px;transform:translateX(-50%)}.amber-avatar .body{position:absolute;left:17px;top:58px;width:50px;height:39px;border-radius:15px 15px 20px 20px;background:linear-gradient(135deg,#ff8d80,#ff5f62);border:4px solid #2c2430}.amber-avatar .star{position:absolute;left:50%;top:9px;transform:translateX(-50%);color:#ffd85a;font-size:18px}.amber-avatar .cape{position:absolute;left:4px;top:62px;width:34px;height:33px;border-radius:70% 10% 70% 20%;background:#5bc8ff;border:3px solid #2c2430;transform:rotate(15deg)}
+@keyframes heroBob{50%{transform:translate(-50%,-54%) rotate(2deg)}}
+.dedication{margin:12px auto 18px;max-width:410px;color:rgba(255,255,255,.88);font-size:14px;line-height:1.55}.dedication b{color:var(--yellow)}
+.mode-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:15px 0}.mode-card{position:relative;padding:11px 7px;border-radius:16px;border:2px solid transparent;background:rgba(255,255,255,.07);color:#fff;cursor:pointer}.mode-card strong{display:block;font-size:14px}.mode-card span{display:block;font-size:10px;opacity:.65;margin-top:3px}.mode-card.active{border-color:var(--yellow);background:linear-gradient(180deg,rgba(255,216,90,.22),rgba(255,255,255,.08));box-shadow:0 0 0 3px rgba(255,216,90,.1)}.mode-card em{font-style:normal;font-size:25px;display:block;margin-bottom:3px}
+.quick-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:13px}.quick{display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:14px;border:1px solid var(--glass-line);background:rgba(255,255,255,.08);color:#fff;font-weight:800;cursor:pointer}.quick:hover{background:rgba(255,255,255,.15)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.panel-title{text-align:left}.panel-title h2{margin:0}.panel-title p{margin:4px 0 0;font-size:12px;opacity:.68}.close-x{width:38px;height:38px;border-radius:50%;border:1px solid var(--glass-line);background:rgba(255,255,255,.08);color:#fff;font-size:18px;cursor:pointer}
+.tabs{display:flex;gap:7px;margin:10px 0 14px}.tabs button{flex:1}
+.setting{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.12)}
+.switch{border:0;border-radius:999px;width:51px;height:28px;padding:3px;background:#33415f;cursor:pointer}.switch i{display:block;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}.switch.on{background:var(--green)}.switch.on i{transform:translateX(23px)}
+.help{text-align:left;line-height:1.7}.help b{color:var(--yellow)}
+.toast{position:fixed;z-index:90;left:50%;top:29%;transform:translate(-50%,-50%);font-size:clamp(28px,6.5vw,50px);font-weight:1000;color:var(--yellow);text-shadow:0 4px 0 #8d6b00,0 9px 22px #000;animation:pop 1.25s both;pointer-events:none}@keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.45)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-90%) scale(.9)}}
+@media(max-width:520px){.card{padding:21px 16px;border-radius:22px}.hero-scene{transform:scale(.88);margin-top:-8px;margin-bottom:-8px}.dedication{margin:8px auto 13px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Counting-rod widgets */
+.worldmap{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}
+.wtile{position:relative;padding:14px 10px;border-radius:16px;background:rgba(255,255,255,.07);border:2px solid transparent;color:#fff;cursor:pointer;text-align:center}
+.wtile em{font-style:normal;font-size:30px;display:block;margin-bottom:4px}
+.wtile strong{display:block;font-size:14px}
+.wtile .wen{display:block;font-size:10px;opacity:.6;margin-top:2px}
+.wtile .wstars{font-size:12px;color:var(--yellow);margin-top:4px;font-weight:900}
+.wtile.locked{opacity:.45;cursor:not-allowed}
+.wtile.open:hover{border-color:var(--yellow)}
+.wlesson{display:block;margin-top:5px;font-size:11px;opacity:.75;cursor:pointer}.wlesson:hover{opacity:1;color:var(--yellow)}
+.playwrap{width:min(620px,95vw);margin:auto;text-align:center;padding:12px}
+.hudbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 4px;flex-wrap:wrap}
+.pillb{background:rgba(8,18,42,.7);border:1px solid rgba(255,255,255,.18);padding:8px 12px;border-radius:15px;font-weight:900;font-size:13px;color:#fff}
+.target-big{font-size:clamp(38px,9vw,60px);font-weight:1000;color:var(--cream);text-shadow:0 4px 0 #b84c45;line-height:1}
+.target-cn{font-size:15px;opacity:.7;margin-top:2px}
+.total-chip{display:inline-block;margin:8px auto;padding:8px 18px;border-radius:14px;background:rgba(63,174,134,.18);border:1px solid rgba(63,174,134,.6);font-weight:1000;font-size:19px}
+/* rod board */
+.rodboard{display:flex;gap:clamp(10px,3vw,22px);justify-content:center;align-items:flex-end;margin:18px auto;padding:16px 10px;min-height:112px;background:rgba(8,18,42,.5);border:1px solid rgba(255,255,255,.14);border-radius:18px;width:fit-content;max-width:100%}
+.rodboard.mini{gap:8px;padding:9px 8px;min-height:60px;margin:6px auto;transform-origin:center}
+.rodcell{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;min-width:46px;min-height:78px}
+.rodboard.mini .rodcell{min-width:26px;min-height:44px;gap:3px}
+.rodunits{display:flex;gap:5px;justify-content:center;align-items:center}
+.rodcell.zong .rodunits{flex-direction:row}
+.rodcell.heng .rodunits{flex-direction:column}
+.rod{border-radius:4px;background:linear-gradient(160deg,var(--jade2),var(--jade));box-shadow:0 2px 5px rgba(0,0,0,.35),inset 0 1px 2px rgba(255,255,255,.5)}
+.rod.v{width:8px;height:44px}
+.rod.h{width:44px;height:8px}
+.rodboard.mini .rod.v{width:5px;height:26px}
+.rodboard.mini .rod.h{width:26px;height:5px}
+.rod.five{background:linear-gradient(160deg,#ffb0a6,var(--coral))}
+.rodzero{color:rgba(255,255,255,.4);font-size:30px;font-weight:900}
+.rodboard.mini .rodzero{font-size:18px}
+.placelabel{font-size:12px;font-weight:900;color:var(--yellow);opacity:.85;margin-top:2px}
+/* build columns */
+.rodbuild{display:flex;gap:clamp(10px,3vw,22px);justify-content:center;align-items:flex-start;margin:16px auto;padding:14px 10px;background:rgba(8,18,42,.5);border:1px solid rgba(255,255,255,.14);border-radius:18px;width:fit-content;max-width:100%}
+.buildcol{display:flex;flex-direction:column;align-items:center;gap:6px}
+.stepbtn{width:46px;height:34px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);color:#fff;font-size:16px;font-weight:1000;cursor:pointer}.stepbtn:hover{background:rgba(255,255,255,.2)}
+.buildcol .rodcell{background:rgba(255,255,255,.05);border-radius:12px;padding:6px 4px;min-height:84px}
+.digitlabel{font-size:16px;font-weight:1000;padding:2px 10px;border-radius:10px;background:var(--yellow);color:#26314a}
+.calcline{font-size:clamp(30px,7vw,48px);font-weight:1000;color:var(--cream);text-shadow:0 3px 0 #b84c45;margin:4px 0}
+.calcrods{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;margin:4px 0}
+.calcop{font-size:34px;font-weight:1000;color:var(--yellow)}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:260px;margin:12px auto}
+.numpad button{padding:14px 0;font-size:20px;font-weight:1000;border:1px solid rgba(255,255,255,.22);border-radius:14px;background:rgba(255,255,255,.09);color:#fff;cursor:pointer}
+.numpad button:hover{background:rgba(255,255,255,.18)}.numpad button:disabled{opacity:.4}
+.answerbox{font-size:34px;font-weight:1000;min-height:46px;letter-spacing:4px;color:var(--yellow)}
+.stars-line{font-size:44px;letter-spacing:6px;color:var(--yellow);text-shadow:0 3px 0 #8d6b00}
+.stars-line .dim{opacity:.22}
+.hintbubble{margin:10px auto;max-width:430px;padding:10px 15px;border-radius:14px;background:rgba(255,216,90,.92);color:#2d3850;font-size:14px;font-weight:900;animation:pop2 .3s both}
+@keyframes pop2{0%{opacity:0;transform:scale(.7)}100%{opacity:1;transform:scale(1)}}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.lesson-illus{font-size:54px;margin:8px 0}
+.lesson-text{line-height:1.75;font-size:16px;max-width:430px;margin:10px auto}
+.lesson-text b{color:var(--yellow)}
+.dots{display:flex;gap:6px;justify-content:center;margin:12px 0}
+.dots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25)}
+.dots i.cur{background:var(--yellow)}
+.confetti-piece{position:fixed;z-index:80;width:9px;height:9px;pointer-events:none;animation:cfall linear both}
+@keyframes cfall{to{transform:translateY(110vh) rotate(720deg);opacity:.6}}
+.badgeline{display:flex;align-items:center;gap:12px;padding:11px;margin:8px 0;border-radius:14px;background:rgba(255,255,255,.07);text-align:left}
+.badgeline .bicon{font-size:30px}.badgeline.locked{opacity:.45}
+</style>
+</head>
+<body>
+<div id="fallback" class="screen" style="position:fixed"><div class="card"><b>載入中… Loading 算籌大冒險…</b><div class="small" style="margin-top:8px">若此訊息一直存在，請檢查網路連線（Vue 函式庫需從網路載入）。</div></div></div>
+<div id="app" class="game">
+
+<div v-if="screen==='menu'" class="screen"><div class="card"><div class="brand-chip"><i></i> 專為 Amber 打造 · Made for Amber</div>
+<div class="hero-scene"><div class="hero-glow"></div><div class="amber-avatar" aria-label="Amber"><div class="cape"></div><div class="hair"></div><div class="face"><div class="eyes"></div><div class="smile"></div></div><div class="body"><div class="star">★</div></div></div></div>
+<div class="logo">算籌大冒險<span class="en">Amber's Counting Rods</span></div>
+<div class="dedication">和 <b>Amber</b> 一起，用古代中國的小竹棍，擺出大大的數字、算出加加減減！<br><span class="small">Learn ancient Chinese counting rods, one rod at a time.</span></div>
+<div class="mode-cards"><button v-for="m in modes" :key="m.id" class="mode-card" :class="{active:save.mode===m.id}" @click="save.mode=m.id;persist()"><em>{{m.icon}}</em><strong>{{m.name}}</strong><span>{{m.id==='explorer'?'提示全開 Hints on':'平衡挑戰 Balanced'}}</span></button></div>
+<div class="worldmap"><div v-for="(w,i) in WORLDS" :key="i" class="wtile" :class="worldOpen(i)?'open':'locked'" @click="openWorld(i)"><em>{{w.icon}}</em><strong>{{w.name}}</strong><span class="wen">{{w.en}}</span><div class="wstars" v-if="worldOpen(i)">⭐ {{worldStars(i)}}/24</div><div class="wstars" v-else>🔒 需 {{UNLOCK_STARS}}⭐（{{WORLDS[i-1].name}}）</div><span v-if="worldOpen(i)" class="wlesson" @click.stop="replayLesson(i)">📖 課程 Lesson</span></div></div>
+<div class="quick-actions"><button class="quick" @click="panel='badges';screen='panel'">🏅 徽章 <b>{{save.badges.length}}/{{BADGES.length}}</b></button><button class="quick" @click="panel='badges';screen='panel'">💎 {{save.gems}}</button><button class="quick" @click="panel='settings';screen='panel'">⚙</button><button class="quick" @click="panel='help';screen='panel'">?</button><button class="quick" onclick="location.href='portal.html'" style="color:var(--sky)">← Games</button></div>
+<div class="small" style="margin-top:13px">⭐ 已收集 {{totalStars()}}/96 顆星</div></div></div>
+
+<div v-if="screen==='lesson'" class="screen"><div class="card">
+<div class="brand-chip"><i></i> {{WORLDS[wIdx].icon}} {{WORLDS[wIdx].name}} · 課程</div>
+<div class="hero-scene" style="height:95px;transform:scale(.72);margin:-10px auto -6px"><div class="hero-glow"></div><div class="amber-avatar"><div class="cape"></div><div class="hair"></div><div class="face"><div class="eyes"></div><div class="smile"></div></div><div class="body"><div class="star">★</div></div></div></div>
+<div class="lesson-illus">{{lessonCards[lessonPage].illus}}</div>
+<div class="lesson-text" v-html="lessonCards[lessonPage].text"></div>
+<div v-if="lessonCards[lessonPage].demo" class="rodboard"><div v-for="(c,ci) in cellsFor(lessonCards[lessonPage].demo,lessonCards[lessonPage].demoPlaces||1)" :key="ci" class="rodcell" :class="[c.form,{empty:c.digit===0}]"><div v-if="c.digit===0" class="rodzero">〇</div><template v-else><div v-if="c.digit>=6" class="rod" :class="c.form==='zong'?'h five':'v five'"></div><div class="rodunits" :class="c.form"><div v-for="k in unitsOf(c.digit)" :key="k" class="rod" :class="c.form==='zong'?'v':'h'"></div></div></template></div></div>
+<div class="dots"><i v-for="(c,i) in lessonCards" :key="i" :class="{cur:i===lessonPage}"></i></div>
+<div class="row"><button class="btn big" @click="lessonNext">{{lessonPage>=lessonCards.length-1?'▶ 開始 Play!':'下一步 ▶'}}</button></div>
+<div class="row" style="margin-top:10px"><button class="btn ghost" @click="lessonDone">略過課程 Skip</button></div>
+</div></div>
+
+<div v-if="screen==='play'" class="screen" style="align-items:flex-start">
+<div class="playwrap">
+<div class="hudbar"><span class="pillb">{{WORLDS[wIdx].icon}} {{WORLDS[wIdx].name}} · 第 {{lIdx+1}}/8 關</span><span class="pillb">💎 {{save.gems}}</span><button class="pillb" style="cursor:pointer" @click="quitLevel">✕ 地圖</button></div>
+<div class="card" :class="{shake:shaking}" style="width:100%">
+
+<template v-if="level.mode==='read'">
+<div class="small">這些算籌是多少？ What number is this?</div>
+<div class="rodboard"><div v-for="(c,ci) in displayCells" :key="ci" class="rodcell" :class="[c.form,{empty:c.digit===0}]"><div v-if="c.digit===0" class="rodzero">〇</div><template v-else><div v-if="c.digit>=6" class="rod" :class="c.form==='zong'?'h five':'v five'"></div><div class="rodunits" :class="c.form"><div v-for="k in unitsOf(c.digit)" :key="k" class="rod" :class="c.form==='zong'?'v':'h'"></div></div></template></div></div>
+<div v-if="save.mode==='explorer'" class="small">提示：由左到右，一縱一橫交替讀。</div>
+<div class="answerbox">{{answer||'_'}}</div>
+<div class="numpad"><button v-for="n in [1,2,3,4,5,6,7,8,9]" :key="n" :disabled="checking" @click="pad(n)">{{n}}</button><button :disabled="checking" @click="answer=''">C</button><button :disabled="checking" @click="pad(0)">0</button><button style="background:var(--green);color:#14213d" :disabled="checking||answer===''" @click="checkRead">✔</button></div>
+</template>
+
+<template v-if="level.mode==='build'">
+<div class="small">用算籌擺出這個數字！Build this number:</div>
+<div class="target-big">{{level.target}}</div>
+<div class="rodbuild"><div v-for="(c,ci) in buildCells" :key="ci" class="buildcol"><button class="stepbtn" :disabled="checking" @click="stepDigit(ci,1)">▲</button><div class="rodcell" :class="[c.form,{empty:c.digit===0}]"><div v-if="c.digit===0" class="rodzero">〇</div><template v-else><div v-if="c.digit>=6" class="rod" :class="c.form==='zong'?'h five':'v five'"></div><div class="rodunits" :class="c.form"><div v-for="k in unitsOf(c.digit)" :key="k" class="rod" :class="c.form==='zong'?'v':'h'"></div></div></template></div><div class="digitlabel">{{c.digit}}</div><button class="stepbtn" :disabled="checking" @click="stepDigit(ci,-1)">▼</button><div class="placelabel">{{placeName(c.pos)}}</div></div></div>
+<div class="total-chip">你排出：{{builtValue}}</div>
+</template>
+
+<template v-if="level.mode==='calc'">
+<div class="small">先算好，再用算籌擺出答案！Solve, then build the answer:</div>
+<div class="calcline">{{level.a}} {{level.op==='+'?'＋':'－'}} {{level.b}} = ?</div>
+<div class="calcrods"><div class="rodboard mini"><div v-for="(c,ci) in cellsFor(level.a,level.places)" :key="'a'+ci" class="rodcell" :class="[c.form,{empty:c.digit===0}]"><div v-if="c.digit===0" class="rodzero">〇</div><template v-else><div v-if="c.digit>=6" class="rod" :class="c.form==='zong'?'h five':'v five'"></div><div class="rodunits" :class="c.form"><div v-for="k in unitsOf(c.digit)" :key="k" class="rod" :class="c.form==='zong'?'v':'h'"></div></div></template></div></div><span class="calcop">{{level.op==='+'?'＋':'－'}}</span><div class="rodboard mini"><div v-for="(c,ci) in cellsFor(level.b,level.places)" :key="'b'+ci" class="rodcell" :class="[c.form,{empty:c.digit===0}]"><div v-if="c.digit===0" class="rodzero">〇</div><template v-else><div v-if="c.digit>=6" class="rod" :class="c.form==='zong'?'h five':'v five'"></div><div class="rodunits" :class="c.form"><div v-for="k in unitsOf(c.digit)" :key="k" class="rod" :class="c.form==='zong'?'v':'h'"></div></div></template></div></div></div>
+<div class="rodbuild"><div v-for="(c,ci) in buildCells" :key="ci" class="buildcol"><button class="stepbtn" :disabled="checking" @click="stepDigit(ci,1)">▲</button><div class="rodcell" :class="[c.form,{empty:c.digit===0}]"><div v-if="c.digit===0" class="rodzero">〇</div><template v-else><div v-if="c.digit>=6" class="rod" :class="c.form==='zong'?'h five':'v five'"></div><div class="rodunits" :class="c.form"><div v-for="k in unitsOf(c.digit)" :key="k" class="rod" :class="c.form==='zong'?'v':'h'"></div></div></template></div><div class="digitlabel">{{c.digit}}</div><button class="stepbtn" :disabled="checking" @click="stepDigit(ci,-1)">▼</button><div class="placelabel">{{placeName(c.pos)}}</div></div></div>
+<div class="total-chip">你排出：{{builtValue}}</div>
+</template>
+
+<div v-if="tutText" class="hintbubble">👉 {{tutText}}</div>
+<div v-if="hint" class="hintbubble">{{hint}}</div>
+<div class="row" style="margin-top:14px" v-if="level.mode!=='read'"><button class="btn big" :disabled="checking" @click="checkBuild">✔ 檢查 Check!</button></div>
+</div>
+</div>
+</div>
+
+<div v-if="screen==='result'" class="screen"><div class="card">
+<div class="amber-preview">{{earned===3?'🌟':earned===2?'😄':'👍'}}</div>
+<div class="logo" style="font-size:40px">{{earned===3?'太棒了！Perfect!':'過關！Done!'}}</div>
+<div class="stars-line"><span v-for="n in 3" :key="n" :class="{dim:n>earned}">★</span></div>
+<div class="tag">{{gemsWon?'+'+gemsWon+' 💎 · ':''}}{{earned===3?'一次就對，Amber 好厲害！':'每一次嘗試都讓你更強，Amber！'}}</div>
+<div class="row"><button class="btn big" @click="nextFromResult">{{lIdx>6?'回到地圖 Map':'下一關 ▶'}}</button></div>
+<div class="row" style="margin-top:12px"><button class="btn blue" @click="startLevel(wIdx,lIdx)">↻ 重玩 Replay</button><button class="btn ghost" @click="screen='menu'">⌂ 地圖 Map</button></div>
+</div></div>
+
+<div v-if="screen==='worldComplete'" class="screen"><div class="card">
+<div class="amber-preview">🏆</div>
+<div class="logo" style="font-size:38px">{{WORLDS[wIdx].name}} 全破！</div>
+<div class="tag">你精通了 <b>{{WORLDS[wIdx].name}}</b>！{{wIdx>2?'你破解了全部算籌 — Amber，你就是算籌大師！':'新的世界正等著你…'}}</div>
+<div class="row"><button class="btn big" @click="screen='menu'">▶ 繼續 Continue</button></div>
+<div class="row" style="margin-top:12px"><button class="btn blue" @click="startLevel(wIdx,0)">↻ 重玩世界</button></div>
+</div></div>
+
+<div v-if="screen==='panel'" class="screen"><div class="card">
+<div class="panel-head"><div class="panel-title"><h2>Amber 的算籌工具箱</h2><p>徽章、設定與說明。</p></div><button class="close-x" @click="screen='menu'">✕</button></div>
+<div class="tabs"><button class="btn" :class="{ghost:panel!=='badges'}" @click="panel='badges'">徽章 Badges</button><button class="btn" :class="{ghost:panel!=='settings'}" @click="panel='settings'">設定</button><button class="btn" :class="{ghost:panel!=='help'}" @click="panel='help'">說明</button></div>
+<div v-if="panel==='badges'"><h2>🏅 {{save.badges.length}}/{{BADGES.length}} · ⭐ {{totalStars()}}/96 · 💎 {{save.gems}}</h2>
+<div v-for="b in BADGES" :key="b.id" class="badgeline" :class="{locked:!save.badges.includes(b.id)}"><span class="bicon">{{save.badges.includes(b.id)?b.icon:'🔒'}}</span><div><b>{{b.name}}</b><div class="small">{{b.desc}}</div></div></div></div>
+<div v-if="panel==='settings'"><h2>設定 Settings</h2>
+<div class="setting"><span>音效 Sound</span><button class="switch" :class="{on:save.sound}" @click="save.sound=!save.sound;persist()"><i></i></button></div>
+<div class="setting"><span>減弱動態 Reduced motion</span><button class="switch" :class="{on:save.reduced}" @click="save.reduced=!save.reduced;persist()"><i></i></button></div>
+<div class="setting"><span>顯示提示 Show hints</span><button class="switch" :class="{on:save.hints}" @click="save.hints=!save.hints;persist()"><i></i></button></div></div>
+<div v-if="panel==='help'" class="help"><h2>怎麼玩 How to Play</h2>
+<p><b>算籌</b>是古代中國用來計算的小竹棍。擺幾根直棍就是幾；到 <b>6–9</b> 時，在上面加一根代表 <b>5</b> 的棍子。</p>
+<p><b>認識算籌：</b>看算籌，讀出數字。</p>
+<p><b>縱橫之道：</b>個位用直的（縱式），十位用橫的（橫式），一縱一橫交替，才不會看錯。</p>
+<p><b>擺數成百：</b>用上下箭頭調整每一位，排出題目要的數字；某一位是 <b>0</b> 就空著（〇）。</p>
+<p><b>籌算加減：</b>先算好算式，再用算籌把答案擺出來。</p>
+<p><b>星星：</b>第一次就對 = ★★★。星星可以解鎖新世界（需 {{UNLOCK_STARS}}⭐）。</p>
+<p><b>練習模式</b>會一直開著提示。</p></div>
+<button class="btn ghost" @click="screen='menu'">返回 Back</button></div></div>
+
+<div v-if="toast" :key="toastKey" class="toast">{{toast}}</div>
+</div>
+<script>
+(()=>{'use strict';
+const {createApp,ref,reactive,computed,onMounted,onBeforeUnmount}=Vue;
+createApp({setup(){
+const screen=ref('menu'),panel=ref('badges'),toast=ref(''),toastKey=ref(0);
+const modes=[{id:'explorer',name:'練習 Explorer',icon:'📖'},{id:'adventure',name:'挑戰 Adventure',icon:'🗺️'}];
+const UNLOCK_STARS=10;
+const WORLDS=[
+{icon:'🎋',name:'認識算籌',en:'Meet the Rods',
+ lesson:[
+  {illus:'🎋',text:'古時候還沒有原子筆和計算機，聰明的中國人就用一根根小竹棍擺在算板上算數，這就是 <b>算籌</b>！'},
+  {illus:'🔢',text:'最簡單的規矩：擺幾根<b>直棍</b>，就是幾。一根是 <b>1</b>，三根是 <b>3</b>… 一直到五根是 <b>5</b>。',demo:3},
+  {illus:'🖐️',text:'到了 <b>6</b>，太多棍會數不清！於是在上面<b>橫放一根代表 5</b>（粉紅色那根），下面再擺剩下的。所以 <b>7</b> = 5 + 2。',demo:7},
+  {illus:'✨',text:'看懂了嗎？下面的算籌是哪個數字呢？把它讀出來吧，Amber！'}],
+ levels:[
+  {mode:'read',places:1,value:1,guide:'數一數有幾根直棍，就按那個數字！'},
+  {mode:'read',places:1,value:3,guide:'還是數直棍的根數喔。'},
+  {mode:'read',places:1,value:2},
+  {mode:'read',places:1,value:5},
+  {mode:'read',places:1,value:6},
+  {mode:'read',places:1,value:8},
+  {mode:'read',places:1,value:9},
+  {mode:'read',places:1,value:7}]},
+{icon:'🀄',name:'縱橫之道',en:'Rows & Columns',
+ lesson:[
+  {illus:'↔️',text:'數字變大到 <b>十位</b> 怎麼辦？如果十位也用直棍，就會和個位擠在一起，分不清楚。'},
+  {illus:'🔀',text:'古人的妙招：<b>個位用直的（縱式），十位用橫的（橫式）</b>，一縱一橫交替排，就不會看錯了！'},
+  {illus:'🀄',text:'橫式就是把縱式轉個方向：擺幾根<b>橫棍</b>就是幾；到 6–9 就在上面<b>豎放一根</b>當 5。下面是十位的 <b>2</b>。',demo:20,demoPlaces:2},
+  {illus:'🔎',text:'試試看：左邊是十位（橫式），右邊是個位（縱式），合起來是多少呢？'}],
+ levels:[
+  {mode:'read',places:2,value:21,guide:'左邊橫式是十位，右邊縱式是個位。'},
+  {mode:'read',places:2,value:34},
+  {mode:'read',places:2,value:15},
+  {mode:'read',places:2,value:40},
+  {mode:'read',places:2,value:52},
+  {mode:'read',places:2,value:68},
+  {mode:'read',places:2,value:77},
+  {mode:'read',places:2,value:99}]},
+{icon:'💯',name:'擺數成百',en:'Up to Hundreds',
+ lesson:[
+  {illus:'💯',text:'再往上就是 <b>百位</b>！規矩一樣：個位縱、十位橫、百位又是縱，一直交替下去。下面是 <b>105</b>。',demo:105,demoPlaces:3},
+  {illus:'0️⃣',text:'如果某一位是 <b>0</b>，就把那個位子<b>空著</b>（我們畫一個小圈 〇 提醒你）。像 <b>205</b>：百位 2、十位空、個位 5。'},
+  {illus:'🧮',text:'這個世界你不只要<b>讀</b>算籌，還要自己<b>擺</b>！用上下箭頭 ▲▼ 調整每一位，排出題目要的數字。'}],
+ levels:[
+  {mode:'read',places:3,value:105},
+  {mode:'read',places:3,value:240},
+  {mode:'read',places:3,value:313},
+  {mode:'build',places:3,target:142},
+  {mode:'build',places:3,target:208},
+  {mode:'build',places:3,target:370},
+  {mode:'read',places:3,value:506},
+  {mode:'build',places:3,target:624}]},
+{icon:'➕',name:'籌算加減',en:'Rod Sums',
+ lesson:[
+  {illus:'➕',text:'算籌最厲害的地方，是能拿來<b>算加減</b>！古人把兩個數擺在算板上，合起來就得到答案。'},
+  {illus:'🧠',text:'這個世界會給你一道算式，例如 <b>23 ＋ 14</b>。先在心裡（或用手指）算好，再用算籌把<b>答案</b>擺出來。'},
+  {illus:'🏆',text:'加法把棍子合在一起，減法把棍子拿走。算對了，你就是真正的 <b>算籌大師</b> 啦！'}],
+ levels:[
+  {mode:'calc',op:'+',a:23,b:14,places:2},
+  {mode:'calc',op:'+',a:52,b:27,places:2},
+  {mode:'calc',op:'+',a:130,b:45,places:3},
+  {mode:'calc',op:'+',a:214,b:153,places:3},
+  {mode:'calc',op:'-',a:68,b:25,places:2},
+  {mode:'calc',op:'-',a:90,b:36,places:2},
+  {mode:'calc',op:'-',a:276,b:142,places:3},
+  {mode:'calc',op:'-',a:305,b:108,places:3}]}
+];
+const BADGES=[
+{id:'meet',icon:'🎋',name:'算籌新手',desc:'完成「認識算籌」的每一關',check:()=>worldDone(0)},
+{id:'grid',icon:'↔️',name:'縱橫通',desc:'完成「縱橫之道」的每一關',check:()=>worldDone(1)},
+{id:'hundred',icon:'💯',name:'百數大師',desc:'完成「擺數成百」的每一關',check:()=>worldDone(2)},
+{id:'sum',icon:'➕',name:'籌算高手',desc:'完成「籌算加減」的每一關',check:()=>worldDone(3)},
+{id:'perfect',icon:'🌟',name:'滿星大師',desc:'收集全部 96 顆星',check:()=>totalStars()===96},
+{id:'master',icon:'🏆',name:'算籌大師',desc:'贏得其他所有徽章',check:()=>['meet','grid','hundred','sum','perfect'].every(b=>save.badges.includes(b))}];
+const defaults={version:1,stars:{},gems:0,badges:[],mode:'adventure',sound:true,reduced:false,hints:true,seenLessons:[]};
+let loaded={};try{loaded=JSON.parse(localStorage.getItem('amber_suanchou_v1')||'{}')}catch(e){}
+const save=reactive({...defaults,...loaded,stars:{...(loaded.stars||{})},badges:[...(loaded.badges||[])],seenLessons:[...(loaded.seenLessons||[])]});
+function persist(){try{localStorage.setItem('amber_suanchou_v1',JSON.stringify(save))}catch(e){}}
+function worldStars(w){let s=0;for(const k in save.stars)if(k.startsWith(w+'-'))s+=save.stars[k];return s}
+function worldOpen(w){return w===0||worldStars(w-1)>=UNLOCK_STARS}
+function worldDone(w){return WORLDS[w].levels.every((_,l)=>(save.stars[w+'-'+l]||0)>0)}
+function totalStars(){return Object.values(save.stars).reduce((a,b)=>a+b,0)}
+function showToast(t){toast.value=t;toastKey.value++;setTimeout(()=>{if(toast.value===t)toast.value=''},1250)}
+// ---- rod helpers ----
+function fiveOf(d){return d>=6?1:0}
+function unitsOf(d){return d>=6?d-5:d}
+function cellsFor(value,places){const arr=[];for(let p=places-1;p>=0;p--){const d=Math.floor(value/Math.pow(10,p))%10;arr.push({digit:d,form:(p%2===0)?'zong':'heng',pos:p})}return arr}
+// ---- audio ----
+let audio=null;
+function initAudio(){if(!save.sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();audio.resume()}catch(e){}}
+function sfx(type){if(!save.sound||!audio)return;const map={gem:[700,1100,.12],win:[520,1040,.4],wrong:[220,110,.2],tick:[900,600,.05],land:[150,95,.07],step:[500,760,.06]};let[a,b,d]=map[type]||map.land,o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime;o.type=type==='wrong'?'sawtooth':'sine';o.frequency.setValueAtTime(a,t);o.frequency.exponentialRampToValueAtTime(b,t+d);g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(audio.destination);o.start();o.stop(t+d)}
+function confettiBurst(){if(save.reduced)return;const colors=['#ffd85a','#ff7262','#5bc8ff','#66d17a','#3fae86'];for(let i=0;i<36;i++){const el=document.createElement('div');el.className='confetti-piece';el.style.cssText=`left:${Math.random()*100}vw;top:-12px;background:${colors[i%5]};animation-duration:${1.2+Math.random()*1.4}s;animation-delay:${Math.random()*.4}s;border-radius:${Math.random()<.5?'50%':'2px'}`;document.body.appendChild(el);setTimeout(()=>el.remove(),3200)}}
+function checkBadges(){for(const b of BADGES){if(!save.badges.includes(b.id)&&b.check()){save.badges.push(b.id);persist();showToast('🏅 '+b.name+'!');sfx('win');confettiBurst()}}}
+// ---- play state ----
+const wIdx=ref(0),lIdx=ref(0),buildDigits=ref([]),tries=ref(0),answer=ref(''),hint=ref(''),shaking=ref(false),checking=ref(false),earned=ref(0),gemsWon=ref(0);
+const level=computed(()=>WORLDS[wIdx.value].levels[lIdx.value]);
+const levelId=computed(()=>wIdx.value+'-'+lIdx.value);
+const isTutorial=computed(()=>wIdx.value===0&&lIdx.value<2);
+const tutText=computed(()=>isTutorial.value&&level.value.guide?level.value.guide:'');
+const displayCells=computed(()=>level.value.mode==='read'?cellsFor(level.value.value,level.value.places):[]);
+const buildCells=computed(()=>buildDigits.value.map((d,i)=>{const pos=buildDigits.value.length-1-i;return{digit:d,pos:pos,form:(pos%2===0)?'zong':'heng'}}));
+const builtValue=computed(()=>buildDigits.value.reduce((s,d,i)=>s+d*Math.pow(10,buildDigits.value.length-1-i),0));
+const calcAnswer=computed(()=>level.value.op==='+'?level.value.a+level.value.b:level.value.a-level.value.b);
+function placeName(pos){return['個','十','百','千'][pos]||''}
+function openWorld(w){if(!worldOpen(w))return;wIdx.value=w;initAudio();if(!save.seenLessons.includes(w)){lessonPage.value=0;screen.value='lesson'}else startLevel(w,nextLevel(w))}
+function nextLevel(w){const i=WORLDS[w].levels.findIndex((_,l)=>!(save.stars[w+'-'+l]>0));return i<0?0:i}
+function startLevel(w,l){wIdx.value=w;lIdx.value=l;const lv=WORLDS[w].levels[l];tries.value=0;hint.value='';answer.value='';checking.value=false;
+ if(lv.mode==='build'||lv.mode==='calc')buildDigits.value=Array(lv.places).fill(0);else buildDigits.value=[];
+ screen.value='play';initAudio()}
+function stepDigit(i,delta){if(checking.value)return;const a=buildDigits.value.slice();a[i]=(a[i]+delta+10)%10;buildDigits.value=a;initAudio();sfx('step')}
+function pad(n){if(checking.value)return;if(answer.value.length>=level.value.places)return;answer.value+=n;initAudio();sfx('tick')}
+function quitLevel(){screen.value='menu'}
+function checkRead(){if(checking.value)return;tries.value++;
+ if(parseInt(answer.value,10)===level.value.value){finishLevel();return}
+ sfx('wrong');shaking.value=true;setTimeout(()=>shaking.value=false,450);answer.value='';
+ const wantHint=save.mode==='explorer'||(save.hints&&tries.value>=2);
+ hint.value=wantHint?`不太對喔 — 由左到右，一縱一橫加起來再想想！答案有 ${level.value.places} 位數。`:'不太對 — 再數數看算籌吧！'}
+function checkBuild(){if(checking.value)return;tries.value++;
+ const target=level.value.mode==='calc'?calcAnswer.value:level.value.target;
+ if(builtValue.value===target){finishLevel();return}
+ sfx('wrong');shaking.value=true;setTimeout(()=>shaking.value=false,450);
+ const wantHint=save.mode==='explorer'||(save.hints&&tries.value>=2);
+ if(wantHint){const d=target-builtValue.value;if(level.value.mode==='calc')hint.value=`先算 ${level.value.a} ${level.value.op==='+'?'＋':'－'} ${level.value.b}，答案是 ${target}。你排出的是 ${builtValue.value}。`;else hint.value=d>0?`你排出 ${builtValue.value} — 還差 ${d}！`:`你排出 ${builtValue.value} — 多了 ${-d}！`}
+ else hint.value='不太對 — 檢查每一位的算籌！'}
+// ---- scoring ----
+function starsFor(){return tries.value<=1?3:tries.value===2?2:1}
+function finishLevel(){if(checking.value)return;checking.value=true;sfx('win');const s=starsFor(),prev=save.stars[levelId.value]||0;earned.value=s;gemsWon.value=Math.max(0,s-prev)*2;save.gems+=gemsWon.value;if(s>prev)save.stars[levelId.value]=s;persist();confettiBurst();setTimeout(()=>{checking.value=false;screen.value=(lIdx.value===7&&worldDone(wIdx.value))?'worldComplete':'result';checkBadges()},700)}
+function nextFromResult(){if(lIdx.value<7)startLevel(wIdx.value,lIdx.value+1);else screen.value='menu'}
+// ---- lessons ----
+const lessonPage=ref(0);
+const lessonCards=computed(()=>WORLDS[wIdx.value].lesson);
+function lessonNext(){if(lessonPage.value<lessonCards.value.length-1){lessonPage.value++;initAudio();sfx('tick')}else lessonDone()}
+function lessonDone(){if(!save.seenLessons.includes(wIdx.value)){save.seenLessons.push(wIdx.value);persist()}startLevel(wIdx.value,nextLevel(wIdx.value))}
+function replayLesson(w){if(!worldOpen(w))return;wIdx.value=w;lessonPage.value=0;screen.value='lesson'}
+// ---- lifecycle ----
+const esc=e=>{if(e.code==='Escape'&&['panel','result','worldComplete'].includes(screen.value))screen.value='menu'};
+onMounted(()=>{const f=document.getElementById('fallback');if(f)f.style.display='none';window.addEventListener('keydown',esc)});
+onBeforeUnmount(()=>{window.removeEventListener('keydown',esc)});
+return{screen,panel,toast,toastKey,modes,UNLOCK_STARS,WORLDS,BADGES,save,persist,worldStars,worldOpen,totalStars,initAudio,sfx,
+wIdx,lIdx,buildDigits,tries,answer,hint,shaking,checking,earned,gemsWon,level,displayCells,buildCells,builtValue,calcAnswer,
+fiveOf,unitsOf,cellsFor,placeName,tutText,
+openWorld,startLevel,stepDigit,pad,quitLevel,checkRead,checkBuild,nextFromResult,
+lessonPage,lessonCards,lessonNext,lessonDone,replayLesson};
+}}).mount('#app');})();
+</script>
+<script src="playtime.js?v=2"></script>
+</body></html>

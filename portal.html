@@ -1,0 +1,1319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Amber's Games">
+<meta name="theme-color" content="#0b1530">
+<meta name="description" content="Amber's collection of fun games — play, learn, and create.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
+<link rel="icon" href="favicon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Amber's Games</title>
+<style>
+  :root {
+    --bg: #0b1530;
+    --bg-deep: #070f22;
+    --ink: #f4f6ff;
+    --muted: #a8b3d6;
+    --soft: #7a85a8;
+    --line: rgba(255,255,255,0.10);
+    --line-strong: rgba(255,255,255,0.24);
+    --card: rgba(255,255,255,0.055);
+    --card-hi: rgba(255,255,255,0.10);
+    --gold: #ffd180;
+    --coral: #ff8a65;
+    --cyan: #5ffbf1;
+    --ease: cubic-bezier(.2,.8,.2,1);
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-r: env(safe-area-inset-right, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-l: env(safe-area-inset-left, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; min-height: 100%; min-height: 100dvh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Layered static gradients only — no heavy filters on every card */
+  .bg {
+    position: fixed; inset: 0; z-index: -1; overflow: hidden;
+    background:
+      radial-gradient(900px 480px at 10% -6%, rgba(255,138,101,0.26), transparent 60%),
+      radial-gradient(720px 420px at 92% 4%, rgba(66,165,245,0.22), transparent 58%),
+      radial-gradient(640px 380px at 50% 108%, rgba(171,71,188,0.16), transparent 55%),
+      radial-gradient(420px 280px at 70% 40%, rgba(95,251,241,0.06), transparent 70%),
+      linear-gradient(180deg, #101f42 0%, #0b1530 42%, #070f22 100%);
+  }
+  /* Soft orbs: transform-only, no will-change permanent (cheaper idle) */
+  .bg .orb {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    opacity: 0.42;
+    /* pre-blurred via large soft gradients instead of filter:blur */
+    filter: none;
+  }
+  .bg .o1 {
+    width: 420px; height: 420px; left: -90px; top: -120px;
+    background: radial-gradient(circle, rgba(255,138,101,0.55) 0%, rgba(255,138,101,0.12) 42%, transparent 70%);
+    animation: drift1 28s var(--ease) infinite alternate;
+  }
+  .bg .o2 {
+    width: 480px; height: 480px; right: -140px; top: -80px;
+    background: radial-gradient(circle, rgba(66,165,245,0.48) 0%, rgba(66,165,245,0.1) 42%, transparent 70%);
+    animation: drift2 34s var(--ease) infinite alternate;
+  }
+  .bg .o3 {
+    width: 380px; height: 380px; left: 30%; bottom: -180px;
+    background: radial-gradient(circle, rgba(171,71,188,0.38) 0%, rgba(171,71,188,0.1) 42%, transparent 70%);
+    animation: drift3 38s var(--ease) infinite alternate;
+  }
+  /* Static star dust — pure CSS, no JS particles */
+  .bg .stars {
+    position: absolute; inset: 0; opacity: 0.55; pointer-events: none;
+    background-image:
+      radial-gradient(1.5px 1.5px at 8% 12%, rgba(255,255,255,0.55), transparent),
+      radial-gradient(1px 1px at 22% 38%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1.5px 1.5px at 48% 18%, rgba(255,209,128,0.45), transparent),
+      radial-gradient(1px 1px at 72% 28%, rgba(255,255,255,0.35), transparent),
+      radial-gradient(1.5px 1.5px at 88% 14%, rgba(95,251,241,0.4), transparent),
+      radial-gradient(1px 1px at 15% 68%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1px 1px at 36% 78%, rgba(255,255,255,0.28), transparent),
+      radial-gradient(1.5px 1.5px at 62% 72%, rgba(255,138,101,0.35), transparent),
+      radial-gradient(1px 1px at 81% 58%, rgba(255,255,255,0.32), transparent),
+      radial-gradient(1px 1px at 94% 82%, rgba(255,255,255,0.28), transparent);
+  }
+  @keyframes drift1 { to { transform: translate3d(48px, 36px, 0) scale(1.06); } }
+  @keyframes drift2 { to { transform: translate3d(-36px, 48px, 0) scale(1.04); } }
+  @keyframes drift3 { to { transform: translate3d(24px, -40px, 0) scale(1.06); } }
+
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding:
+      max(28px, calc(var(--safe-t) + 20px))
+      max(18px, calc(var(--safe-r) + 14px))
+      max(88px, calc(var(--safe-b) + 56px))
+      max(18px, calc(var(--safe-l) + 14px));
+  }
+
+  header { text-align: center; margin-bottom: 20px; }
+  .hero-shell {
+    position: relative;
+    padding: 4px 0 2px;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 15px 7px 12px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04));
+    border: 1px solid rgba(255,255,255,0.14);
+    font-size: 11px; font-weight: 800;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: #d4dcff;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 24px -16px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+  .badge .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #69f0ae;
+    box-shadow: 0 0 0 4px rgba(105,240,174,0.18), 0 0 12px rgba(105,240,174,0.55);
+    animation: pulse 2.6s var(--ease) infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.28); opacity: 0.78; }
+  }
+
+  h1 {
+    font-size: clamp(36px, 7.5vw, 60px);
+    font-weight: 900;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+    background: linear-gradient(125deg, #FFB199 0%, #FF8A65 28%, #FFD180 52%, #A5D6FF 78%, #CE93D8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 10px 28px rgba(255,138,101,0.18));
+  }
+  .sub {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.55;
+    max-width: 540px;
+    margin: 0 auto;
+    font-weight: 500;
+  }
+  .note {
+    margin: 14px auto 0;
+    max-width: 460px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    background:
+      linear-gradient(145deg, rgba(255,209,128,0.1), rgba(255,255,255,0.03));
+    border: 1px solid rgba(255,209,128,0.26);
+    color: #e8ecff;
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.5;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .note b { color: var(--gold); font-weight: 800; }
+
+  .progress {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+    margin: 16px auto 0;
+    max-width: 560px;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 13px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.04));
+    border: 1px solid var(--line);
+    font-size: 12px; font-weight: 800;
+    color: #e8ecff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .pill b { color: var(--gold); font-variant-numeric: tabular-nums; }
+  .pill.soft { color: var(--muted); font-weight: 700; }
+  .pill.soft b { color: var(--cyan); }
+
+  .continue {
+    display: none;
+    margin: 20px 0 8px;
+    text-decoration: none; color: inherit;
+    border-radius: 22px;
+    border: 1px solid rgba(255,209,128,0.32);
+    background:
+      linear-gradient(120deg, rgba(255,138,101,0.2), rgba(66,165,245,0.14) 55%, rgba(255,209,128,0.1)),
+      rgba(255,255,255,0.04);
+    padding: 14px 16px;
+    align-items: center; gap: 14px;
+    box-shadow: 0 14px 36px -22px rgba(255,138,101,0.55), inset 0 1px 0 rgba(255,255,255,0.1);
+    transition: transform .22s var(--ease), border-color .22s var(--ease), box-shadow .22s var(--ease);
+  }
+  .continue.show { display: flex; }
+  .continue:hover, .continue:focus-visible {
+    border-color: rgba(255,209,128,0.5);
+    box-shadow: 0 18px 40px -18px rgba(255,138,101,0.65), inset 0 1px 0 rgba(255,255,255,0.14);
+  }
+  .continue:active { transform: scale(0.985); }
+  .continue .ico {
+    width: 54px; height: 54px; border-radius: 16px; flex-shrink: 0;
+    display: grid; place-items: center; font-size: 28px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.14), rgba(0,0,0,0.3));
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 8px 18px -10px rgba(0,0,0,0.55);
+  }
+  .continue .body { flex: 1; min-width: 0; text-align: left; }
+  .continue .kicker {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 3px;
+  }
+  .continue .name { font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .continue .meta { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .continue .go {
+    font-size: 13px; font-weight: 900; color: #062032;
+    background: linear-gradient(135deg, #ffd180, #ff8a65);
+    padding: 10px 14px; border-radius: 12px; flex-shrink: 0;
+    box-shadow: 0 6px 0 #c75b39, 0 10px 18px -8px rgba(0,0,0,0.45);
+  }
+
+  .filters {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    justify-content: center;
+    margin: 20px 0 10px;
+    position: sticky;
+    top: max(6px, var(--safe-t));
+    z-index: 8;
+    padding: 10px 6px 12px;
+    /* solid-ish sticky bar — cheaper than strong blur on scroll */
+    background: linear-gradient(180deg, rgba(8,14,30,0.94) 0%, rgba(8,14,30,0.88) 72%, rgba(8,14,30,0));
+  }
+  .chip {
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.055);
+    color: #d8e0ff;
+    font: inherit; font-size: 13px; font-weight: 800;
+    padding: 9px 15px; min-height: 42px;
+    border-radius: 999px; cursor: pointer;
+    touch-action: manipulation;
+    transition: background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease), box-shadow .18s var(--ease), transform .12s var(--ease);
+  }
+  .chip:active { transform: scale(0.96); }
+  .chip.on {
+    background: linear-gradient(135deg, rgba(255,138,101,0.42), rgba(66,165,245,0.32));
+    border-color: rgba(255,255,255,0.32);
+    color: #fff;
+    box-shadow: 0 10px 24px -14px rgba(255,138,101,0.7), inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+  .chip .n {
+    display: inline-block; margin-left: 5px;
+    opacity: 0.72; font-variant-numeric: tabular-nums;
+  }
+
+  .section {
+    margin-top: 24px;
+  }
+  .section-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 10px; margin-bottom: 14px; padding: 0 4px;
+  }
+  .section-head h2 {
+    font-size: 12px; font-weight: 900;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: #d6deff;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .section-head h2::before {
+    content: "";
+    width: 8px; height: 8px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--coral), var(--gold));
+    box-shadow: 0 0 12px rgba(255,138,101,0.55);
+  }
+  .section-head h2 span {
+    opacity: 0.55; font-weight: 700; margin-left: 2px;
+    padding: 2px 8px; border-radius: 999px;
+    background: rgba(255,255,255,0.06); border: 1px solid var(--line);
+  }
+  .section-head .blurb {
+    font-size: 12px; color: var(--soft); font-weight: 600; text-align: right;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 14px;
+  }
+
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none; color: inherit;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 18px 18px 16px;
+    overflow: hidden;
+    isolation: isolate;
+    min-height: 252px;
+    /* GPU-friendly: no backdrop-filter on cards (was expensive ×12) */
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.06) inset,
+      0 16px 36px -24px rgba(0,0,0,0.55);
+    transition: transform .22s var(--ease),
+                border-color .22s var(--ease),
+                box-shadow .22s var(--ease);
+    opacity: 0;
+    transform: translateY(12px);
+    animation: rise .5s var(--ease) forwards;
+    content-visibility: auto;
+    contain-intrinsic-size: 280px;
+  }
+  .card:nth-child(1) { animation-delay: .02s; }
+  .card:nth-child(2) { animation-delay: .06s; }
+  .card:nth-child(3) { animation-delay: .10s; }
+  .card:nth-child(4) { animation-delay: .14s; }
+  .card:nth-child(5) { animation-delay: .18s; }
+  .card:nth-child(6) { animation-delay: .22s; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  .card::before {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background: var(--accent);
+    opacity: 0.72;
+    transition: opacity .22s var(--ease);
+  }
+  /* Top edge shine — cheap gradient, no blur */
+  .card::after {
+    content: "";
+    position: absolute; left: 12%; right: 12%; top: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
+    opacity: 0.7; pointer-events: none;
+  }
+  .card:hover, .card:focus-visible {
+    transform: translateY(-5px);
+    border-color: var(--line-strong);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.1) inset,
+      0 22px 48px -20px rgba(0,0,0,0.65),
+      0 0 0 1px rgba(255,255,255,0.06);
+  }
+  .card:hover::before, .card:focus-visible::before { opacity: 0.95; }
+  .card:focus-visible { outline: 2px solid #82B1FF; outline-offset: 3px; }
+  .card:active { transform: scale(0.985); }
+
+  .top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 12px; gap: 8px;
+  }
+  .icon {
+    width: 58px; height: 58px;
+    border-radius: 18px;
+    display: grid; place-items: center;
+    font-size: 30px; line-height: 1;
+    background: linear-gradient(160deg, rgba(255,255,255,0.16), rgba(0,0,0,0.28));
+    border: 1px solid rgba(255,255,255,0.16);
+    box-shadow:
+      0 10px 20px -12px rgba(0,0,0,0.65),
+      inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+  .badges { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .idx {
+    font-variant-numeric: tabular-nums;
+    font-size: 11px; font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--soft);
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.18);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .played {
+    font-size: 10px; font-weight: 900;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 999px;
+    background: rgba(255,209,128,0.18);
+    border: 1px solid rgba(255,209,128,0.4);
+    color: var(--gold);
+    box-shadow: 0 0 16px -6px rgba(255,209,128,0.55);
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px; font-weight: 800;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.09);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #e0e6ff;
+    margin-bottom: 8px;
+  }
+  .card h3 {
+    font-size: 19px; font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+  .card p {
+    color: var(--muted);
+    font-size: 13.5px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+    flex: 1 1 auto;
+  }
+  .best-stat {
+    display: block;
+    font-size: 12px; font-weight: 800;
+    color: var(--gold);
+    margin-bottom: 10px;
+    letter-spacing: 0.02em;
+    min-height: 1.25em;
+  }
+  .best-stat.empty { opacity: 0; }
+  .time-stat {
+    display: block;
+    font-size: 11px; font-weight: 800;
+    color: var(--cyan);
+    margin: -6px 0 10px;
+    letter-spacing: 0.02em;
+    opacity: 0.92;
+  }
+  .time-stat.empty { display: none; }
+
+  /* Floating play-time clock — top right */
+  .playtime-float {
+    position: fixed;
+    top: max(10px, calc(var(--safe-t) + 8px));
+    right: max(10px, calc(var(--safe-r) + 8px));
+    z-index: 40;
+    width: auto;
+    max-width: min(220px, calc(100vw - 20px));
+    border-radius: 18px;
+    border: 1px solid rgba(95,251,241,0.4);
+    background:
+      linear-gradient(160deg, rgba(12,22,48,0.94), rgba(18,32,64,0.92));
+    box-shadow:
+      0 12px 28px -12px rgba(0,0,0,0.7),
+      0 0 0 1px rgba(255,255,255,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+    color: var(--ink);
+    font-family: inherit;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: transform .15s var(--ease), box-shadow .15s var(--ease);
+  }
+  .playtime-float:active { transform: scale(0.98); }
+  .playtime-float.offline { border-color: rgba(255,138,101,0.45); }
+
+  .playtime-float .pt-mini {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px 8px 9px;
+    min-height: 44px;
+  }
+  .playtime-float .pt-mini .ico {
+    width: 28px; height: 28px; border-radius: 10px; flex-shrink: 0;
+    display: grid; place-items: center; font-size: 14px;
+    background: linear-gradient(135deg, rgba(95,251,241,0.2), rgba(255,138,101,0.18));
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .playtime-float .pt-mini .meta { min-width: 0; flex: 1; text-align: left; }
+  .playtime-float .pt-mini .label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 9px; font-weight: 900; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #b8f7f3; line-height: 1.1;
+  }
+  .playtime-float .pt-mini .label .blink {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #ff5252;
+    box-shadow: 0 0 0 2px rgba(255,82,82,0.25);
+    animation: liveBlink 1s steps(2) infinite;
+  }
+  @keyframes liveBlink { 50% { opacity: 0.25; } }
+  .playtime-float .pt-session {
+    font-variant-numeric: tabular-nums;
+    font-size: 18px; font-weight: 900;
+    letter-spacing: 0.02em; line-height: 1.15;
+    margin-top: 1px;
+    background: linear-gradient(135deg, #fff 0%, #5ffbf1 50%, #ffd180 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .playtime-float .pt-chev {
+    width: 18px; height: 18px; border-radius: 999px; flex-shrink: 0;
+    display: grid; place-items: center;
+    font-size: 10px; font-weight: 900; color: #9ad;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: transform .18s var(--ease);
+  }
+  .playtime-float.open .pt-chev { transform: rotate(180deg); }
+
+  .playtime-float .pt-detail {
+    display: none;
+    padding: 0 10px 10px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin-top: -2px;
+  }
+  .playtime-float.open .pt-detail { display: block; padding-top: 8px; }
+  .playtime-float .pt-row {
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .playtime-float .pt-chip {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    background: rgba(0,0,0,0.22);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 6px 9px;
+  }
+  .playtime-float .pt-chip b {
+    color: var(--gold); font-weight: 900; font-variant-numeric: tabular-nums;
+  }
+  .playtime-float .pt-chip.cyan b { color: var(--cyan); }
+  .playtime-float .pt-top {
+    margin-top: 7px;
+    font-size: 10px; color: var(--soft); font-weight: 600;
+    line-height: 1.35; text-align: left;
+  }
+  .playtime-float .pt-top strong { color: var(--ink); font-weight: 800; }
+
+  .pill.clock-pill b { color: var(--cyan); }
+  .play {
+    display: inline-flex; align-items: center; justify-content: space-between;
+    gap: 8px;
+    font-weight: 800; font-size: 14px;
+    color: #fff;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(255,255,255,0.14);
+    width: 100%;
+    margin-top: auto;
+  }
+  .play .arrow {
+    display: inline-grid; place-items: center;
+    width: 30px; height: 30px; border-radius: 999px;
+    background: linear-gradient(135deg, rgba(255,209,128,0.28), rgba(255,138,101,0.22));
+    border: 1px solid rgba(255,255,255,0.14);
+    transition: transform .2s var(--ease), background .2s var(--ease);
+  }
+  .card:hover .play .arrow {
+    transform: translateX(4px);
+    background: linear-gradient(135deg, rgba(255,209,128,0.45), rgba(255,138,101,0.35));
+  }
+
+  .empty {
+    text-align: center; padding: 36px 16px; color: var(--muted);
+    font-weight: 600; display: none;
+  }
+  .empty.show { display: block; }
+
+  footer {
+    text-align: center;
+    margin-top: 44px;
+    color: var(--soft);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    line-height: 1.65;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  footer .sep { opacity: 0.45; margin: 0 7px; }
+  footer .heart {
+    display: inline-block;
+    color: #ff8a80;
+    transform-origin: center;
+  }
+
+  @media (min-width: 720px) {
+    .grid { gap: 16px; }
+    .card { min-height: 268px; padding: 20px; }
+    .continue { padding: 16px 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bg .orb, .badge .dot, .card { animation: none !important; }
+    .card { opacity: 1; transform: none; }
+    .card:hover, .card:focus-visible { transform: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true">
+    <span class="orb o1"></span>
+    <span class="orb o2"></span>
+    <span class="orb o3"></span>
+    <span class="stars"></span>
+  </div>
+
+  <div class="wrap">
+    <header class="hero-shell">
+      <span class="badge"><span class="dot"></span>Amber's Arcade</span>
+      <h1>Hi Amber!</h1>
+      <p class="sub">This whole arcade is yours — swim as a shark, drop through floors, match crystals, type fast, and dress up however you imagine. Have fun, be brave, and try to beat your own best.</p>
+      <p class="note" id="note"></p>
+      <div class="progress" id="progress" aria-live="polite"></div>
+    </header>
+
+    <a class="continue" id="continue" href="#" hidden></a>
+
+    <nav class="filters" id="filters" aria-label="Game categories"></nav>
+
+    <div id="sections"></div>
+    <div class="empty" id="empty">Hmm, nothing here right now — try another group, Amber!</div>
+
+    <footer>
+      Made with <span class="heart" aria-hidden="true">♥</span> for Amber <span class="sep">&middot;</span> You are awesome
+      <span class="sep">&middot;</span> Tap a card and play
+    </footer>
+  </div>
+
+  <!-- Floating play-time clock (top-right) -->
+  <button type="button" class="playtime-float" id="playtime" aria-live="polite" aria-expanded="false" title="Play time">
+    <div class="pt-mini">
+      <span class="ico" aria-hidden="true">⏱</span>
+      <span class="meta">
+        <span class="label"><span class="blink" aria-hidden="true"></span> Live</span>
+        <span class="pt-session" id="pt-session">0:00</span>
+      </span>
+      <span class="pt-chev" aria-hidden="true">▾</span>
+    </div>
+    <div class="pt-detail">
+      <div class="pt-row">
+        <span class="pt-chip"><span>Today</span><b id="pt-today">—</b></span>
+        <span class="pt-chip cyan"><span>All-time</span><b id="pt-total">—</b></span>
+        <span class="pt-chip"><span>Sessions</span><b id="pt-sessions">—</b></span>
+      </div>
+      <div class="pt-top" id="pt-top">Tap games to add time</div>
+    </div>
+  </button>
+
+<script src="playtime.js?v=2"></script>
+<script>
+(function () {
+  const GAMES = [
+    {
+      title: "Amber's Shark Hunt",
+      file: "shark.html",
+      icon: "\uD83E\uDD88",
+      tag: "Arcade",
+      group: "play",
+      stat: "Best score",
+      desc: "Eat, grow, dash, and hold the apex \u2014 become the ocean's top shark!",
+      accent: "linear-gradient(135deg, rgba(6,47,90,0.5), rgba(95,251,241,0.24))"
+    },
+    {
+      title: "Amber's Big Drop",
+      file: "down100.html",
+      icon: "\uD83E\uDE91",
+      tag: "Platformer",
+      group: "play",
+      stat: "Best floor",
+      desc: "Help Amber conquer 100 mysterious floors in this fast mobile platformer.",
+      accent: "linear-gradient(135deg, rgba(76,175,80,0.3), rgba(66,165,245,0.28))"
+    },
+    {
+      title: "Amber's Star Catcher",
+      file: "starcatcher.html",
+      icon: "\u2B50",
+      tag: "Arcade",
+      group: "play",
+      stat: "Best score",
+      desc: "Catch falling stars, finish wave missions, and ride the fever combo!",
+      accent: "linear-gradient(135deg, rgba(124,77,255,0.34), rgba(24,255,255,0.22))"
+    },
+    {
+      title: "Amber's Crystal Match",
+      file: "crystal.html",
+      icon: "\uD83D\uDC8E",
+      tag: "Puzzle",
+      group: "play",
+      stat: "Best score",
+      desc: "Swap crystals, chain combos, and clear each wave's mission!",
+      accent: "linear-gradient(135deg, rgba(171,71,188,0.34), rgba(66,165,245,0.26))"
+    },
+    {
+      title: "Amber's Greedy Snake",
+      file: "snake.html",
+      icon: "\uD83D\uDC0D",
+      tag: "Classic",
+      group: "play",
+      stat: "Best score",
+      desc: "Eat, grow, and clear every level without biting yourself.",
+      accent: "linear-gradient(135deg, rgba(76,175,80,0.32), rgba(255,138,101,0.26))"
+    },
+    {
+      title: "Amber's Starlight Pinball",
+      file: "pinball.html",
+      icon: "\uD83C\uDFB0",
+      tag: "Arcade",
+      group: "play",
+      stat: "Best score",
+      desc: "Launch through the crystal gateway, flip for moon gems, and spell AMBER for a starlight bonus!",
+      accent: "linear-gradient(135deg, rgba(153,102,255,0.36), rgba(255,200,87,0.28))"
+    },
+    {
+      title: "Amber's Kite Runner",
+      file: "kite.html",
+      icon: "\uD83E\uDE81",
+      tag: "Arcade",
+      group: "play",
+      stat: "Best score",
+      desc: "Hold to soar, let go to glide — weave through clouds, grab stars, ride the wind, and dodge the birds!",
+      accent: "linear-gradient(135deg, rgba(95,216,255,0.36), rgba(255,138,101,0.28))"
+    },
+    {
+      title: "Amber's Big Two",
+      file: "bigtwo/index.html",
+      icon: "\uD83C\uDFB4",
+      tag: "Cards",
+      group: "play",
+      stat: "Best stars",
+      desc: "Hong Kong Big Two (鋤大D) with Maple, Finn & Pip — empty your hand and earn stars!",
+      accent: "linear-gradient(135deg, rgba(45,27,78,0.45), rgba(255,138,101,0.3))"
+    },
+    {
+      title: "Amber's Typing Adventure",
+      file: "typing.html",
+      icon: "\uD83D\uDC27",
+      tag: "Typing",
+      group: "learn",
+      stat: "Best score",
+      desc: "Four typing games: falling words, bubble spell, word race, and sentences.",
+      accent: "linear-gradient(135deg, rgba(255,138,101,0.32), rgba(255,111,97,0.22))"
+    },
+    {
+      title: "Shop with Amber",
+      file: "shop.html",
+      icon: "\uD83D\uDED2",
+      tag: "Money",
+      group: "learn",
+      stat: "Best score",
+      desc: "Make change, fill the cart, and spot the best deal.",
+      accent: "linear-gradient(135deg, rgba(38,198,218,0.3), rgba(102,187,106,0.26))"
+    },
+    {
+      title: "Amber's Space Math",
+      file: "space.html",
+      icon: "\uD83D\uDE80",
+      tag: "Math",
+      group: "learn",
+      stat: "Best score",
+      desc: "Defend the rocket, race the clock, and fill a bingo board with arithmetic.",
+      accent: "linear-gradient(135deg, rgba(124,77,255,0.34), rgba(24,255,255,0.22))"
+    },
+    {
+      title: "Amber's Pet Clinic",
+      file: "petclinic.html",
+      icon: "\uD83D\uDC3E",
+      tag: "Care",
+      group: "learn",
+      stat: "Best score",
+      desc: "Feed, bathe, and cheer up little patients — match each pet's needs!",
+      accent: "linear-gradient(135deg, rgba(38,166,154,0.34), rgba(129,212,250,0.28))"
+    },
+    {
+      title: "Amber's Style Studio",
+      file: "dressup.html",
+      icon: "\uD83D\uDC57",
+      tag: "Create",
+      group: "create",
+      stat: "Studio best",
+      desc: "Imagine outfits for Amber and friends \u2014 save your favorite looks!",
+      accent: "linear-gradient(135deg, rgba(255,138,101,0.34), rgba(171,71,188,0.3))"
+    },
+    {
+      title: "Amber's Beauty Salon",
+      file: "salon.html",
+      icon: "\uD83D\uDC87",
+      tag: "Create",
+      group: "create",
+      stat: "Best score",
+      desc: "Style hair, makeup, and nails to match each customer's wishes — open the salon or free style!",
+      accent: "linear-gradient(135deg, rgba(233,30,99,0.34), rgba(255,138,101,0.28))"
+    },
+    {
+      title: "Amber's Farm",
+      file: "farm/index.html",
+      icon: "\uD83C\uDF3E",
+      tag: "Adventure",
+      group: "play",
+      stat: "Best stars",
+      desc: "Run your own farm \u2014 plant, fish, raise animals, cook, and chase farm stars in this cozy Stardew-style world.",
+      accent: "linear-gradient(135deg, rgba(232,148,26,0.36), rgba(124,179,66,0.3))"
+    },
+    {
+      title: "Amber\u7684\u7B97\u7C4C\u5927\u5192\u96AA",
+      file: "suanchou.html",
+      icon: "\uD83C\uDF8B",
+      tag: "Math",
+      group: "learn",
+      stat: "Best stars",
+      desc: "\u7528\u53E4\u4EE3\u4E2D\u570B\u7684\u7B97\u7C4C\u5C0F\u7AF9\u68CD\uFF0C\u64FA\u51FA\u5927\u5927\u7684\u6578\u5B57\u3001\u7B97\u51FA\u52A0\u52A0\u6E1B\u6E1B \u2014 learn ancient counting rods!",
+      accent: "linear-gradient(135deg, rgba(63,174,134,0.4), rgba(139,230,196,0.28))"
+    },
+    {
+      title: "Amber's Binary Quest",
+      file: "binary.html",
+      icon: "💡",
+      tag: "Code",
+      group: "learn",
+      stat: "Best stars",
+      desc: "Crack the secret code of computers — flip binary switches, read patterns, decode secret messages, and race the lightning clock!",
+      accent: "linear-gradient(135deg, rgba(91,200,255,0.35), rgba(185,108,255,0.25))"
+    }
+  ];
+
+  const GROUPS = [
+    { id: "all", label: "All", blurb: "" },
+    { id: "play", label: "Play", blurb: "Action time, Amber!" },
+    { id: "learn", label: "Learn", blurb: "Brain power, superstar" },
+    { id: "create", label: "Create", blurb: "Your style, your rules" },
+  ];
+
+  const NOTES = [
+    "Amber, you get better every time you play — one more try can make a new best!",
+    "Proud of you for learning and playing. Pick something that makes you smile today.",
+    "Remember: Easy is for practice, Hard is for heroes. You choose the adventure.",
+    "If a game feels tough, take a breath and try again. You've got this, Amber!",
+    "Save your Style Studio looks — your ideas are pure magic.",
+    "Shark, stars, Big Two, pinball… which Amber adventure today?",
+    "Be kind to yourself when you lose. Champions practice, then win.",
+    "You can play a little or a lot — this portal always waits for you, Amber."
+  ];
+
+  const BEST_BY_FILE = {
+    'shark.html': () => {
+      const lvls = ['easy','med','hard'];
+      let best = 0;
+      for (const l of lvls) {
+        const n = parseInt(localStorage.getItem('shark_best_'+l) || '0', 10);
+        const legacy = parseInt(localStorage.getItem('wild_best_shark_'+l) || '0', 10);
+        const v = Math.max(n || 0, legacy || 0);
+        if (v > best) best = v;
+      }
+      return best;
+    },
+    'down100.html': () => {
+      const lvls = ['easy','normal','hard'];
+      let best = 0;
+      for (const l of lvls) {
+        const v = parseInt(localStorage.getItem('down100_best_'+l) || '0', 10);
+        if (v > best) best = v;
+      }
+      return best;
+    },
+    'typing.html': () => {
+      const lvls = ['easy','med','hard'], subs = ['fw','bs','wr','st'];
+      let best = 0;
+      for (const s of subs) for (const l of lvls) {
+        const v = parseInt(localStorage.getItem('typing_best_'+s+'_'+l) || '0', 10);
+        if (v > best) best = v;
+      }
+      return best;
+    },
+    'shop.html': () => {
+      const lvls = ['easy','med','hard'], subs = ['cc','sc','bd'];
+      let best = 0;
+      for (const s of subs) for (const l of lvls) {
+        const v = parseInt(localStorage.getItem('shop_best_'+s+'_'+l) || '0', 10);
+        if (v > best) best = v;
+      }
+      return best;
+    },
+    'snake.html': () => {
+      const diffs = ['easy','normal','hard'];
+      let best = 0;
+      for (const d of diffs) {
+        const v = parseInt(localStorage.getItem('snake_best_'+d) || '0', 10);
+        if (v > best) best = v;
+      }
+      return best;
+    },
+    'pinball.html': () => {
+      try {
+        return parseInt(localStorage.getItem('pinball_best') || '0', 10) || 0;
+      } catch (e) { return 0; }
+    },
+    'kite.html': () => {
+      try {
+        return parseInt(localStorage.getItem('kite_best') || '0', 10) || 0;
+      } catch (e) { return 0; }
+    },
+    'bigtwo/index.html': () => {
+      try {
+        const raw = localStorage.getItem('ambersBigTwo_bests');
+        if (!raw) return 0;
+        const data = JSON.parse(raw);
+        let best = 0;
+        for (const k of ['easy', 'normal', 'hard', 'expert']) {
+          const v = parseInt(data[k] || 0, 10) || 0;
+          if (v > best) best = v;
+        }
+        return best;
+      } catch (e) { return 0; }
+    },
+    'space.html': () => {
+      let best = 0;
+      try {
+        const raw = localStorage.getItem('amber_spacemath_v1');
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data) {
+            for (const g of ['meteor','speed','bingo']) {
+              if (data[g] && data[g].best > best) best = data[g].best;
+            }
+          }
+        }
+      } catch (e) {}
+      return best;
+    },
+    'petclinic.html': () => {
+      let best = 0;
+      for (const l of ['easy','med','hard']) {
+        const v = parseInt(localStorage.getItem('petclinic_best_' + l) || '0', 10);
+        if (v > best) best = v;
+      }
+      return best;
+    },
+    'starcatcher.html': () => {
+      let best = 0;
+      for (const l of ['easy','med','hard']) {
+        const v = parseInt(localStorage.getItem('starcatcher_best_' + l) || '0', 10);
+        if (v > best) best = v;
+      }
+      return best;
+    },
+    'crystal.html': () => {
+      let best = 0;
+      for (const l of ['easy','med','hard']) {
+        const v = parseInt(localStorage.getItem('crystal_best_' + l) || '0', 10);
+        if (v > best) best = v;
+      }
+      return best;
+    },
+    'dressup.html': () => {
+      let best = 0;
+      try {
+        const chars = ['amber','robot','astronaut','princess'];
+        const lvls = ['easy','med','hard'];
+        for (const c of chars) for (const l of lvls) {
+          const v = parseInt(localStorage.getItem('dressup_best_runway_'+c+'_'+l) || '0', 10);
+          if (v > best) best = v;
+        }
+        const themes = ['beach','tea','space','pirate','sporty','cozy','party','steampunk','arctic','garden','deepsea'];
+        for (const t of themes) for (const l of lvls) {
+          const v = parseInt(localStorage.getItem('dressup_best_brief_'+t+'_'+l) || '0', 10);
+          if (v > best) best = v;
+        }
+        const looks = parseInt(localStorage.getItem('dressup_looks_count') || '0', 10);
+        if (looks * 10 > best) best = looks * 10;
+      } catch (e) {}
+      return best;
+    },
+    'salon.html': () => {
+      let best = 0;
+      for (const l of ['easy','med','hard']) {
+        const v = parseInt(localStorage.getItem('salon_best_' + l) || '0', 10);
+        if (v > best) best = v;
+      }
+      return best;
+    },
+    'farm/index.html': () => {
+      let best = 0;
+      try {
+        const raw = localStorage.getItem('ambers_farm_save_v1');
+        if (raw) {
+          const data = JSON.parse(raw);
+          const s = data && data.stats ? data.stats : (data || {});
+          if (s && typeof s.stars === 'number' && s.stars > best) best = s.stars;
+          if (data && typeof data.coins === 'number' && data.coins > best) best = data.coins;
+        }
+      } catch (e) {}
+      return best;
+    },
+    'suanchou.html': () => {
+      try {
+        const raw = localStorage.getItem('amber_suanchou_v1');
+        if (!raw) return 0;
+        const data = JSON.parse(raw);
+        if (!data || !data.stars) return 0;
+        let total = 0;
+        for (const k in data.stars) total += data.stars[k];
+        return total;
+      } catch (e) { return 0; }
+    },
+    'binary.html': () => {
+      try {
+        const raw = localStorage.getItem('amber_binary_v1');
+        if (!raw) return 0;
+        const data = JSON.parse(raw);
+        if (!data || !data.stars) return 0;
+        let total = 0;
+        for (const k in data.stars) total += data.stars[k];
+        return total;
+      } catch (e) { return 0; }
+    },
+  };
+
+  function getBest(file) {
+    try { return (BEST_BY_FILE[file] && BEST_BY_FILE[file]()) || 0; }
+    catch (e) { return 0; }
+  }
+
+  function getLast() {
+    try { return localStorage.getItem('amber_portal_last') || ''; }
+    catch (e) { return ''; }
+  }
+  function setLast(file) {
+    try { localStorage.setItem('amber_portal_last', file); } catch (e) {}
+  }
+
+  let filter = 'all';
+  try {
+    const saved = localStorage.getItem('amber_portal_filter');
+    if (saved && GROUPS.some(g => g.id === saved)) filter = saved;
+  } catch (e) {}
+
+  const elProgress = document.getElementById('progress');
+  const elContinue = document.getElementById('continue');
+  const elFilters = document.getElementById('filters');
+  const elSections = document.getElementById('sections');
+  const elEmpty = document.getElementById('empty');
+  const elNote = document.getElementById('note');
+
+  const hour = new Date().getHours();
+  const hello =
+    hour < 12 ? 'Good morning, Amber!' :
+    hour < 17 ? 'Good afternoon, Amber!' :
+    'Good evening, Amber!';
+  const note = NOTES[Math.floor(Math.random() * NOTES.length)];
+  elNote.innerHTML = '<b>' + hello + '</b> ' + note;
+
+  const scores = GAMES.map(g => ({ game: g, best: getBest(g.file) }));
+  const played = scores.filter(s => s.best > 0).length;
+  const totalBest = scores.reduce((a, s) => a + s.best, 0);
+
+  elProgress.innerHTML =
+    '<span class="pill"><b>' + GAMES.length + '</b> games for you</span>' +
+    '<span class="pill"><b>' + played + '</b> you\'ve scored on</span>' +
+    (totalBest > 0
+      ? '<span class="pill soft">your bests add up to <b>' + totalBest + '</b></span>'
+      : '<span class="pill soft">your first best is waiting!</span>');
+
+  const lastFile = getLast();
+  const lastGame = GAMES.find(g => g.file === lastFile);
+  if (lastGame) {
+    const b = getBest(lastGame.file);
+    elContinue.classList.add('show');
+    elContinue.hidden = false;
+    elContinue.href = lastGame.file;
+    elContinue.innerHTML =
+      '<div class="ico" aria-hidden="true">' + lastGame.icon + '</div>' +
+      '<div class="body">' +
+        '<div class="kicker">Welcome back, Amber</div>' +
+        '<div class="name">' + lastGame.title + '</div>' +
+        '<div class="meta">' + lastGame.tag + (b > 0 ? ' \u00b7 Your best ' + b : ' \u00b7 Ready when you are') + '</div>' +
+      '</div>' +
+      '<span class="go">Play</span>';
+    elContinue.addEventListener('click', () => setLast(lastGame.file));
+  }
+
+  function countGroup(id) {
+    if (id === 'all') return GAMES.length;
+    return GAMES.filter(g => g.group === id).length;
+  }
+
+  function renderFilters() {
+    elFilters.innerHTML = GROUPS.map(g =>
+      '<button type="button" class="chip' + (filter === g.id ? ' on' : '') + '" data-f="' + g.id + '">' +
+        g.label + '<span class="n">' + countGroup(g.id) + '</span>' +
+      '</button>'
+    ).join('');
+    elFilters.querySelectorAll('[data-f]').forEach(btn => {
+      btn.onclick = () => {
+        filter = btn.getAttribute('data-f');
+        try { localStorage.setItem('amber_portal_filter', filter); } catch (e) {}
+        renderFilters();
+        renderSections();
+      };
+    });
+  }
+
+  function fmtClock(ms) {
+    ms = Math.max(0, Math.floor(ms || 0));
+    const sec = Math.floor(ms / 1000);
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    const mm = String(m).padStart(h > 0 ? 2 : 1, '0');
+    const ss = String(s).padStart(2, '0');
+    if (h > 0) return h + ':' + String(m).padStart(2, '0') + ':' + ss;
+    return (m > 0 ? m : '0') + ':' + ss;
+  }
+
+  function playtimeIdForFile(file) {
+    if (!file) return '';
+    if (file === 'portal.html' || file === 'index.html') return 'portal';
+    // folder games: farm/index.html → farm, bigtwo/index.html → bigtwo
+    if (/\/index\.html?$/i.test(file)) {
+      return file.split('/')[0];
+    }
+    if (file.indexOf('farm/') === 0) return 'farm';
+    return String(file).replace(/\.html?$/i, '');
+  }
+
+  function getPlayMs(file) {
+    try {
+      if (!window.AmberPlaytime) return 0;
+      return window.AmberPlaytime.getGameMs(playtimeIdForFile(file)) || 0;
+    } catch (e) { return 0; }
+  }
+
+  function fmtPlay(ms) {
+    try {
+      if (window.AmberPlaytime) return window.AmberPlaytime.formatCompact(ms);
+    } catch (e) {}
+    const sec = Math.floor((ms || 0) / 1000);
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    if (h > 0) return h + 'h ' + m + 'm';
+    if (m > 0) return m + 'm';
+    return sec + 's';
+  }
+
+  // Live visit timer (always visible, even before totals flush)
+  const visitStarted = Date.now();
+  let lastPortalMs = 0;
+
+  function renderPlaytime() {
+    const el = document.getElementById('playtime');
+    if (!el) return;
+    el.hidden = false;
+    el.classList.remove('offline');
+
+    const sessionEl = document.getElementById('pt-session');
+    const todayEl = document.getElementById('pt-today');
+    const totalEl = document.getElementById('pt-total');
+    const sessEl = document.getElementById('pt-sessions');
+    const topEl = document.getElementById('pt-top');
+
+    const visitMs = Date.now() - visitStarted;
+    if (sessionEl) sessionEl.textContent = fmtClock(visitMs);
+
+    if (!window.AmberPlaytime) {
+      el.classList.add('offline');
+      if (todayEl) todayEl.textContent = '—';
+      if (totalEl) totalEl.textContent = '—';
+      if (sessEl) sessEl.textContent = '—';
+      if (topEl) topEl.textContent = 'Clock loading…';
+      return;
+    }
+
+    const PT = window.AmberPlaytime;
+    try { PT.flush(); } catch (e) {}
+    try { PT.setGameTitle("Amber's Games portal"); } catch (e) {}
+    const snap = PT.getSnapshot();
+    const today = PT.getTodayMs();
+    const total = snap.totalMs || 0;
+    lastPortalMs = PT.getGameMs('portal') || 0;
+
+    if (todayEl) todayEl.textContent = fmtPlay(today);
+    if (totalEl) totalEl.textContent = fmtPlay(total);
+    if (sessEl) sessEl.textContent = String(snap.sessions || 0);
+
+    const ranked = PT.getRankedGames().filter(function (g) {
+      return g.id !== 'portal' && g.id !== 'index' && g.ms > 0;
+    });
+    if (topEl) {
+      if (ranked.length) {
+        const top = ranked.slice(0, 2).map(function (g) {
+          const game = GAMES.find(function (x) {
+            return playtimeIdForFile(x.file) === g.id;
+          });
+          const label = game ? (game.icon + ' ' + game.title.replace(/^Amber's\s+/i, '')) : g.id;
+          return '<strong>' + label + '</strong> ' + fmtPlay(g.ms);
+        }).join('<br>');
+        topEl.innerHTML = top;
+      } else {
+        topEl.textContent = 'Tab away = pause';
+      }
+    }
+  }
+
+  // Expand / collapse floating clock
+  (function wireFloatClock() {
+    const el = document.getElementById('playtime');
+    if (!el) return;
+    try {
+      if (localStorage.getItem('amber_playtime_open') === '1') {
+        el.classList.add('open');
+        el.setAttribute('aria-expanded', 'true');
+      }
+    } catch (e) {}
+    el.addEventListener('click', function () {
+      const open = el.classList.toggle('open');
+      el.setAttribute('aria-expanded', open ? 'true' : 'false');
+      try { localStorage.setItem('amber_playtime_open', open ? '1' : '0'); } catch (e) {}
+    });
+  })();
+
+  function cardHtml(g, i) {
+    const best = getBest(g.file);
+    const playMs = getPlayMs(g.file);
+    const playedBadge = (best > 0 || playMs > 0) ? '<span class="played">Played</span>' : '';
+    const bestStat = best > 0
+      ? '<span class="best-stat">\uD83C\uDFC6 ' + (g.stat || 'Best') + ' ' + best + '</span>'
+      : '<span class="best-stat empty" aria-hidden="true">&nbsp;</span>';
+    const timeStat = playMs > 0
+      ? '<span class="time-stat">⏱ ' + fmtPlay(playMs) + ' played</span>'
+      : '<span class="time-stat empty" aria-hidden="true"></span>';
+    return (
+      '<a class="card" href="' + g.file + '" style="--accent:' + g.accent + '" data-file="' + g.file + '">' +
+        '<div class="top">' +
+          '<div class="icon" aria-hidden="true">' + g.icon + '</div>' +
+          '<div class="badges">' +
+            '<span class="idx">' + String(i + 1).padStart(2, '0') + '</span>' +
+            playedBadge +
+          '</div>' +
+        '</div>' +
+        '<span class="tag">' + g.tag + '</span>' +
+        '<h3>' + g.title + '</h3>' +
+        '<p>' + g.desc + '</p>' +
+        bestStat +
+        timeStat +
+        '<span class="play"><span>' + (best > 0 ? 'Beat your best' : 'Let\'s play') + '</span><span class="arrow" aria-hidden="true">&rarr;</span></span>' +
+      '</a>'
+    );
+  }
+
+  function renderSections() {
+    const showGroups = filter === 'all'
+      ? GROUPS.filter(g => g.id !== 'all')
+      : GROUPS.filter(g => g.id === filter);
+
+    let html = '';
+    let any = false;
+    let globalIdx = 0;
+
+    for (const grp of showGroups) {
+      const list = GAMES.filter(g => g.group === grp.id);
+      if (!list.length) continue;
+      any = true;
+      html += '<section class="section" aria-label="' + grp.label + '">';
+      if (filter === 'all') {
+        html +=
+          '<div class="section-head">' +
+            '<h2>' + grp.label + '<span>' + list.length + '</span></h2>' +
+            '<div class="blurb">' + (grp.blurb || '') + '</div>' +
+          '</div>';
+      }
+      html += '<div class="grid">';
+      for (const g of list) {
+        html += cardHtml(g, globalIdx++);
+      }
+      html += '</div></section>';
+    }
+
+    elSections.innerHTML = html;
+    elEmpty.classList.toggle('show', !any);
+
+    elSections.querySelectorAll('a.card').forEach(a => {
+      a.addEventListener('click', () => setLast(a.getAttribute('data-file')));
+    });
+  }
+
+  renderFilters();
+  renderSections();
+  renderPlaytime();
+  // Tick the big session clock every second (cheap DOM write)
+  setInterval(function () {
+    try {
+      const sessionEl = document.getElementById('pt-session');
+      if (sessionEl) sessionEl.textContent = fmtClock(Date.now() - visitStarted);
+    } catch (e) {}
+  }, 1000);
+  // Flush totals less often
+  setTimeout(renderPlaytime, 800);
+  setInterval(function () {
+    try { if (window.AmberPlaytime) window.AmberPlaytime.flush(); } catch (e) {}
+    renderPlaytime();
+    try {
+      elSections.querySelectorAll('a.card[data-file]').forEach(function (a) {
+        var file = a.getAttribute('data-file');
+        var ms = getPlayMs(file);
+        var el = a.querySelector('.time-stat');
+        if (!el) return;
+        if (ms > 0) {
+          el.classList.remove('empty');
+          el.textContent = '⏱ ' + fmtPlay(ms) + ' played';
+          el.removeAttribute('aria-hidden');
+        }
+      });
+    } catch (e2) {}
+  }, 15000);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') renderPlaytime();
+  });
+})();
+</script>
+</body>
+</html>

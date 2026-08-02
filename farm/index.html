@@ -1,0 +1,478 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Amber's Farm</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="favicon.png">
+  <meta name="theme-color" content="#E8941A">
+  <link rel="stylesheet" href="css/style.css?v=20260712b">
+</head>
+<body>
+<div id="game-container">
+  <div id="game-frame">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- ===== STARDEW-STYLE HUD ===== -->
+    <div id="hud" class="hidden">
+      <!-- Top-left: location + farm name -->
+      <div class="sdv-left-stack">
+        <div class="sdv-panel sdv-location" id="hud-location-panel">
+          <span class="loc-icon" id="hud-loc-icon">🏡</span>
+          <div class="loc-text">
+            <div class="loc-name" id="hud-location">The Farm</div>
+            <div class="loc-sub" id="hud-farm-name">Amber's Sunny Acres</div>
+          </div>
+        </div>
+        <div class="sdv-panel sdv-stars-panel">
+          <span>⭐</span> <span id="hud-stars">0</span> Farm Stars
+        </div>
+      </div>
+
+      <!-- Top-right: date / clock / gold / energy -->
+      <div class="sdv-clock-stack">
+        <div class="sdv-panel sdv-clock">
+          <div class="sdv-clock-row">
+            <span class="sdv-weather" id="hud-weather" title="Weather">☀️</span>
+            <div class="sdv-date-block">
+              <div class="sdv-season-line">
+                <span id="hud-season">Spring</span>
+                <span id="hud-day-num">1</span>
+              </div>
+              <div class="sdv-year-line">Year <span id="hud-year">1</span> · <span id="hud-day">Day 1</span></div>
+            </div>
+          </div>
+          <div class="sdv-time-row">
+            <div class="sdv-clock-face" id="hud-clock-face" title="Time of day">
+              <div class="sdv-clock-hand" id="hud-clock-hand"></div>
+              <div class="sdv-clock-center"></div>
+            </div>
+            <div class="sdv-time-text">
+              <div id="hud-period">Morning</div>
+              <div class="sdv-day-label" id="hud-quest-mini">Quest —</div>
+            </div>
+          </div>
+        </div>
+        <div class="sdv-panel sdv-gold" title="Gold">
+          <span class="sdv-coin">🪙</span>
+          <span id="hud-coins">100</span><span class="g-suffix">g</span>
+        </div>
+        <div class="sdv-panel sdv-energy" title="Energy — sleep to restore">
+          <span class="energy-icon">⚡</span>
+          <div class="energy-bar"><div class="energy-fill" id="hud-energy-fill"></div></div>
+          <span class="energy-label" id="hud-energy-label">100/100</span>
+        </div>
+        <div class="sdv-icon-row">
+          <button type="button" class="sdv-icon-btn" id="hud-quest" title="Help Wanted (quest board)">📋</button>
+          <button type="button" class="sdv-icon-btn" id="btn-inventory" title="Inventory (I)">🎒</button>
+          <button type="button" class="sdv-icon-btn" id="btn-journal" title="Star Journal (J)">📒</button>
+          <button type="button" class="sdv-icon-btn" id="hud-mute" data-muted="0" title="Mute sound">🔊</button>
+          <button type="button" class="sdv-icon-btn" id="btn-pause" title="Game menu">☰</button>
+        </div>
+      </div>
+
+      <!-- Bottom toolbar -->
+      <div class="sdv-toolbar-wrap">
+        <div id="interact-prompt" class="sdv-prompt hidden"></div>
+        <div class="sdv-toolbar-label" id="hud-tool-name">Tool: Hand (auto)</div>
+        <div id="hotbar" class="sdv-toolbar"></div>
+        <div class="sdv-inv-strip" id="hud-inv">Basket empty</div>
+      </div>
+
+      <!-- Tutorial banner -->
+      <div id="tutorial" class="sdv-tutorial hidden"></div>
+
+      <!-- Location enter banner -->
+      <div id="location-banner" class="location-banner hidden">
+        <div class="lb-title" id="lb-title">The Farm</div>
+        <div class="lb-sub" id="lb-sub">Welcome home</div>
+      </div>
+    </div>
+
+    <!-- Toast / floating notice -->
+    <div id="toast" class="sdv-toast"></div>
+
+    <!-- Title Screen -->
+    <div class="screen-overlay" id="title-screen">
+      <button type="button" class="settings-btn" id="settings-btn" title="Settings">⚙️</button>
+      <div class="settings-panel sdv-panel hidden" id="settings-panel">
+        <h3 class="sdv-panel-title">Options</h3>
+        <div class="settings-row">
+          <span>Sound Effects</span>
+          <div class="toggle on" data-setting="sfx"></div>
+        </div>
+        <div class="settings-row">
+          <span>Music</span>
+          <div class="toggle on" data-setting="music"></div>
+        </div>
+        <div class="settings-row">
+          <span>Particles</span>
+          <div class="toggle on" data-setting="particles"></div>
+        </div>
+      </div>
+
+      <div class="menu-content sdv-menu-frame">
+        <div class="sdv-menu-inner">
+          <div class="amber-character">🦊</div>
+          <h1 class="game-title">
+            Amber's Farm
+            <span class="subtitle">A Cozy Valley Adventure</span>
+          </h1>
+
+          <label class="farm-name-label">
+            Farm name
+            <input type="text" id="farm-name-input" maxlength="28" value="Amber's Sunny Acres" autocomplete="off" />
+          </label>
+
+          <div class="title-buttons">
+            <button type="button" class="btn btn-primary" id="btn-new">New Game</button>
+            <button type="button" class="btn btn-secondary" id="btn-continue">Load Game</button>
+            <button type="button" class="btn btn-wood" id="btn-guide">📖 How to Play</button>
+          </div>
+
+          <div class="title-hints">
+            <div class="hint-chip">🌲 North → Forest</div>
+            <div class="hint-chip">🏖️ South → Beach</div>
+            <div class="hint-chip">⛰️ East → Mountain gems</div>
+            <div class="hint-chip">🏘️ West → Village market</div>
+            <div class="hint-chip">🎣 Shop → Fishing rod</div>
+            <div class="hint-chip">🐄 Barn → Goats, sheep & pigs</div>
+            <div class="hint-chip">📦 Sell box → quick coins</div>
+          </div>
+          <p class="controls-help">
+            <strong>Move</strong> WASD &nbsp;·&nbsp; <strong>Use</strong> E / Click &nbsp;·&nbsp; <strong>Bag</strong> I &nbsp;·&nbsp; <strong>Tools</strong> 1–9
+          </p>
+          <p class="version-tag" id="title-version">v2.2.0</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MODALS — wooden Stardew windows ===== -->
+    <div class="modal hidden" id="modal-shop">
+      <div class="sdv-window wide">
+        <div class="sdv-window-title">
+          <span>Pierre's… er, Valley Shop</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div id="shop-body" class="sdv-window-body"></div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-ship">
+      <div class="sdv-window">
+        <div class="sdv-window-title">
+          <span>Shipping Bin</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div id="ship-body" class="sdv-window-body"></div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-sellbox">
+      <div class="sdv-window">
+        <div class="sdv-window-title">
+          <span>Sell Box</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div id="sellbox-body" class="sdv-window-body"></div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-geode">
+      <div class="sdv-window">
+        <div class="sdv-window-title">
+          <span>Rori's Crack Bench</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div id="geode-body" class="sdv-window-body"></div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-postbox">
+      <div class="sdv-window">
+        <div class="sdv-window-title">
+          <span>Postbox</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div id="postbox-body" class="sdv-window-body"></div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-stall">
+      <div class="sdv-window">
+        <div class="sdv-window-title">
+          <span>Market Stall</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div id="stall-body" class="sdv-window-body"></div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-kitchen">
+      <div class="sdv-window">
+        <div class="sdv-window-title">
+          <span>Cooking</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div id="kitchen-body" class="sdv-window-body"></div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-wardrobe">
+      <div class="sdv-window">
+        <div class="sdv-window-title">
+          <span>Wardrobe</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div id="wardrobe-body" class="sdv-window-body"></div>
+      </div>
+    </div>
+
+    <!-- Storybook: read Amber's tales from the bookshelf -->
+    <div class="modal hidden" id="modal-story">
+      <div class="sdv-window wide">
+        <div class="sdv-window-title">
+          <span>Storybook</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div id="story-body" class="sdv-window-body"></div>
+        <div class="sdv-window-body" style="text-align:center">
+          <h3 id="story-title" style="color:#8b5a2b;margin:0.4rem 0">Pick a story ✨</h3>
+          <p id="story-text" style="font-size:0.95rem;line-height:1.5;max-width:34rem;margin:0 auto">Cozy tales for cozy nights.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beginner's guide: how to play -->
+    <div class="modal hidden" id="modal-guide">
+      <div class="sdv-window wide">
+        <div class="sdv-window-title">
+          <span>How to Play 🦊</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div class="sdv-window-body guide-body">
+          <div class="guide-step"><span class="guide-num">1</span>
+            <p><strong>Till the soil.</strong> Pick the <strong>Hoe</strong> (tool 2) and tap the brown dirt to make it farmable.</p></div>
+          <div class="guide-step"><span class="guide-num">2</span>
+            <p><strong>Plant seeds &amp; water.</strong> Choose a seed on your toolbar, tap a tilled tile, then use the <strong>Watering Can</strong> (tool 3) every day. Rain waters for free!</p></div>
+          <div class="guide-step"><span class="guide-num">3</span>
+            <p><strong>Sleep to grow.</strong> Walk to your <strong>bed</strong> and sleep — crops grow overnight and you wake up full of energy.</p></div>
+          <div class="guide-step"><span class="guide-num">4</span>
+            <p><strong>Harvest &amp; ship.</strong> Tap a ready crop to harvest it, then drop it in the <strong>shipping bin</strong> 📦 — coins arrive in the morning mail!</p></div>
+          <div class="guide-step"><span class="guide-num">5</span>
+            <p><strong>Explore!</strong> Visit the <strong>shop</strong> for seeds and animals, then the forest 🌲, beach 🏖️, mountain ⛰️ (gems!) and village 🏘️ (wishes &amp; letters).</p></div>
+          <div class="guide-step"><span class="guide-num">6</span>
+            <p><strong>Make friends.</strong> Talk to Ms. Maple, Finn and friends — gift them crops, snacks or cooked dishes to fill your <strong>Star Journal</strong> ⭐.</p></div>
+
+          <div class="guide-controls">
+            <h3>Controls</h3>
+            <p><strong>Move</strong> — WASD / arrows (or on-screen pad) &nbsp;·&nbsp; <strong>Use / talk</strong> — E or click &nbsp;·&nbsp; <strong>Tools</strong> — keys 1–9 &nbsp;·&nbsp; <strong>Bag</strong> — I &nbsp;·&nbsp; <strong>Journal</strong> — J &nbsp;·&nbsp; <strong>Pause</strong> — ☰</p>
+            <p class="guide-tip">💡 <strong>Tip:</strong> the <strong>Hand</strong> tool (slot 1) does everything for you — hoe, plant, water and harvest automatically. Perfect for cozy days!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dialogue: bottom portrait box like Stardew -->
+    <div class="modal dialogue-modal hidden" id="modal-dialogue">
+      <div class="sdv-dialogue">
+        <div class="sdv-portrait" id="dlg-portrait">👩‍🌾</div>
+        <div class="sdv-dialogue-main">
+          <div class="sdv-dialogue-name" id="dlg-name">Friend</div>
+          <p class="sdv-dialogue-text" id="dlg-text"></p>
+          <div class="sdv-dialogue-actions">
+            <button type="button" class="btn btn-wood" id="dlg-gift">Gift</button>
+            <button type="button" class="btn btn-wood primary" data-close>OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-journal">
+      <div class="sdv-window wide">
+        <div class="sdv-window-title">
+          <span>Collections — Star Journal</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div id="journal-body" class="sdv-window-body"></div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-quest">
+      <div class="sdv-window">
+        <div class="sdv-window-title">
+          <span>Help Wanted</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div id="quest-body" class="sdv-window-body"></div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-animals">
+      <div class="sdv-window">
+        <div class="sdv-window-title">
+          <span>Marnie's Ranch</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div id="animals-body" class="sdv-window-body"></div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-letter">
+      <div class="sdv-window letter-window">
+        <div class="sdv-window-title">
+          <span id="letter-title">Mail</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div class="sdv-letter-paper">
+          <pre id="letter-text" class="letter-text"></pre>
+        </div>
+        <div class="sdv-window-footer">
+          <button type="button" class="btn btn-wood primary" data-close>OK</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-sleep">
+      <div class="sdv-window small">
+        <div class="sdv-window-title">
+          <span>Go to bed?</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div class="sdv-window-body center-text">
+          <p>Crops will grow. Animals will rest.<br>Shipping bin pays out in the morning.</p>
+        </div>
+        <div class="sdv-window-footer">
+          <button type="button" class="btn btn-wood" data-close>Not yet</button>
+          <button type="button" class="btn btn-wood primary" id="btn-sleep-yes">Sleep</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-festival">
+      <div class="sdv-window">
+        <div class="sdv-window-title">
+          <span id="festival-title">Festival</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div id="festival-body" class="sdv-window-body center-text"></div>
+        <div class="sdv-window-footer">
+          <button type="button" class="btn btn-wood primary" data-close>Celebrate!</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-inventory">
+      <div class="sdv-window wide">
+        <div class="sdv-window-title">
+          <span>Inventory</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div class="inv-tabs">
+          <button type="button" class="inv-tab active" data-tab="items">Items</button>
+          <button type="button" class="inv-tab" data-tab="seeds">Seeds</button>
+          <button type="button" class="inv-tab" data-tab="map">Map</button>
+          <button type="button" class="inv-tab" data-tab="stats">Stats</button>
+        </div>
+        <div id="inv-body" class="sdv-window-body"></div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-fishing">
+      <div class="sdv-window">
+        <div class="sdv-window-title">
+          <span id="fish-name">Fishing</span>
+          <button type="button" class="sdv-x" id="btn-fish-cancel">X</button>
+        </div>
+        <div class="sdv-window-body center-text">
+          <p class="muted">Hold <strong>Space</strong> (or the touch <strong>A</strong> button) to lift the bar. Keep it on the fish!</p>
+          <div class="fish-track">
+            <div class="fish-progress"><div id="fish-progress-fill" class="fish-progress-fill"></div></div>
+            <div class="fish-column">
+              <div id="fish-zone" class="fish-zone"></div>
+              <div id="fish-bar-fill" class="fish-player"></div>
+              <div id="fish-marker" class="fish-target">🐟</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-pause">
+      <div class="sdv-window small">
+        <div class="sdv-window-title">
+          <span>Game Menu</span>
+          <button type="button" class="sdv-x" data-close>X</button>
+        </div>
+        <div class="sdv-window-body center-text">
+          <p class="muted" id="pause-version">v2.2.0</p>
+          <p class="muted" style="margin-top:0.5rem">Export / import save (parent tools)</p>
+          <textarea id="save-export-box" class="save-box" rows="3" placeholder="Save code appears here…"></textarea>
+          <div class="modal-actions" style="justify-content:center;padding:0.5rem 0">
+            <button type="button" class="btn btn-wood" id="btn-export-save">Export</button>
+            <button type="button" class="btn btn-wood" id="btn-import-save">Import</button>
+          </div>
+        </div>
+        <div class="sdv-window-footer column">
+          <button type="button" class="btn btn-wood primary" data-close>Resume</button>
+          <button type="button" class="btn btn-wood" id="btn-open-inv-pause">Inventory</button>
+          <button type="button" class="btn btn-wood" id="btn-save-quit">Save &amp; Exit to Title</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Touch controls -->
+    <div id="touch-controls" class="touch-controls hidden">
+      <div class="dpad">
+        <button type="button" id="pad-up" class="pad">▲</button>
+        <div class="dpad-mid">
+          <button type="button" id="pad-left" class="pad">◀</button>
+          <button type="button" id="pad-right" class="pad">▶</button>
+        </div>
+        <button type="button" id="pad-down" class="pad">▼</button>
+      </div>
+      <button type="button" id="btn-a" class="btn-a">A</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/constants.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/data/crops.js"></script>
+<script src="js/data/animals.js"></script>
+<script src="js/data/recipes.js"></script>
+<script src="js/data/dialogues.js"></script>
+<script src="js/data/achievements.js"></script>
+<script src="js/data/map.js"></script>
+<script src="js/particles.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/atlas.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/save.js"></script>
+<script src="js/time.js"></script>
+<script src="js/weather.js"></script>
+<script src="js/quests.js"></script>
+<script src="js/mail.js"></script>
+<script src="js/festival.js"></script>
+<script src="js/crow.js"></script>
+<script src="js/fishing.js"></script>
+<script src="js/farming.js"></script>
+<script src="js/forage.js"></script>
+<script src="js/gems.js"></script>
+<script src="js/decor.js"></script>
+<script src="js/home.js"></script>
+<script src="js/shop.js"></script>
+<script src="js/kitchen.js"></script>
+<script src="js/animals.js"></script>
+<script src="js/npc.js"></script>
+<script src="js/player.js"></script>
+<script src="js/world.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+<script src="js/main.js"></script>
+<script src="../playtime.js?v=2"></script>
+</body>
+</html>

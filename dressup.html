@@ -1,0 +1,1566 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Amber's Style Studio">
+<meta name="theme-color" content="#1a1040">
+<meta name="description" content="Imagine wild outfits for Amber and friends — save your favorite looks!">
+<title>Amber's Style Studio</title>
+<style>
+:root {
+  --bg: #1a1040; --ink: #f4f6ff; --gold: #FFD54F;
+  --coral: #FF8A65; --pink: #F48FB1; --purple: #AB47BC; --cyan: #4FC3F7;
+  --glass: rgba(12, 14, 36, 0.55); --line: rgba(255,255,255,0.16);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--ink);
+  user-select: none; -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+#app { width: 100vw; height: 100vh; height: 100dvh; position: relative; overflow: hidden; }
+.overlay {
+  position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; pointer-events: none;
+  padding: max(14px, env(safe-area-inset-top, 14px)) max(14px, env(safe-area-inset-right, 14px))
+           max(14px, env(safe-area-inset-bottom, 14px)) max(14px, env(safe-area-inset-left, 14px));
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.overlay > * { pointer-events: auto; }
+.btn {
+  border: 0; border-radius: 14px; padding: 12px 20px; margin: 4px;
+  background: linear-gradient(135deg, var(--coral), var(--purple));
+  font-weight: 800; color: #fff; cursor: pointer; font-family: inherit;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.25); touch-action: manipulation;
+}
+.btn:active { transform: translateY(2px); }
+.btn-secondary { background: linear-gradient(135deg, var(--cyan), #1976D2); }
+.btn-ghost {
+  background: rgba(255,255,255,0.1); color: #fff;
+  border: 1px solid var(--line); box-shadow: none;
+}
+.btn-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+
+/* Home */
+.home-card {
+  width: min(440px, 100%); border-radius: 28px; overflow: hidden;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(ellipse 110% 70% at 50% -8%, rgba(255,138,101,0.3), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 40%, rgba(171,71,188,0.28), transparent 50%),
+    linear-gradient(165deg, #2a1850 0%, #1a1040 55%, #0e0a28 100%);
+  box-shadow: 0 28px 60px rgba(0,0,0,0.5);
+}
+.home-hero { padding: 22px 18px 14px; text-align: center; position: relative; }
+.home-hero::after {
+  content: ""; position: absolute; left: 12%; right: 12%; bottom: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+}
+.home-badge {
+  display: inline-block; padding: 4px 12px; border-radius: 999px;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+  color: #FFE0B2; background: rgba(255,138,101,0.22); border: 1px solid rgba(255,183,77,0.4);
+  margin-bottom: 8px;
+}
+.home-title {
+  font-size: clamp(28px, 8vw, 40px); font-weight: 900; line-height: 1.05; margin-bottom: 6px;
+  background: linear-gradient(120deg, #FFE082, #F48FB1, #CE93D8, #81D4FA);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.home-sub {
+  font-size: 13px; font-weight: 600; line-height: 1.45;
+  color: rgba(244,246,255,0.8); max-width: 300px; margin: 0 auto;
+}
+.home-body { padding: 14px; }
+.mode-list { display: flex; flex-direction: column; gap: 10px; }
+.mode-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  padding: 12px 14px; min-height: 72px; border-radius: 18px;
+  border: 1px solid var(--line); cursor: pointer; font-family: inherit; color: #fff;
+  -webkit-appearance: none; appearance: none; margin: 0;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+.mode-row:active { transform: scale(0.98); }
+.mode-row.primary {
+  background: linear-gradient(105deg, rgba(255,138,101,0.4), rgba(171,71,188,0.2));
+  border-color: rgba(255,138,101,0.5);
+  min-height: 88px;
+}
+.mode-row.ideas {
+  background: linear-gradient(105deg, rgba(206,147,216,0.3), rgba(8,14,28,0.15));
+  border-color: rgba(206,147,216,0.4);
+}
+.mode-row.show {
+  background: linear-gradient(105deg, rgba(255,213,79,0.25), rgba(8,14,28,0.15));
+  border-color: rgba(255,213,79,0.4);
+}
+.mode-row.gallery {
+  background: linear-gradient(105deg, rgba(79,195,247,0.25), rgba(8,14,28,0.15));
+  border-color: rgba(79,195,247,0.35);
+}
+.mode-ico {
+  width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+  display: grid; place-items: center; font-size: 24px;
+  background: rgba(0,0,0,0.25);
+}
+.mode-row.primary .mode-ico { width: 56px; height: 56px; font-size: 28px; }
+.mode-info { flex: 1; min-width: 0; }
+.mode-name { font-size: 16px; font-weight: 800; }
+.mode-row.primary .mode-name { font-size: 18px; }
+.mode-blurb { font-size: 11px; font-weight: 600; opacity: 0.75; margin-top: 2px; }
+.mode-go { font-size: 20px; font-weight: 900; opacity: 0.8; }
+.home-footer { padding: 4px 14px 16px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+
+/* Welcome */
+#welcome.overlay {
+  background: rgba(6,8,24,0.55); backdrop-filter: blur(6px); z-index: 20;
+  pointer-events: auto;
+}
+.welcome-card {
+  width: min(400px, 100%); border-radius: 28px; overflow: hidden;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 0%, rgba(255,183,77,0.25), transparent 55%),
+    linear-gradient(165deg, #2a1850, #141028);
+  box-shadow: 0 24px 56px rgba(0,0,0,0.5);
+}
+.welcome-hero { padding: 20px 18px 12px; text-align: center; }
+.welcome-title {
+  font-size: clamp(26px, 7vw, 34px); font-weight: 900;
+  background: linear-gradient(120deg, #FFE082, #F48FB1, #81D4FA);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.welcome-sub { font-size: 13px; font-weight: 600; color: rgba(244,246,255,0.78); margin: 6px auto 12px; max-width: 280px; }
+.welcome-amber {
+  display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 4px;
+}
+.welcome-amber .face {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: linear-gradient(160deg, #FFE0B2, #FFCC80); border: 2px solid rgba(255,255,255,0.5);
+  display: grid; place-items: center; font-size: 26px; flex-shrink: 0;
+}
+.welcome-amber .bubble {
+  background: rgba(255,255,255,0.95); color: #1a1040; border-radius: 14px;
+  padding: 8px 12px; font-size: 12px; font-weight: 700; text-align: left; max-width: 210px;
+}
+.welcome-amber .bubble strong { display: block; font-size: 10px; color: var(--purple); letter-spacing: 0.1em; text-transform: uppercase; }
+.welcome-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 14px;
+}
+.welcome-tile {
+  border-radius: 16px; padding: 12px; text-align: left; border: 1px solid var(--line);
+  min-height: 96px;
+}
+.welcome-tile h3 { font-size: 13px; font-weight: 800; margin: 6px 0 4px; }
+.welcome-tile p { font-size: 11px; font-weight: 600; opacity: 0.75; line-height: 1.35; }
+.welcome-tile .n {
+  width: 28px; height: 28px; border-radius: 10px; display: grid; place-items: center;
+  font-size: 13px; font-weight: 900; color: #1a1040;
+}
+.welcome-tile.t1 { background: linear-gradient(160deg, rgba(255,138,101,0.3), transparent); }
+.welcome-tile.t1 .n { background: linear-gradient(135deg, #FF8A65, #E64A19); color: #fff; }
+.welcome-tile.t2 { background: linear-gradient(160deg, rgba(244,143,177,0.28), transparent); }
+.welcome-tile.t2 .n { background: linear-gradient(135deg, #F48FB1, #C2185B); color: #fff; }
+.welcome-tile.t3 { background: linear-gradient(160deg, rgba(206,147,216,0.28), transparent); }
+.welcome-tile.t3 .n { background: linear-gradient(135deg, #CE93D8, #8E24AA); color: #fff; }
+.welcome-tile.t4 { background: linear-gradient(160deg, rgba(255,213,79,0.25), transparent); }
+.welcome-tile.t4 .n { background: linear-gradient(135deg, #FFD54F, #FFA000); }
+.welcome-footer { padding: 8px 14px 16px; }
+.welcome-footer .btn { width: 100%; margin: 0; }
+
+/* Play shell */
+.play-root { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.stage-bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.stage-studio {
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(255,138,101,0.22), transparent 55%),
+    linear-gradient(180deg, #2a1850 0%, #1a1040 50%, #0e0a28 100%);
+}
+.stage-brief {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(171,71,188,0.25), transparent 55%),
+    linear-gradient(180deg, #241848, #120e30);
+}
+.stage-runway {
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(255,213,79,0.18), transparent 50%),
+    linear-gradient(180deg, #1a1040 0%, #2a1850 45%, #0e0a28 100%);
+}
+.play-hud {
+  position: relative; z-index: 5;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: max(10px, env(safe-area-inset-top, 10px)) 12px 6px;
+  gap: 8px;
+}
+.play-hud .left .title-sm { font-size: 14px; font-weight: 800; }
+.play-hud .left .meta { font-size: 11px; opacity: 0.75; font-weight: 600; }
+.play-hud .right { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.icon-btn {
+  min-width: 44px; min-height: 40px; border-radius: 12px;
+  background: var(--glass); border: 1px solid var(--line); color: #fff;
+  cursor: pointer; font-size: 15px; font-weight: 700; font-family: inherit;
+  padding: 6px 10px;
+}
+.slot-row {
+  position: relative; z-index: 4;
+  display: flex; justify-content: center; gap: 8px; padding: 4px 10px 8px; flex-wrap: wrap;
+}
+.slot {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: rgba(255,255,255,0.06); border: 1px dashed rgba(255,255,255,0.28);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  position: relative; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.45);
+}
+.slot.on { border-style: solid; border-color: var(--coral); background: rgba(255,138,101,0.15); color: #fff; }
+.slot.filled { border-style: solid; border-color: rgba(76,175,80,0.6); background: rgba(76,175,80,0.12); }
+.slot .x {
+  position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; border-radius: 50%;
+  background: #FF6E6E; color: #fff; font-size: 11px; line-height: 18px; text-align: center;
+}
+.stage-wrap {
+  position: relative; z-index: 2; flex: 1; min-height: 0;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding: 0 8px 4px;
+}
+.stage-wrap svg { width: clamp(170px, 42vw, 300px); height: auto; max-height: 100%; }
+.idea-banner {
+  position: relative; z-index: 4; margin: 0 12px 6px; padding: 10px 14px;
+  border-radius: 14px; text-align: center;
+  background: rgba(171,71,188,0.22); border: 1px solid rgba(206,147,216,0.45);
+}
+.idea-banner .lbl { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #CE93D8; }
+.idea-banner .nm { font-size: clamp(18px, 4.5vw, 24px); font-weight: 900; margin-top: 2px; }
+.idea-banner .hint { font-size: 11px; opacity: 0.8; margin-top: 4px; font-weight: 600; }
+.amber-toast {
+  position: absolute; left: 50%; bottom: 46%; transform: translateX(-50%);
+  z-index: 15; display: none; align-items: center; gap: 8px;
+  max-width: min(320px, 90vw); pointer-events: none;
+}
+.amber-toast.show { display: flex; }
+.amber-toast .af {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(160deg, #FFE0B2, #FFCC80);
+  display: grid; place-items: center; font-size: 22px; flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.5);
+}
+.amber-toast .ab {
+  background: rgba(255,255,255,0.96); color: #1a1040;
+  border-radius: 14px; padding: 8px 12px; font-size: 12px; font-weight: 700;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+.picker {
+  position: relative; z-index: 6;
+  background: rgba(8, 8, 24, 0.82);
+  border-top: 1px solid var(--line);
+  padding: 8px 10px max(10px, env(safe-area-inset-bottom, 10px));
+  max-height: 44vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.char-strip { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; flex-wrap: wrap; }
+.char-card {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 10px; border-radius: 14px; min-width: 64px;
+  background: rgba(255,255,255,0.05); border: 1px solid var(--line);
+  cursor: pointer; font-family: inherit; color: #fff;
+}
+.char-card.on { outline: 2px solid var(--coral); background: rgba(255,138,101,0.18); }
+.char-card .em { font-size: 22px; }
+.char-card .nm { font-size: 10px; font-weight: 800; }
+.char-card .vb { font-size: 9px; opacity: 0.65; font-weight: 600; max-width: 72px; text-align: center; }
+.cat-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+.cat-tab {
+  flex: 1; padding: 8px 4px; border-radius: 12px; text-align: center;
+  background: rgba(255,255,255,0.06); border: 1px solid var(--line);
+  font-size: 11px; font-weight: 800; color: #fff; cursor: pointer; font-family: inherit;
+  min-height: 40px;
+}
+.cat-tab.on { background: linear-gradient(135deg, var(--coral), var(--purple)); border-color: transparent; }
+.color-bar {
+  display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px;
+}
+.color-dot {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25);
+  cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.color-dot.on { border-color: #fff; transform: scale(1.12); }
+.picker-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+.picker-item {
+  aspect-ratio: 1; border-radius: 14px;
+  background: rgba(255,255,255,0.06); border: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; position: relative; overflow: hidden;
+  min-height: 56px;
+}
+.picker-item svg { width: 90%; height: 90%; }
+.picker-item.equipped { outline: 2px solid #66BB6A; background: rgba(76,175,80,0.15); }
+.picker-item .sig { position: absolute; top: 2px; right: 2px; font-size: 10px; }
+.picker-item .iname {
+  position: absolute; left: 0; right: 0; bottom: 0; font-size: 8px; font-weight: 700;
+  text-align: center; padding: 2px; background: rgba(0,0,0,0.45); color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.action-bar {
+  display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 8px;
+  position: sticky; bottom: 0; padding-top: 6px;
+  background: linear-gradient(180deg, transparent, rgba(8,8,24,0.95) 30%);
+}
+.action-bar .btn { margin: 0; padding: 10px 12px; font-size: 12px; min-height: 44px; }
+.char-card { transition: transform 0.12s ease, background 0.15s ease; }
+.char-card.on { transform: scale(1.04); }
+.gallery-card.fav { border-color: rgba(255,213,79,0.55); box-shadow: 0 0 0 1px rgba(255,213,79,0.25); }
+.gallery-card .fav-btn {
+  position: absolute; top: 6px; right: 6px; border: 0; background: rgba(0,0,0,0.4);
+  border-radius: 999px; width: 28px; height: 28px; cursor: pointer; font-size: 14px;
+  color: #FFD54F;
+}
+.gallery-card { position: relative; }
+.rename-input {
+  width: 100%; margin-top: 4px; padding: 6px 8px; border-radius: 8px;
+  border: 1px solid var(--line); background: rgba(0,0,0,0.35); color: #fff;
+  font-size: 11px; font-weight: 700; font-family: inherit; text-align: center;
+}
+.mood-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-bottom: 8px; }
+.mood-chip {
+  padding: 6px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  background: rgba(255,255,255,0.08); border: 1px solid var(--line); color: #fff;
+  cursor: pointer; font-family: inherit;
+}
+.mood-chip:active { transform: scale(0.96); }
+
+/* Gallery modal */
+.modal-bg {
+  position: absolute; inset: 0; z-index: 30;
+  background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center;
+  padding: 16px; overflow-y: auto;
+}
+.modal-card {
+  width: min(420px, 100%); max-height: 85dvh; overflow-y: auto;
+  background: linear-gradient(165deg, #2a1850, #141028);
+  border: 1px solid var(--line); border-radius: 22px; padding: 18px;
+}
+.modal-card h2 { font-size: 22px; font-weight: 900; text-align: center; margin-bottom: 10px; }
+.gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.gallery-card {
+  background: rgba(255,255,255,0.06); border: 1px solid var(--line);
+  border-radius: 14px; padding: 8px; text-align: center;
+}
+.gallery-card svg { width: 100%; height: auto; max-height: 120px; }
+.gallery-card .gn { font-size: 12px; font-weight: 800; margin-top: 4px; }
+.gallery-card .gb { font-size: 10px; opacity: 0.7; }
+.gallery-empty { text-align: center; opacity: 0.75; padding: 20px; font-size: 13px; font-weight: 600; }
+.gallery-card .load-btn { width: 100%; margin-top: 6px; padding: 8px; font-size: 12px; }
+.confetti-piece {
+  position: fixed; top: -12px; width: 8px; height: 12px; z-index: 50; pointer-events: none;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+.stage-wrap { position: relative; }
+.sparkle {
+  position: absolute; width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,0.85); box-shadow: 0 0 8px rgba(255,213,79,0.8);
+  pointer-events: none; animation: twinkle 2s ease-in-out infinite;
+}
+@keyframes twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+.home-stats {
+  display: flex; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap;
+}
+.home-stat {
+  font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 999px;
+  background: rgba(255,255,255,0.08); border: 1px solid var(--line); color: rgba(244,246,255,0.85);
+}
+.home-stat span { color: var(--gold); }
+.idea-nav { display: flex; gap: 8px; justify-content: center; margin-top: 6px; }
+.idea-nav .btn { padding: 6px 12px; font-size: 11px; margin: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .confetti-piece, .sparkle { animation: none; opacity: 0.5; }
+}
+
+/* Results */
+.result-card {
+  width: min(360px, 94vw); text-align: center; border-radius: 24px; padding: 22px;
+  background: linear-gradient(165deg, #2a1850, #141028); border: 1px solid var(--line);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+}
+.result-card .rt { font-size: clamp(24px, 6vw, 32px); font-weight: 900;
+  background: linear-gradient(120deg, #FFE082, #F48FB1); -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; background-clip: text; }
+.result-card .rs { font-size: 42px; font-weight: 900; color: var(--gold); margin: 8px 0; }
+.result-card .rl { font-size: 13px; opacity: 0.8; margin-bottom: 12px; font-weight: 600; }
+.judge-sheet {
+  position: absolute; left: 12px; right: 12px; bottom: max(16px, env(safe-area-inset-bottom, 16px));
+  z-index: 12; border-radius: 20px; padding: 16px; text-align: center;
+  background: rgba(12,10,32,0.92); border: 1px solid var(--line);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+}
+.judge-sheet .emoji { font-size: 40px; }
+.judge-sheet .cheer { font-size: 16px; font-weight: 800; margin: 6px 0; }
+.judge-sheet .stars { color: var(--gold); font-size: 22px; letter-spacing: 2px; }
+
+@media (min-width: 768px) {
+  .home-card { width: min(520px, 88vw); }
+  .home-title { font-size: 42px; }
+  .mode-row { min-height: 80px; }
+  .mode-row.primary { min-height: 96px; }
+  .stage-wrap svg { width: clamp(220px, 38vw, 360px); }
+  .picker { max-height: 40vh; }
+  .picker-grid { grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .picker-item { min-height: 68px; }
+  .picker-item .iname { font-size: 9px; }
+  .char-card { min-width: 80px; padding: 8px 12px; }
+  .char-card .em { font-size: 28px; }
+}
+@media (min-width: 900px) and (orientation: landscape) {
+  .play-root.landscape-split { flex-direction: row; }
+  .play-root.landscape-split .stage-col {
+    flex: 1.1; display: flex; flex-direction: column; min-width: 0;
+  }
+  .play-root.landscape-split .picker {
+    width: min(420px, 42vw); max-height: none; height: 100%;
+    border-top: 0; border-left: 1px solid var(--line);
+  }
+  .home-card { width: min(640px, 80vw); }
+}
+@media (max-height: 700px) {
+  .home-hero { padding: 14px 14px 10px; }
+  .mode-row { min-height: 64px; padding: 10px; }
+  .stage-wrap svg { width: clamp(140px, 36vw, 220px); }
+  .picker { max-height: 48vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mode-row:active, .btn:active { transform: none; }
+}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.26.10/babel.min.js" crossorigin></script>
+<script>
+  if (window.Babel && Babel.registerPreset) {
+    Babel.registerPreset('react-classic', {
+      presets: [[Babel.availablePresets.react, { runtime: 'classic', development: false }]],
+    });
+  }
+</script>
+<script type="text/babel" data-presets="react-classic">
+/** @jsxRuntime classic */
+/** @jsx React.createElement */
+/** @jsxFrag React.Fragment */
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+const COLORS = {
+  primary1: '#FF8A65', primary2: '#FF6F61', shadow: '#C75B39',
+  sec1: '#42A5F5', sec2: '#1976D2', secShadow: '#0D47A1',
+  danger: '#FF6E6E', accent: '#FF8A65', bg: '#0d1b3a',
+  green: '#4CAF50', gold: '#FFD700', pink: '#FF8A80', purple: '#AB47BC',
+};
+
+let audioCtx = null;
+function initAudio() { if (audioCtx) return; try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+function isMuted() { return window.__muted === true; }
+function blip(f0, f1, dur, type, vol) {
+  if (!audioCtx || isMuted()) return;
+  const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(f0, t);
+  if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g).connect(audioCtx.destination);
+  o.start(t); o.stop(t + dur + 0.02);
+}
+function sfx(kind) {
+  if (!audioCtx || isMuted()) return;
+  if (kind === 'pick') blip(660, 880, 0.08, 'sine', 0.10);
+  else if (kind === 'drop') blip(440, 220, 0.06, 'sine', 0.10);
+  else if (kind === 'slot') { [523, 659].forEach((f, i) => setTimeout(() => blip(f, f, 0.10, 'triangle', 0.12), i * 70)); }
+  else if (kind === 'theme-ok') { [523, 659, 784].forEach((f, i) => setTimeout(() => blip(f, f, 0.14, 'triangle', 0.14), i * 60)); }
+  else if (kind === 'theme-no') blip(180, 90, 0.18, 'square', 0.12);
+  else if (kind === 'runway') { [262, 330, 392, 523, 659].forEach((f, i) => setTimeout(() => blip(f, f, 0.30, 'triangle', 0.16), i * 90)); }
+  else if (kind === 'judge') { [262, 330, 392, 523, 659, 784, 1047].forEach((f, i) => setTimeout(() => blip(f, f, 0.20, 'sine', 0.14), i * 70)); }
+  else if (kind === 'tick') blip(440, 880, 0.05, 'sine', 0.06);
+}
+
+const CHARACTERS = {
+  amber:    { id: 'amber',    name: 'Amber',     emoji: '\u{1F467}', vibe: 'Everyday magic', body: '#FFCC80', hair: '#5D4037', dress: '#FF6F61', judge: '\u{1F98A}' },
+  robot:    { id: 'robot',    name: 'Robot',     emoji: '\u{1F916}', vibe: 'Silly tech', body: '#9E9E9E', hair: '#616161', dress: '#5C6BC0', judge: '\u{1F4A1}' },
+  astronaut:{ id: 'astronaut',name: 'Astronaut', emoji: '\u{1F9D1}\u200D\u{1F680}', vibe: 'Space dreams', body: '#E0E0E0', hair: '#FAFAFA', dress: '#FFFFFF', judge: '\u{1F31F}' },
+  princess: { id: 'princess', name: 'Princess',  emoji: '\u{1F478}', vibe: 'Storybook sparkle', body: '#FFE0B2', hair: '#FFD700', dress: '#FF8A80', judge: '\u{1F451}' },
+};
+
+function CharBase({ charId, children }) {
+  const c = CHARACTERS[charId];
+  return (
+    <svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id={`floor-${charId}`} cx="50%" cy="50%">
+          <stop offset="0%" stopColor="rgba(0,0,0,0.4)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+        </radialGradient>
+      </defs>
+      <ellipse cx="100" cy="270" rx="60" ry="8" fill={`url(#floor-${charId})`} />
+      {charId === 'amber' && (
+        <g>
+          <rect x="80" y="180" width="40" height="80" rx="8" fill={c.dress} />
+          <ellipse cx="100" cy="100" rx="34" ry="40" fill={c.body} />
+          <path d={`M66 100 Q66 60 100 60 Q134 60 134 100 Q134 80 100 78 Q66 80 66 100`} fill={c.hair} />
+          <circle cx="90" cy="105" r="3" fill="#3E2723" />
+          <circle cx="110" cy="105" r="3" fill="#3E2723" />
+          <path d="M92 118 Q100 124 108 118" stroke="#3E2723" strokeWidth="2" fill="none" />
+        </g>
+      )}
+      {charId === 'robot' && (
+        <g>
+          <rect x="78" y="175" width="44" height="80" rx="6" fill={c.dress} stroke="#3F51B5" strokeWidth="2" />
+          <rect x="68" y="80" width="64" height="60" rx="10" fill={c.body} stroke="#424242" strokeWidth="2" />
+          <rect x="80" y="100" width="40" height="22" rx="3" fill="#000" />
+          <circle cx="92" cy="111" r="3" fill="#5FFBF1" />
+          <circle cx="108" cy="111" r="3" fill="#5FFBF1" />
+          <rect x="100" y="40" width="2" height="36" fill={c.hair} />
+          <circle cx="101" cy="40" r="6" fill={c.hair} />
+        </g>
+      )}
+      {charId === 'astronaut' && (
+        <g>
+          <rect x="76" y="170" width="48" height="90" rx="10" fill={c.dress} stroke="#BDBDBD" strokeWidth="2" />
+          <rect x="84" y="185" width="32" height="40" rx="4" fill="none" stroke="#5FFBF1" strokeWidth="2" />
+          <circle cx="100" cy="100" r="38" fill={c.body} stroke="#BDBDBD" strokeWidth="2" />
+          <ellipse cx="100" cy="100" rx="28" ry="22" fill="#5FFBF1" opacity="0.4" />
+          <circle cx="90" cy="105" r="3" fill="#3E2723" />
+          <circle cx="110" cy="105" r="3" fill="#3E2723" />
+        </g>
+      )}
+      {charId === 'princess' && (
+        <g>
+          <path d="M70 200 L60 260 L140 260 L130 200 Z" fill={c.dress} />
+          <rect x="84" y="180" width="32" height="22" fill={c.dress} />
+          <ellipse cx="100" cy="105" rx="32" ry="38" fill={c.body} />
+          <path d="M60 100 Q60 60 100 60 Q140 60 140 100 Q140 105 130 100 Q120 70 100 70 Q80 70 70 100 Q60 105 60 100" fill={c.hair} />
+          <path d="M85 70 L100 50 L115 70 Z" fill={c.hair} />
+          <circle cx="90" cy="110" r="3" fill="#3E2723" />
+          <circle cx="110" cy="110" r="3" fill="#3E2723" />
+          <path d="M92 125 Q100 130 108 125" stroke="#C2185B" strokeWidth="2" fill="none" />
+        </g>
+      )}
+      {children}
+    </svg>
+  );
+}
+
+const ITEM_COLORS = {
+  red: '#E53935', blue: '#1E88E5', yellow: '#FDD835', green: '#43A047',
+  purple: '#8E24AA', pink: '#EC407A', orange: '#FB8C00', teal: '#00ACC1',
+  white: '#FAFAFA', black: '#212121', brown: '#6D4C41', gold: '#FFD700',
+};
+
+const SHARED_ITEMS = {
+  hat: [
+    { id: 'beanie',   name: 'Beanie',   color: 'red' },
+    { id: 'sunhat',   name: 'Sun Hat',  color: 'yellow' },
+    { id: 'wizard',   name: 'Wizard Hat', color: 'purple' },
+    { id: 'partyhat', name: 'Party Hat',  color: 'pink' },
+    { id: 'crown',    name: 'Crown',     color: 'gold' },
+    { id: 'cap',      name: 'Cap',       color: 'blue' },
+  ],
+  top: [
+    { id: 'tshirt',   name: 'T-Shirt',  color: 'blue' },
+    { id: 'sweater',  name: 'Sweater',  color: 'red' },
+    { id: 'vest',     name: 'Vest',     color: 'brown' },
+    { id: 'jacket',   name: 'Jacket',   color: 'black' },
+    { id: 'hoodie',   name: 'Hoodie',   color: 'purple' },
+    { id: 'dress',    name: 'Dress Top', color: 'pink' },
+  ],
+  bottom: [
+    { id: 'jeans',    name: 'Jeans',    color: 'blue' },
+    { id: 'skirt',    name: 'Skirt',    color: 'pink' },
+    { id: 'shorts',   name: 'Shorts',   color: 'green' },
+    { id: 'leggings', name: 'Leggings', color: 'purple' },
+    { id: 'tutu',     name: 'Tutu',     color: 'pink' },
+    { id: 'cargo',    name: 'Cargo',    color: 'green' },
+  ],
+  accessory: [
+    { id: 'necklace', name: 'Necklace', color: 'gold' },
+    { id: 'glasses',  name: 'Glasses',  color: 'black' },
+    { id: 'scarf',    name: 'Scarf',    color: 'red' },
+    { id: 'bag',      name: 'Bag',      color: 'brown' },
+    { id: 'wings',    name: 'Wings',    color: 'white' },
+    { id: 'star',     name: 'Star Pin', color: 'yellow' },
+  ],
+};
+
+function ItemSVG({ category, itemId, color }) {
+  const c = ITEM_COLORS[color] || color || '#888';
+  if (category === 'hat') {
+    if (itemId === 'beanie')   return <ellipse cx="100" cy="62" rx="36" ry="20" fill={c} />;
+    if (itemId === 'sunhat')   return <g><ellipse cx="100" cy="64" rx="32" ry="10" fill={c} /><rect x="78" y="50" width="44" height="14" rx="4" fill={c} /></g>;
+    if (itemId === 'wizard')   return <path d="M68 70 L100 18 L132 70 Z" fill={c} />;
+    if (itemId === 'partyhat') return <g><path d="M80 70 L100 30 L120 70 Z" fill={c} /><circle cx="100" cy="28" r="4" fill={ITEM_COLORS.yellow} /></g>;
+    if (itemId === 'crown')    return <path d="M72 72 L80 50 L92 66 L100 44 L108 66 L120 50 L128 72 Z" fill={c} stroke={ITEM_COLORS.yellow} strokeWidth="1" />;
+    if (itemId === 'cap')      return <g><ellipse cx="100" cy="66" rx="30" ry="14" fill={c} /><path d="M100 52 L130 66 L100 66 Z" fill={c} /></g>;
+  }
+  if (category === 'top') {
+    if (itemId === 'tshirt')  return <path d="M76 145 L82 175 L118 175 L124 145 L110 140 L100 148 L90 140 Z" fill={c} />;
+    if (itemId === 'sweater') return <path d="M70 145 L78 180 L122 180 L130 145 L114 140 L100 152 L86 140 Z" fill={c} stroke={ITEM_COLORS.white} strokeWidth="1" />;
+    if (itemId === 'vest')    return <path d="M84 145 L80 180 L120 180 L116 145 L108 142 L100 148 L92 142 Z" fill={c} stroke={ITEM_COLORS.black} strokeWidth="1" />;
+    if (itemId === 'jacket')  return <g><path d="M68 142 L78 180 L122 180 L132 142 L116 138 L100 150 L84 138 Z" fill={c} /><line x1="100" y1="142" x2="100" y2="180" stroke={ITEM_COLORS.gold} strokeWidth="2" /></g>;
+    if (itemId === 'hoodie')  return <g><path d="M72 140 L80 182 L120 182 L128 140 L112 136 L100 150 L88 136 Z" fill={c} /><ellipse cx="100" cy="138" rx="22" ry="10" fill={c} opacity="0.85" /></g>;
+    if (itemId === 'dress')   return <path d="M78 142 L72 200 L128 200 L122 142 L110 140 L100 148 L90 140 Z" fill={c} />;
+  }
+  if (category === 'bottom') {
+    if (itemId === 'jeans')    return <path d="M82 175 L80 260 L96 260 L98 200 L102 200 L104 260 L120 260 L118 175 Z" fill={c} />;
+    if (itemId === 'skirt')    return <path d="M76 180 L70 240 L130 240 L124 180 Z" fill={c} />;
+    if (itemId === 'shorts')   return <path d="M80 175 L78 215 L98 215 L100 195 L102 195 L102 215 L122 215 L120 175 Z" fill={c} />;
+    if (itemId === 'leggings') return <path d="M82 175 L82 260 L96 260 L98 200 L102 200 L104 260 L118 260 L118 175 Z" fill={c} />;
+    if (itemId === 'tutu')     return <path d="M74 178 Q100 210 126 178 Q130 230 100 238 Q70 230 74 178" fill={c} opacity="0.9" />;
+    if (itemId === 'cargo')    return <path d="M82 175 L78 255 L98 255 L99 210 L101 210 L102 255 L122 255 L118 175 Z" fill={c} />;
+  }
+  if (category === 'accessory') {
+    if (itemId === 'necklace') return <path d="M82 138 Q100 150 118 138" stroke={c} strokeWidth="3" fill="none" />;
+    if (itemId === 'glasses')  return <g><circle cx="88" cy="108" r="9" fill="none" stroke={c} strokeWidth="2" /><circle cx="112" cy="108" r="9" fill="none" stroke={c} strokeWidth="2" /><line x1="97" y1="108" x2="103" y2="108" stroke={c} strokeWidth="2" /></g>;
+    if (itemId === 'scarf')    return <path d="M70 145 Q100 165 130 145 L130 160 Q100 180 70 160 Z" fill={c} />;
+    if (itemId === 'bag')      return <g><rect x="130" y="180" width="32" height="36" rx="4" fill={c} /><path d="M134 180 Q134 168 146 168 Q158 168 158 180" stroke={c} strokeWidth="3" fill="none" /></g>;
+    if (itemId === 'wings')    return <g><path d="M70 160 Q40 140 48 190 Q60 175 70 200 Z" fill={c} opacity="0.85" /><path d="M130 160 Q160 140 152 190 Q140 175 130 200 Z" fill={c} opacity="0.85" /></g>;
+    if (itemId === 'star')     return <path d="M100 55 L104 66 L116 66 L106 74 L110 86 L100 78 L90 86 L94 74 L84 66 L96 66 Z" fill={c} />;
+  }
+  return null;
+}
+
+const SIGNATURE_ITEMS = {
+  amber: [
+    { id: 'bow',     name: 'Red Bow',     slot: 'accessory', color: 'red' },
+    { id: 'flower',  name: 'Flower Clip', slot: 'accessory', color: 'pink' },
+    { id: 'collar',  name: 'Lace Collar', slot: 'top',       color: 'white' },
+  ],
+  robot: [
+    { id: 'antenna', name: 'Rocket Antenna', slot: 'hat',       color: 'red' },
+    { id: 'screen',  name: 'Screen Face',    slot: 'top',       color: 'green' },
+    { id: 'gear',    name: 'Gear Shoulder',  slot: 'accessory', color: 'gold' },
+  ],
+  astronaut: [
+    { id: 'helmet',  name: 'Space Helmet',   slot: 'hat',       color: 'white' },
+    { id: 'patch',   name: 'Mission Patch',  slot: 'accessory', color: 'blue' },
+    { id: 'jetpack', name: 'Jetpack',        slot: 'accessory', color: 'teal' },
+  ],
+  princess: [
+    { id: 'tiara',   name: 'Gold Tiara',     slot: 'hat',       color: 'gold' },
+    { id: 'wand',    name: 'Magic Wand',     slot: 'accessory', color: 'purple' },
+    { id: 'cape',    name: 'Royal Cape',     slot: 'top',       color: 'red' },
+  ],
+};
+
+function SignatureItemSVG({ charId, itemId, color }) {
+  const c = ITEM_COLORS[color] || color || '#888';
+  if (charId === 'amber') {
+    if (itemId === 'bow')    return <path d="M82 70 Q100 60 118 70 Q100 80 82 70 M100 70 L100 80" fill={c} />;
+    if (itemId === 'flower') return <g><circle cx="100" cy="68" r="6" fill={c} /><circle cx="100" cy="68" r="2" fill={ITEM_COLORS.yellow} /></g>;
+    if (itemId === 'collar') return <path d="M80 142 L100 150 L120 142 L120 148 L100 156 L80 148 Z" fill={c} />;
+  }
+  if (charId === 'robot') {
+    if (itemId === 'antenna') return <g><rect x="99" y="20" width="2" height="40" fill={c} /><circle cx="100" cy="20" r="8" fill={c} /><path d="M96 14 L100 4 L104 14 Z" fill={ITEM_COLORS.yellow} /></g>;
+    if (itemId === 'screen')  return <rect x="80" y="100" width="40" height="22" rx="3" fill={c} />;
+    if (itemId === 'gear')    return <g><circle cx="68" cy="160" r="10" fill="none" stroke={c} strokeWidth="3" /><circle cx="68" cy="160" r="4" fill={c} /></g>;
+  }
+  if (charId === 'astronaut') {
+    if (itemId === 'helmet')  return <g><circle cx="100" cy="100" r="42" fill="rgba(255,255,255,0.15)" stroke={c} strokeWidth="3" /><ellipse cx="100" cy="100" rx="30" ry="24" fill="rgba(95,251,241,0.5)" /></g>;
+    if (itemId === 'patch')   return <circle cx="78" cy="210" r="8" fill={c} />;
+    if (itemId === 'jetpack') return <rect x="138" y="170" width="32" height="50" rx="6" fill={c} />;
+  }
+  if (charId === 'princess') {
+    if (itemId === 'tiara')   return <path d="M80 70 L100 50 L120 70 L115 75 L100 60 L85 75 Z" fill={c} />;
+    if (itemId === 'wand')    return <g><rect x="145" y="120" width="3" height="40" fill={c} /><path d="M138 116 L146 110 L154 116 L146 122 Z" fill={ITEM_COLORS.yellow} /></g>;
+    if (itemId === 'cape')    return <path d="M64 145 L60 200 L82 180 L100 175 L118 180 L140 200 L136 145 Z" fill={c} />;
+  }
+  return null;
+}
+
+
+
+const SLOT_LABELS = { hat: 'Hat', top: 'Top', bottom: 'Bottom', accessory: 'Extra' };
+const COLOR_KEYS = Object.keys(ITEM_COLORS);
+const MOODS = [
+  { id: 'cozy', name: 'Cozy', items: { top: 'sweater', bottom: 'leggings', accessory: 'scarf' } },
+  { id: 'beach', name: 'Beach', items: { hat: 'sunhat', top: 'tshirt', bottom: 'shorts', accessory: 'bag' } },
+  { id: 'sparkle', name: 'Sparkle', items: { hat: 'partyhat', bottom: 'skirt', accessory: 'necklace' } },
+  { id: 'hero', name: 'Hero', items: { top: 'jacket', bottom: 'jeans', hat: 'beanie' } },
+];
+const IDEA_THEMES = [
+  { id: 'beach', name: 'Beach Day', hint: 'Sun, shorts, and bags!', tags: ['hat:sunhat', 'top:tshirt', 'bottom:shorts', 'accessory:bag'] },
+  { id: 'tea', name: 'Tea Party', hint: 'Pretty and polite', tags: ['top:collar', 'bottom:skirt', 'accessory:necklace'] },
+  { id: 'space', name: 'Space Explorer', hint: 'Helmets and jetpacks', tags: ['hat:helmet', 'accessory:jetpack', 'accessory:patch'] },
+  { id: 'sporty', name: 'Sporty Day', hint: 'Move and play', tags: ['hat:beanie', 'top:tshirt', 'bottom:shorts'] },
+  { id: 'cozy', name: 'Cozy Night', hint: 'Soft and warm', tags: ['top:sweater', 'accessory:scarf', 'bottom:leggings'] },
+  { id: 'party', name: 'Party Time', hint: 'Go wild!', tags: ['hat:partyhat', 'bottom:skirt', 'accessory:bow'] },
+];
+
+function emptyOutfit() { return { hat: null, top: null, bottom: null, accessory: null }; }
+
+function loadGallery() {
+  try {
+    const raw = localStorage.getItem('dressup_saved_gallery');
+    if (raw) return JSON.parse(raw) || [];
+  } catch (e) {}
+  return [];
+}
+function saveGallery(list) {
+  try {
+    localStorage.setItem('dressup_saved_gallery', JSON.stringify(list));
+    localStorage.setItem('dressup_looks_count', String(list.length));
+  } catch (e) {}
+}
+
+function sanitizeOutfitForChar(charId, outfit) {
+  const next = emptyOutfit();
+  if (!outfit || typeof outfit !== 'object') return next;
+  const cid = CHARACTERS[charId] ? charId : 'amber';
+  const sigIds = new Set((SIGNATURE_ITEMS[cid] || []).map(s => 'sig:' + s.id));
+  const sharedByCat = {};
+  ['hat', 'top', 'bottom', 'accessory'].forEach(cat => {
+    sharedByCat[cat] = new Set((SHARED_ITEMS[cat] || []).map(i => i.id));
+  });
+  ['hat', 'top', 'bottom', 'accessory'].forEach(cat => {
+    const item = outfit[cat];
+    if (!item || item.itemId == null || item.itemId === '') return;
+    const id = String(item.itemId);
+    const color = (item.color && ITEM_COLORS[item.color]) ? item.color : 'red';
+    if (id.startsWith('sig:')) {
+      if (sigIds.has(id)) next[cat] = { itemId: id, color };
+    } else if (sharedByCat[cat].has(id)) {
+      next[cat] = { itemId: id, color };
+    }
+  });
+  return next;
+}
+
+function loadOutfitSafe(charId) {
+  const cid = CHARACTERS[charId] ? charId : 'amber';
+  try {
+    const s = localStorage.getItem('dressup_outfit_' + cid);
+    if (!s) return emptyOutfit();
+    return sanitizeOutfitForChar(cid, JSON.parse(s));
+  } catch (e) {
+    return emptyOutfit();
+  }
+}
+
+function loadCharSafe() {
+  try {
+    const id = localStorage.getItem('dressup_pick');
+    if (id && CHARACTERS[id]) return id;
+  } catch (e) {}
+  return 'amber';
+}
+
+function charIntro(charId) {
+  const lines = {
+    amber: 'Amber is ready — everyday magic looks!',
+    robot: 'Beep boop! Dress the Robot with chrome vibes.',
+    astronaut: 'To the stars — invent a space outfit!',
+    princess: 'Once upon a style… sparkle time!',
+  };
+  return lines[charId] || 'Pick pieces and invent a look!';
+}
+
+function applyThemeSuggestion(theme, charId) {
+  const next = emptyOutfit();
+  (theme.tags || []).forEach(tag => {
+    const [cat, id] = tag.split(':');
+    if (!cat || !id || !next.hasOwnProperty(cat)) return;
+    if (next[cat]) return;
+    const shared = (SHARED_ITEMS[cat] || []).find(i => i.id === id);
+    if (shared) { next[cat] = { itemId: shared.id, color: shared.color }; return; }
+    const sig = (SIGNATURE_ITEMS[charId] || []).find(s => s.id === id && s.slot === cat);
+    if (sig) next[cat] = { itemId: 'sig:' + sig.id, color: sig.color };
+  });
+  return next;
+}
+
+function outfitTag(cat, item) {
+  if (!item) return null;
+  const id = item.itemId.startsWith('sig:') ? item.itemId.slice(4) : item.itemId;
+  return cat + ':' + id;
+}
+
+function ideaScore(theme, outfit) {
+  const need = theme.tags || [];
+  let hits = 0;
+  const have = new Set();
+  Object.entries(outfit).forEach(([cat, item]) => {
+    const t = outfitTag(cat, item);
+    if (t) have.add(t);
+  });
+  need.forEach(t => { if (have.has(t)) hits++; });
+  const filled = Object.values(outfit).filter(Boolean).length;
+  const creative = Math.min(40, filled * 10);
+  const match = need.length ? Math.round((hits / need.length) * 60) : 40;
+  return Math.min(100, creative + match);
+}
+
+function softStars(score) {
+  if (score >= 80) return 5;
+  if (score >= 60) return 4;
+  if (score >= 40) return 3;
+  if (score >= 20) return 2;
+  return 1;
+}
+
+function cheerLine(stars) {
+  const lines = [
+    'A creative start — keep playing!',
+    'Cute idea!',
+    'So fun and original!',
+    'Wow, stylish!',
+    'Amazing imagination!',
+    'I love this look so much!',
+  ];
+  return lines[Math.min(5, stars)];
+}
+
+function spawnConfetti(n) {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const colors = ['#FF8A65', '#F48FB1', '#FFD54F', '#CE93D8', '#4FC3F7', '#AED581'];
+  for (let i = 0; i < (n || 28); i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.background = colors[i % colors.length];
+    el.style.animationDuration = (1.4 + Math.random() * 1.6) + 's';
+    el.style.animationDelay = (Math.random() * 0.3) + 's';
+    document.body.appendChild(el);
+    setTimeout(() => { try { el.remove(); } catch (e) {} }, 3200);
+  }
+}
+
+function StageSparkles() {
+  const pts = [
+    { left: '18%', top: '22%' }, { left: '78%', top: '18%' }, { left: '12%', top: '48%' },
+    { left: '88%', top: '42%' }, { left: '30%', top: '12%' }, { left: '70%', top: '55%' },
+  ];
+  return pts.map((p, i) => (
+    <div key={i} className="sparkle" style={{ left: p.left, top: p.top, animationDelay: (i * 0.25) + 's' }} />
+  ));
+}
+
+function MiniItem({ charId, cat, item }) {
+  if (!item || item.itemId == null || item.itemId === '') return null;
+  const id = String(item.itemId);
+  const inner = id.startsWith('sig:')
+    ? <SignatureItemSVG charId={charId} itemId={id.slice(4)} color={item.color} />
+    : <ItemSVG category={cat} itemId={id} color={item.color} />;
+  return <svg viewBox="0 0 200 280" width="100%" height="100%">{inner}</svg>;
+}
+function renderOutfitLayers(charId, outfit) {
+  const layers = [];
+  const safe = sanitizeOutfitForChar(charId, outfit || emptyOutfit());
+  ['bottom', 'top', 'hat', 'accessory'].forEach(cat => {
+    const item = safe[cat];
+    if (!item) return;
+    const id = String(item.itemId);
+    if (id.startsWith('sig:')) {
+      layers.push(<SignatureItemSVG key={cat} charId={charId} itemId={id.slice(4)} color={item.color} />);
+    } else {
+      layers.push(<ItemSVG key={cat} category={cat} itemId={id} color={item.color} />);
+    }
+  });
+  return layers;
+}
+
+function AmberToast({ text, show }) {
+  return (
+    <div className={'amber-toast' + (show ? ' show' : '')}>
+      <div className="af" aria-hidden="true">{'\u{1F467}'}</div>
+      <div className="ab">{text}</div>
+    </div>
+  );
+}
+
+function ColorBar({ color, onPick }) {
+  return (
+    <div className="color-bar">
+      {COLOR_KEYS.map(k => (
+        <button
+          key={k}
+          type="button"
+          className={'color-dot' + (color === k ? ' on' : '')}
+          style={{ background: ITEM_COLORS[k] }}
+          onClick={() => onPick(k)}
+          aria-label={k}
+        />
+      ))}
+    </div>
+  );
+}
+
+function DressingBoard({
+  charId, setCharId, outfit, setOutfit, pickerCat, setPickerCat,
+  showMoods, onSurprise, banner, extraActions, stageClass, onOutfitChange,
+}) {
+  const pushOutfit = (next) => {
+    if (onOutfitChange) onOutfitChange(outfit);
+    setOutfit(next);
+  };
+  const visibleItems = () => {
+    const shared = SHARED_ITEMS[pickerCat] || [];
+    const sigs = (SIGNATURE_ITEMS[charId] || [])
+      .filter(s => s.slot === pickerCat)
+      .map(s => ({ id: 'sig:' + s.id, name: s.name, color: s.color, sigItemId: s.id }));
+    return [...sigs, ...shared];
+  };
+  const handlePick = (item) => {
+    initAudio();
+    const id = item.id;
+    if (outfit[pickerCat] && outfit[pickerCat].itemId === id) {
+      pushOutfit({ ...outfit, [pickerCat]: null });
+      sfx('drop');
+    } else {
+      pushOutfit({ ...outfit, [pickerCat]: { itemId: id, color: item.color || 'red' } });
+      sfx('pick');
+    }
+  };
+  const setColor = (k) => {
+    if (!outfit[pickerCat]) return;
+    pushOutfit({ ...outfit, [pickerCat]: { ...outfit[pickerCat], color: k } });
+    sfx('pick');
+  };
+  const applyMood = (mood) => {
+    initAudio();
+    const next = { ...outfit };
+    Object.entries(mood.items).forEach(([cat, itemId]) => {
+      const shared = (SHARED_ITEMS[cat] || []).find(i => i.id === itemId);
+      if (shared) next[cat] = { itemId: shared.id, color: shared.color };
+    });
+    pushOutfit(next);
+    sfx('slot');
+  };
+  const doSurprise = () => {
+    initAudio();
+    if (onSurprise) onSurprise();
+    else {
+      const next = emptyOutfit();
+      ['hat', 'top', 'bottom', 'accessory'].forEach(cat => {
+        const pool = [...(SHARED_ITEMS[cat] || [])];
+        (SIGNATURE_ITEMS[charId] || []).filter(s => s.slot === cat).forEach(s => {
+          pool.push({ id: 'sig:' + s.id, color: s.color });
+        });
+        if (!pool.length) return;
+        if (Math.random() < 0.85) {
+          const it = pool[Math.floor(Math.random() * pool.length)];
+          next[cat] = { itemId: it.id, color: it.color || COLOR_KEYS[Math.floor(Math.random() * COLOR_KEYS.length)] };
+        }
+      });
+      pushOutfit(next);
+      sfx('runway');
+      spawnConfetti(18);
+    }
+  };
+  return (
+    <>
+      <div className={'stage-bg ' + (stageClass || 'stage-studio')} />
+      {banner}
+      <div className="slot-row">
+        {['hat', 'top', 'bottom', 'accessory'].map(cat => (
+          <div
+            key={cat}
+            className={'slot' + (pickerCat === cat ? ' on' : '') + (outfit[cat] ? ' filled' : '')}
+            onClick={() => setPickerCat(cat)}
+          >
+            {outfit[cat] ? <MiniItem charId={charId} cat={cat} item={outfit[cat]} /> : SLOT_LABELS[cat]}
+            {outfit[cat] && (
+              <span className="x" onClick={(e) => { e.stopPropagation(); pushOutfit({ ...outfit, [cat]: null }); sfx('drop'); }}>x</span>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="stage-wrap">
+        <StageSparkles />
+        <CharBase charId={charId}>{renderOutfitLayers(charId, outfit)}</CharBase>
+      </div>
+      <div className="picker">
+        <div className="char-strip">
+          {Object.values(CHARACTERS).map(c => (
+            <button
+              key={c.id}
+              type="button"
+              className={'char-card' + (charId === c.id ? ' on' : '')}
+              onClick={() => {
+                if (c.id === charId) return;
+                initAudio();
+                const cleaned = sanitizeOutfitForChar(c.id, outfit);
+                if (onOutfitChange) onOutfitChange(outfit);
+                setOutfit(cleaned);
+                setCharId(c.id);
+                try {
+                  localStorage.setItem('dressup_pick', c.id);
+                  const saved = loadOutfitSafe(c.id);
+                  if (Object.values(saved).some(Boolean) && !Object.values(cleaned).some(Boolean)) {
+                    setOutfit(saved);
+                  }
+                } catch (e) {}
+                sfx('pick');
+              }}
+            >
+              <span className="em">{c.emoji}</span>
+              <span className="nm">{c.name}</span>
+              <span className="vb">{c.vibe || ''}</span>
+            </button>
+          ))}
+        </div>
+        {showMoods && (
+          <div className="mood-row">
+            {MOODS.map(m => (
+              <button key={m.id} type="button" className="mood-chip" onClick={() => applyMood(m)}>{m.name}</button>
+            ))}
+            <button type="button" className="mood-chip" onClick={doSurprise}>Surprise me</button>
+          </div>
+        )}
+        <div className="cat-tabs">
+          {['hat', 'top', 'bottom', 'accessory'].map(cat => (
+            <button key={cat} type="button" className={'cat-tab' + (pickerCat === cat ? ' on' : '')} onClick={() => setPickerCat(cat)}>
+              {SLOT_LABELS[cat]}
+            </button>
+          ))}
+        </div>
+        {outfit[pickerCat] && (
+          <ColorBar color={outfit[pickerCat].color} onPick={setColor} />
+        )}
+        <div className="picker-grid">
+          {visibleItems().map(item => {
+            const id = item.id || ('sig:' + item.sigItemId);
+            const equipped = outfit[pickerCat] && outfit[pickerCat].itemId === id;
+            return (
+              <div
+                key={id}
+                className={'picker-item' + (equipped ? ' equipped' : '')}
+                onClick={() => handlePick({ id, color: item.color })}
+                title={item.name}
+              >
+                <MiniItem charId={charId} cat={pickerCat} item={{ itemId: id, color: item.color }} />
+                {id.startsWith('sig:') && <span className="sig">{'\u2728'}</span>}
+                <span className="iname">{item.name || id}</span>
+              </div>
+            );
+          })}
+        </div>
+        {extraActions && <div className="action-bar">{extraActions}</div>}
+      </div>
+    </>
+  );
+}
+
+class ErrorBoundary extends React.Component {
+  constructor(p) { super(p); this.state = { err: null }; }
+  static getDerivedStateFromError(err) { return { err }; }
+  componentDidCatch(err, info) { try { console.error('Style Studio crashed:', err, info); } catch (e) {} }
+  render() {
+    if (this.state.err) {
+      return (
+        <div className="overlay">
+          <div className="result-card">
+            <div className="rt">Oops!</div>
+            <div className="rl">Something went wrong.</div>
+            <button className="btn" onClick={() => window.location.reload()}>Reload</button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function App() {
+  const [screen, setScreen] = useState('menu');
+  const [muted, setMuted] = useState(() => { try { return localStorage.getItem('dressup_muted') === '1'; } catch (e) { return false; } });
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [toast, setToast] = useState({ show: false, text: '' });
+  const [result, setResult] = useState(null);
+  const [loadLook, setLoadLook] = useState(null);
+  const [looksTick, setLooksTick] = useState(0);
+  useEffect(() => { window.__muted = muted; try { localStorage.setItem('dressup_muted', muted ? '1' : '0'); } catch (e) {} }, [muted]);
+  useEffect(() => {
+    try { if (localStorage.getItem('dressup_tutorial') !== '1') setShowWelcome(true); } catch (e) {}
+  }, []);
+  const toggleMute = useCallback(() => setMuted(m => !m), []);
+  const amberSay = (text, ms) => {
+    setToast({ show: true, text });
+    setTimeout(() => setToast({ show: false, text: '' }), ms || 2200);
+  };
+  const closeWelcome = () => {
+    try { localStorage.setItem('dressup_tutorial', '1'); } catch (e) {}
+    setShowWelcome(false);
+    amberSay("Let's invent some outfits!", 2000);
+  };
+  const onStart = (sub) => {
+    setShowWelcome(false);
+    try { localStorage.setItem('dressup_tutorial', '1'); } catch (e) {}
+    initAudio();
+    setScreen(sub);
+  };
+  const onMenu = () => { setScreen('menu'); setResult(null); setLooksTick(t => t + 1); };
+  const onModeDone = (sub, charId, level, score, message) => {
+    setResult({ sub, charId, level, score, message });
+    setScreen('over');
+  };
+  const onLoadLook = (look) => {
+    setLoadLook(look);
+    setShowGallery(false);
+    setScreen('studio');
+    initAudio();
+    sfx('slot');
+    amberSay('Loaded ' + (look.name || 'your look') + ' — keep creating!', 2200);
+  };
+
+  return (
+    <>
+      {screen === 'menu' && (
+        <Menu
+          onStart={onStart}
+          muted={muted}
+          toggleMute={toggleMute}
+          onHelp={() => setShowWelcome(true)}
+          onGallery={() => setShowGallery(true)}
+          looksTick={looksTick}
+        />
+      )}
+      {screen === 'studio' && (
+        <CreateStudio
+          muted={muted}
+          toggleMute={toggleMute}
+          onMenu={onMenu}
+          amberSay={amberSay}
+          onOpenGallery={() => setShowGallery(true)}
+          loadLook={loadLook}
+          onLoadConsumed={() => setLoadLook(null)}
+          onSaved={() => setLooksTick(t => t + 1)}
+        />
+      )}
+      {screen === 'brief' && (
+        <IdeaCards muted={muted} toggleMute={toggleMute} onMenu={onMenu} onDone={onModeDone} amberSay={amberSay} />
+      )}
+      {screen === 'runway' && (
+        <Showtime muted={muted} toggleMute={toggleMute} onMenu={onMenu} onDone={onModeDone} amberSay={amberSay} />
+      )}
+      {screen === 'over' && result && (
+        <ResultScreen result={result} onAgain={() => setScreen(result.sub === 'brief' ? 'brief' : 'runway')} onMenu={onMenu} />
+      )}
+      {showWelcome && <Welcome onClose={closeWelcome} />}
+      {showGallery && <GalleryModal onClose={() => setShowGallery(false)} onLoad={onLoadLook} />}
+      <AmberToast text={toast.text} show={toast.show} />
+    </>
+  );
+}
+
+function Menu({ onStart, muted, toggleMute, onHelp, onGallery, looksTick }) {
+  const looksCount = useMemo(() => {
+    try { return loadGallery().length; } catch (e) { return 0; }
+  }, [looksTick]);
+  return (
+    <div className="overlay">
+      <div className="home-card">
+        <div className="home-hero">
+          <div className="home-badge">Imagine · Create · Play</div>
+          <div className="home-title">Style Studio</div>
+          <div className="home-sub">Dress Amber and friends. Invent wild looks. Save the ones you love!</div>
+          <div className="home-stats">
+            <div className="home-stat">Looks saved <span>{looksCount}</span></div>
+            <div className="home-stat">4 characters</div>
+          </div>
+        </div>
+        <div className="home-body">
+          <div className="mode-list">
+            <button type="button" className="mode-row primary" onClick={() => onStart('studio')}>
+              <div className="mode-ico">{'\u{1F3A8}'}</div>
+              <div className="mode-info">
+                <div className="mode-name">Create looks</div>
+                <div className="mode-blurb">Free play · colors · save favorites</div>
+              </div>
+              <span className="mode-go">›</span>
+            </button>
+            <button type="button" className="mode-row ideas" onClick={() => onStart('brief')}>
+              <div className="mode-ico">{'\u{1F4A1}'}</div>
+              <div className="mode-info">
+                <div className="mode-name">Idea cards</div>
+                <div className="mode-blurb">Story moods to spark your imagination</div>
+              </div>
+              <span className="mode-go">›</span>
+            </button>
+            <button type="button" className="mode-row show" onClick={() => onStart('runway')}>
+              <div className="mode-ico">{'\u2728'}</div>
+              <div className="mode-info">
+                <div className="mode-name">Showtime</div>
+                <div className="mode-blurb">Show off your outfit and celebrate</div>
+              </div>
+              <span className="mode-go">›</span>
+            </button>
+            <button type="button" className="mode-row gallery" onClick={onGallery}>
+              <div className="mode-ico">{'\u{1F5BC}\uFE0F'}</div>
+              <div className="mode-info">
+                <div className="mode-name">My Looks</div>
+                <div className="mode-blurb">{looksCount ? looksCount + ' saved · open any look' : 'Your saved outfits gallery'}</div>
+              </div>
+              <span className="mode-go">›</span>
+            </button>
+          </div>
+        </div>
+        <div className="home-footer">
+          <button type="button" className="btn btn-ghost" onClick={toggleMute}>{muted ? '\u{1F507} Muted' : '\u{1F50A} Sound'}</button>
+          <button type="button" className="btn btn-ghost" onClick={onHelp}>Help</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Welcome({ onClose }) {
+  return (
+    <div id="welcome" className="overlay">
+      <div className="welcome-card">
+        <div className="welcome-hero">
+          <div className="home-badge">Welcome</div>
+          <div className="welcome-title">Create your world</div>
+          <div className="welcome-sub">This is your fashion playground — there are no wrong looks.</div>
+          <div className="welcome-amber">
+            <div className="face">{'\u{1F467}'}</div>
+            <div className="bubble"><strong>Amber</strong>Pick a character and invent something only you would dream up!</div>
+          </div>
+        </div>
+        <div className="welcome-grid">
+          <div className="welcome-tile t1"><div className="n">1</div><h3>Characters</h3><p>Amber, Robot, Astronaut & Princess each have special pieces.</p></div>
+          <div className="welcome-tile t2"><div className="n">2</div><h3>Outfits</h3><p>Mix hats, tops, bottoms & extras. Tap colors to recolor!</p></div>
+          <div className="welcome-tile t3"><div className="n">3</div><h3>Imagine</h3><p>Try moods or Surprise me — then make it yours.</p></div>
+          <div className="welcome-tile t4"><div className="n">4</div><h3>Save</h3><p>Keep favorites in My Looks and open them anytime.</p></div>
+        </div>
+        <div className="welcome-footer">
+          <button type="button" className="btn" onClick={onClose}>Let's dress!</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GalleryModal({ onClose, onLoad }) {
+  const [list, setList] = useState(() => loadGallery());
+  const persist = (next) => { setList(next); saveGallery(next); };
+  const remove = (id) => {
+    persist(list.filter(x => x.id !== id));
+    sfx('drop');
+  };
+  const toggleFav = (id) => {
+    persist(list.map(l => l.id === id ? { ...l, favorite: !l.favorite } : l));
+    sfx('pick');
+  };
+  const rename = (id, name) => {
+    persist(list.map(l => l.id === id ? { ...l, name: name.slice(0, 24) || l.name } : l));
+  };
+  const sorted = [...list].sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0) || (b.createdAt || 0) - (a.createdAt || 0));
+  return (
+    <div className="modal-bg" onClick={onClose}>
+      <div className="modal-card" onClick={e => e.stopPropagation()}>
+        <h2>My Looks</h2>
+        {sorted.length === 0 ? (
+          <div className="gallery-empty">No saved looks yet. Create an outfit and tap Save!</div>
+        ) : (
+          <div className="gallery-grid">
+            {sorted.map(look => (
+              <div key={look.id} className={'gallery-card' + (look.favorite ? ' fav' : '')}>
+                <button type="button" className="fav-btn" onClick={() => toggleFav(look.id)} aria-label="Favorite">{look.favorite ? '\u2605' : '\u2606'}</button>
+                <CharBase charId={look.charId}>{renderOutfitLayers(look.charId, look.outfit || emptyOutfit())}</CharBase>
+                <input
+                  className="rename-input"
+                  value={look.name || 'Look'}
+                  onChange={e => rename(look.id, e.target.value)}
+                  maxLength={24}
+                />
+                <div className="gb">{(CHARACTERS[look.charId] || {}).name || look.charId}</div>
+                <button type="button" className="btn load-btn" onClick={() => onLoad && onLoad(look)}>Open & edit</button>
+                <div className="btn-row" style={{ marginTop: 4 }}>
+                  <button type="button" className="btn btn-ghost" style={{ padding: '6px 10px', fontSize: 11 }} onClick={() => remove(look.id)}>Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="btn-row" style={{ marginTop: 12 }}>
+          <button type="button" className="btn" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CreateStudio({ muted, toggleMute, onMenu, amberSay, onOpenGallery, loadLook, onLoadConsumed, onSaved }) {
+  const [charId, setCharId] = useState(() => loadCharSafe());
+  const [outfit, setOutfit] = useState(() => loadOutfitSafe(loadCharSafe()));
+  const [pickerCat, setPickerCat] = useState('top');
+  const [history, setHistory] = useState([]);
+  useEffect(() => {
+    if (loadLook && loadLook.outfit) {
+      const cid = CHARACTERS[loadLook.charId] ? loadLook.charId : 'amber';
+      const cleaned = sanitizeOutfitForChar(cid, loadLook.outfit);
+      setCharId(cid);
+      setOutfit(cleaned);
+      setHistory([]);
+      try { localStorage.setItem('dressup_pick', cid); } catch (e) {}
+      if (onLoadConsumed) onLoadConsumed();
+    }
+  }, [loadLook]);
+  const onOutfitChange = (prev) => {
+    setHistory(h => [...h.slice(-19), JSON.parse(JSON.stringify(prev))]);
+  };
+  useEffect(() => {
+    if (!CHARACTERS[charId]) return;
+    try { localStorage.setItem('dressup_outfit_' + charId, JSON.stringify(sanitizeOutfitForChar(charId, outfit))); } catch (e) {}
+  }, [charId, outfit]);
+  const undo = () => {
+    if (!history.length) return;
+    const prev = history[history.length - 1];
+    setHistory(h => h.slice(0, -1));
+    setOutfit(sanitizeOutfitForChar(charId, prev));
+    sfx('drop');
+  };
+  const shuffleColors = () => {
+    initAudio();
+    onOutfitChange(outfit);
+    const next = { ...outfit };
+    Object.keys(next).forEach(cat => {
+      if (next[cat]) next[cat] = { ...next[cat], color: COLOR_KEYS[Math.floor(Math.random() * COLOR_KEYS.length)] };
+    });
+    setOutfit(next);
+    sfx('slot');
+    amberSay('New colors — wild!', 1600);
+  };
+  const filled = Object.values(outfit).filter(Boolean).length;
+  const saveOutfit = () => {
+    initAudio();
+    const clean = sanitizeOutfitForChar(charId, outfit);
+    try { localStorage.setItem('dressup_outfit_' + charId, JSON.stringify(clean)); } catch (e) {}
+    const list = loadGallery();
+    const cname = (CHARACTERS[charId] && CHARACTERS[charId].name) || 'Look';
+    const name = cname + ' ' + (list.filter(l => l.charId === charId).length + 1);
+    list.unshift({ id: 'look_' + Date.now(), name, charId, outfit: JSON.parse(JSON.stringify(clean)), createdAt: Date.now(), favorite: false });
+    saveGallery(list.slice(0, 40));
+    sfx('theme-ok');
+    spawnConfetti(32);
+    amberSay('Saved to My Looks — so creative!', 2200);
+    if (onSaved) onSaved();
+  };
+  const handleCharId = (id) => {
+    if (id === charId || !CHARACTERS[id]) return;
+    amberSay(charIntro(id), 2000);
+    setCharId(id);
+  };
+  return (
+    <div className="play-root">
+      <div className="play-hud">
+        <div className="left">
+          <div className="title-sm">Create looks</div>
+          <div className="meta">{filled}/4 pieces · {(CHARACTERS[charId] || CHARACTERS.amber).name} · {(CHARACTERS[charId] || CHARACTERS.amber).vibe || ''}</div>
+        </div>
+        <div className="right">
+          <button type="button" className="icon-btn" onClick={undo} disabled={!history.length} style={{ opacity: history.length ? 1 : 0.4 }}>Undo</button>
+          <button type="button" className="icon-btn" onClick={toggleMute}>{muted ? '\u{1F507}' : '\u{1F50A}'}</button>
+          <button type="button" className="icon-btn" onClick={onOpenGallery}>{'\u{1F5BC}\uFE0F'}</button>
+          <button type="button" className="icon-btn" onClick={onMenu}>{'\u{1F3E0}'}</button>
+        </div>
+      </div>
+      <DressingBoard
+        charId={charId}
+        setCharId={handleCharId}
+        outfit={outfit}
+        setOutfit={setOutfit}
+        pickerCat={pickerCat}
+        setPickerCat={setPickerCat}
+        showMoods
+        stageClass="stage-studio"
+        onOutfitChange={onOutfitChange}
+        extraActions={(
+          <>
+            <button type="button" className="btn" onClick={saveOutfit}>Save look</button>
+            <button type="button" className="btn btn-ghost" onClick={shuffleColors}>Shuffle colors</button>
+            <button type="button" className="btn btn-ghost" onClick={() => { onOutfitChange(outfit); setOutfit(emptyOutfit()); sfx('drop'); }}>Clear</button>
+          </>
+        )}
+      />
+    </div>
+  );
+}
+
+function IdeaCards({ muted, toggleMute, onMenu, onDone, amberSay }) {
+  const [themeIdx, setThemeIdx] = useState(() => Math.floor(Math.random() * IDEA_THEMES.length));
+  const theme = IDEA_THEMES[themeIdx];
+  const [charId, setCharId] = useState(() => { try { return localStorage.getItem('dressup_pick') || 'amber'; } catch (e) { return 'amber'; } });
+  const [outfit, setOutfit] = useState(emptyOutfit());
+  const [pickerCat, setPickerCat] = useState('top');
+  useEffect(() => { amberSay('Try the idea — or invent your own twist!', 2400); }, []);
+  const nextIdea = () => {
+    setThemeIdx(i => (i + 1) % IDEA_THEMES.length);
+    setOutfit(emptyOutfit());
+    sfx('pick');
+    amberSay('New idea — what will you invent?', 1800);
+  };
+  const trySuggestion = () => {
+    initAudio();
+    setOutfit(applyThemeSuggestion(theme, charId));
+    sfx('slot');
+    amberSay('A starting idea — remix it!', 1800);
+  };
+  const finish = () => {
+    initAudio();
+    const s = ideaScore(theme, outfit);
+    try {
+      localStorage.setItem('dressup_best_brief_' + theme.id + '_easy', String(Math.max(parseInt(localStorage.getItem('dressup_best_brief_' + theme.id + '_easy') || '0', 10), s)));
+    } catch (e) {}
+    sfx('theme-ok');
+    spawnConfetti(24);
+    amberSay(cheerLine(softStars(s)), 2000);
+    setTimeout(() => onDone('brief', charId, 'easy', s, cheerLine(softStars(s))), 600);
+  };
+  return (
+    <div className="play-root">
+      <div className="play-hud">
+        <div className="left">
+          <div className="title-sm">Idea card</div>
+          <div className="meta">Spark your imagination</div>
+        </div>
+        <div className="right">
+          <button type="button" className="icon-btn" onClick={toggleMute}>{muted ? '\u{1F507}' : '\u{1F50A}'}</button>
+          <button type="button" className="icon-btn" onClick={onMenu}>{'\u{1F3E0}'}</button>
+        </div>
+      </div>
+      <DressingBoard
+        charId={charId}
+        setCharId={setCharId}
+        outfit={outfit}
+        setOutfit={setOutfit}
+        pickerCat={pickerCat}
+        setPickerCat={setPickerCat}
+        showMoods={false}
+        stageClass="stage-brief"
+        banner={(
+          <div className="idea-banner">
+            <div className="lbl">Idea</div>
+            <div className="nm">{theme.name}</div>
+            <div className="hint">{theme.hint} Use any pieces you like.</div>
+            <div className="idea-nav">
+              <button type="button" className="btn btn-ghost" onClick={trySuggestion}>Try suggestion</button>
+              <button type="button" className="btn btn-ghost" onClick={nextIdea}>Next idea</button>
+            </div>
+          </div>
+        )}
+        extraActions={<button type="button" className="btn" onClick={finish}>I love this look!</button>}
+      />
+    </div>
+  );
+}
+
+function Showtime({ muted, toggleMute, onMenu, onDone, amberSay }) {
+  const [charId, setCharId] = useState(() => { try { return localStorage.getItem('dressup_pick') || 'amber'; } catch (e) { return 'amber'; } });
+  const [outfit, setOutfit] = useState(emptyOutfit());
+  const [pickerCat, setPickerCat] = useState('top');
+  const [phase, setPhase] = useState('dress');
+  const [stars, setStars] = useState(5);
+  useEffect(() => { amberSay('Dress up — then take the stage!', 2200); }, []);
+  const takeStage = () => {
+    initAudio();
+    setPhase('reveal');
+    sfx('runway');
+    const filled = Object.values(outfit).filter(Boolean).length;
+    const colors = new Set(Object.values(outfit).filter(Boolean).map(o => o.color));
+    let st = 1 + filled;
+    if (colors.size >= 2) st += 1;
+    if (Object.values(outfit).some(i => i && String(i.itemId).startsWith('sig:'))) st += 1;
+    st = Math.min(5, Math.max(1, st));
+    setStars(st);
+    const score = st * 20;
+    try {
+      localStorage.setItem('dressup_best_runway_' + charId + '_easy', String(Math.max(parseInt(localStorage.getItem('dressup_best_runway_' + charId + '_easy') || '0', 10), score)));
+    } catch (e) {}
+    spawnConfetti(40);
+    setTimeout(() => {
+      setPhase('cheer');
+      sfx('judge');
+      amberSay(cheerLine(st), 2500);
+    }, 1600);
+    setTimeout(() => onDone('runway', charId, 'easy', score, cheerLine(st)), 4200);
+  };
+  return (
+    <div className="play-root">
+      <div className="play-hud">
+        <div className="left">
+          <div className="title-sm">Showtime</div>
+          <div className="meta">{phase === 'dress' ? 'Create your look' : 'On stage!'}</div>
+        </div>
+        <div className="right">
+          <button type="button" className="icon-btn" onClick={toggleMute}>{muted ? '\u{1F507}' : '\u{1F50A}'}</button>
+          <button type="button" className="icon-btn" onClick={onMenu}>{'\u{1F3E0}'}</button>
+        </div>
+      </div>
+      {phase === 'dress' && (
+        <DressingBoard
+          charId={charId}
+          setCharId={setCharId}
+          outfit={outfit}
+          setOutfit={setOutfit}
+          pickerCat={pickerCat}
+          setPickerCat={setPickerCat}
+          showMoods
+          stageClass="stage-runway"
+          extraActions={<button type="button" className="btn" onClick={takeStage}>{'\u2728'} Take the stage</button>}
+        />
+      )}
+      {phase !== 'dress' && (
+        <>
+          <div className={'stage-bg stage-runway'} />
+          <div className="stage-wrap" style={{ flex: 1 }}>
+            <CharBase charId={charId}>{renderOutfitLayers(charId, outfit)}</CharBase>
+          </div>
+          {phase === 'reveal' && (
+            <div className="overlay" style={{ background: 'rgba(0,0,0,0.25)' }}>
+              <div className="result-card"><div className="rt">{'\u2728'} Showtime!</div></div>
+            </div>
+          )}
+          {phase === 'cheer' && (
+            <div className="judge-sheet">
+              <div className="emoji">{CHARACTERS[charId].judge}</div>
+              <div className="cheer">{cheerLine(stars)}</div>
+              <div className="stars">{'\u2B50'.repeat(stars)}</div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function ResultScreen({ result, onAgain, onMenu }) {
+  const isIdea = result.sub === 'brief';
+  return (
+    <div className="overlay">
+      <div className="result-card">
+        <div className="rt">{isIdea ? 'Beautiful idea!' : 'You shone!'}</div>
+        <div className="rl">{result.message || 'What a creative outfit.'}</div>
+        {result.score > 0 && <div className="rs">{'\u2B50'.repeat(softStars(result.score))}</div>}
+        <div className="btn-row">
+          <button type="button" className="btn" onClick={onAgain}>{isIdea ? 'Another idea' : 'Dress again'}</button>
+          <button type="button" className="btn btn-secondary" onClick={onMenu}>Home</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('app'));
+root.render(<ErrorBoundary><App /></ErrorBoundary>);
+
+</script>
+<script src="playtime.js?v=2"></script>
+</body>
+</html>

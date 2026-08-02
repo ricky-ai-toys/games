@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Sky -->
+  <rect width="32" height="32" fill="#5BA3D9"/>
+  <!-- Sun -->
+  <rect x="22" y="3" width="6" height="6" fill="#FFD54A"/>
+  <rect x="23" y="4" width="4" height="4" fill="#FFE082"/>
+  <!-- Hills -->
+  <rect x="0" y="18" width="32" height="14" fill="#4e9e3f"/>
+  <rect x="0" y="16" width="14" height="4" fill="#5da34a"/>
+  <rect x="12" y="14" width="20" height="6" fill="#62b850"/>
+  <!-- Path -->
+  <rect x="12" y="22" width="8" height="10" fill="#c4b088"/>
+  <!-- Cottage -->
+  <rect x="6" y="12" width="12" height="10" fill="#f0e4c8"/>
+  <rect x="5" y="8" width="14" height="5" fill="#c04830"/>
+  <rect x="4" y="10" width="16" height="2" fill="#a83828"/>
+  <!-- Door -->
+  <rect x="10" y="16" width="4" height="6" fill="#5c3a1e"/>
+  <!-- Window -->
+  <rect x="7" y="14" width="2" height="2" fill="#7ec8e8"/>
+  <!-- Fox ear peek (Amber) -->
+  <rect x="20" y="18" width="3" height="4" fill="#e8941a"/>
+  <rect x="24" y="18" width="3" height="4" fill="#e8941a"/>
+  <rect x="21" y="19" width="1" height="2" fill="#f070a0"/>
+  <rect x="25" y="19" width="1" height="2" fill="#f070a0"/>
+  <!-- Face -->
+  <rect x="20" y="21" width="8" height="6" fill="#ffd2a8"/>
+  <rect x="21" y="22" width="2" height="2" fill="#2a1810"/>
+  <rect x="25" y="22" width="2" height="2" fill="#2a1810"/>
+  <!-- Crop -->
+  <rect x="2" y="24" width="2" height="4" fill="#3d8a34"/>
+  <rect x="1" y="22" width="4" height="3" fill="#e05040"/>
+</svg>

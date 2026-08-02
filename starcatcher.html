@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Amber's Star Catcher">
+<meta name="theme-color" content="#0d1b3a">
+<title>Amber's Star Catcher</title>
+<style>
+  :root {
+    --bg: #0d1b3a;
+    --ink: #f4f6ff;
+    --accent: #7c4dff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%; min-height: 100dvh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg); color: var(--ink);
+    user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    overflow: hidden;
+  }
+  #cv { display: block; width: 100%; height: 100%; }
+  .overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; z-index: 10; pointer-events: none;
+    padding: 16px;
+  }
+  .overlay > * { pointer-events: auto; }
+  .menu-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 20px; padding: 22px; text-align: center;
+    max-width: 360px; width: 94%;
+  }
+  .title {
+    font-size: clamp(28px, 7vw, 46px); font-weight: 900;
+    background: linear-gradient(135deg, #7c4dff, #18ffff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+  }
+  .btn {
+    background: linear-gradient(135deg, #7c4dff, #536dfe);
+    color: #fff; border: 0; border-radius: 14px;
+    padding: 12px 22px; font-weight: 700; font-size: 15px;
+    margin: 6px; cursor: pointer; touch-action: manipulation;
+  }
+  .btn-secondary {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .level-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .level-btn { padding: 8px 14px; font-size: 13px; min-width: 92px; }
+  .legend {
+    margin-top: 12px; font-size: 11px; line-height: 1.7; opacity: 0.82;
+    text-align: left; display: inline-block;
+  }
+  .hud {
+    position: absolute; top: max(12px, env(safe-area-inset-top,12px));
+    left: 0; right: 0; display: flex; justify-content: space-between;
+    padding: 0 16px; font-weight: 700; font-size: 14px;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6); pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<div id="menu" class="overlay">
+  <div class="menu-card">
+    <div class="title">⭐ Star Catcher</div>
+    <div style="margin-bottom:8px; opacity:0.85;">Drag to catch stars. Finish each wave's mission!</div>
+    <div class="level-btns">
+      <button class="btn level-btn" onclick="startLevel('easy')">Easy<br><span style="font-size:10px">Best: <span id="bestEasy">—</span></span><br><span style="font-size:10px">Wave: <span id="bestWaveEasy">—</span></span></button>
+      <button class="btn level-btn" onclick="startLevel('med')">Medium<br><span style="font-size:10px">Best: <span id="bestMed">—</span></span><br><span style="font-size:10px">Wave: <span id="bestWaveMed">—</span></span></button>
+      <button class="btn level-btn" onclick="startLevel('hard')">Hard<br><span style="font-size:10px">Best: <span id="bestHard">—</span></span><br><span style="font-size:10px">Wave: <span id="bestWaveHard">—</span></span></button>
+    </div>
+    <div class="legend">
+      ⭐ catch &nbsp; 🌟 gold bonus &nbsp; 💥 bomb (combo only)<br>
+      ⏱ +time &nbsp; 🛡 shield &nbsp; 🧲 magnet &nbsp; 🐌 slow &nbsp; 2× power
+    </div>
+    <div style="margin-top:8px; font-size:11px; opacity:0.6;">Build combos • fill the fever meter for STAR FRENZY</div>
+    <button class="btn btn-secondary" style="margin-top:10px;padding:6px 14px;font-size:13px;" onclick="toggleMute()">🔊 / 🔇</button>
+  </div>
+</div>
+
+<div id="over" class="overlay" style="display:none;">
+  <div class="menu-card">
+    <div style="font-size:22px; font-weight:700; margin-bottom:6px;">Great job!</div>
+    <div style="font-size:42px; font-weight:900; margin:6px 0;" id="finalScore">0</div>
+    <div id="statsLine" style="font-size:12px; opacity:0.75; margin:-4px 0 8px;"></div>
+    <div id="newBest" style="color:#FFD54F; margin-bottom:12px; display:none;">🏆 New Best!</div>
+    <div class="level-btns">
+      <button class="btn" onclick="restart()">Play Again</button>
+      <button class="btn btn-secondary" onclick="goMenu()">Menu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('cv');
+const ctx = canvas.getContext('2d', { alpha: true });
+
+let W = 0, H = 0, lastTime = 0;
+
+const DIFF = {
+  easy: { fall: 140, spawn: 0.85, bad: 0.16, hearts: 5, waveDur: 24, scale: 0.85 },
+  med:  { fall: 206, spawn: 0.62, bad: 0.27, hearts: 4, waveDur: 22, scale: 1.0 },
+  hard: { fall: 289, spawn: 0.42, bad: 0.36, hearts: 3, waveDur: 20, scale: 1.25 },
+};
+
+const KIND = {
+  good:   { val: 12, color: '#69F0AE' },
+  gold:   { val: 50, color: '#FFD54F' },
+  bad:    { val: -6, color: '#FF6E6E' },
+  power:  { val: 30, color: '#FFD54F' },
+  clock:  { val: 10, color: '#7FE7FF' },
+  shield: { val: 0,  color: '#9FA8DA' },
+  magnet: { val: 0,  color: '#FF8A65' },
+  slow:   { val: 0,  color: '#B39DDB' },
+  bomb:   { val: 0,  color: '#546E7A' },
+};
+
+const GOOD_POOL = [
+  { kind: 'good',   w: 0.56 },
+  { kind: 'gold',   w: 0.10 },
+  { kind: 'power',  w: 0.10 },
+  { kind: 'clock',  w: 0.06 },
+  { kind: 'shield', w: 0.05 },
+  { kind: 'magnet', w: 0.05 },
+  { kind: 'slow',   w: 0.04 },
+  { kind: 'bomb',   w: 0.04 },
+];
+
+let bests = {
+  easy: parseInt(localStorage.getItem('starcatcher_best_easy')||'0',10),
+  med:  parseInt(localStorage.getItem('starcatcher_best_med')||'0',10),
+  hard: parseInt(localStorage.getItem('starcatcher_best_hard')||'0',10),
+};
+let bestWaves = {
+  easy: parseInt(localStorage.getItem('starcatcher_bestwave_easy')||'0',10),
+  med:  parseInt(localStorage.getItem('starcatcher_bestwave_med')||'0',10),
+  hard: parseInt(localStorage.getItem('starcatcher_bestwave_hard')||'0',10),
+};
+let muted = localStorage.getItem('starcatcher_muted') === '1';
+let audioCtx = null;
+
+const G = {
+  phase: 'menu', level: 'easy',
+  score: 0, hearts: 0, maxHearts: 0,
+  combo: 1, maxCombo: 1, fever: 0, frenzy: 0,
+  wave: 1, mission: null, waveTimer: 0, spawnTimer: 0,
+  powerT: 0, shieldT: 0, magnetT: 0, slowT: 0, shake: 0, paused: false,
+  px: 0, tx: 0, goodCaught: 0, goldCaught: 0, waveScore: 0,
+  items: [], particles: [], pops: [],
+};
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  if (G.phase === 'menu' && G.px === 0) { G.px = W * 0.5; G.tx = G.px; }
+}
+window.addEventListener('resize', resize);
+resize();
+
+function audio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { audioCtx = null; }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+  return audioCtx;
+}
+function blip(freq, dur, type='sine') {
+  if (muted) return;
+  const a = audio(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.value = freq; g.gain.value = 0.12;
+  const t = a.currentTime;
+  o.connect(g); g.connect(a.destination);
+  o.start(t); g.gain.linearRampToValueAtTime(0.0001, t + dur); o.stop(t + dur + 0.02);
+}
+function sndGood()  { blip(720, 0.09, 'sine'); setTimeout(()=>blip(980, 0.08, 'sine'), 55); }
+function sndBad()   { blip(180, 0.16, 'sawtooth'); }
+function sndPower() { blip(620, 0.07); setTimeout(()=>blip(920,0.07),50); setTimeout(()=>blip(1240,0.11),100); }
+function sndMission(){ blip(660,0.09); setTimeout(()=>blip(880,0.09),90); setTimeout(()=>blip(1175,0.14),180); }
+
+function updateBestDisplay() {
+  for (const k of ['easy', 'med', 'hard']) {
+    const e = document.getElementById('best' + k[0].toUpperCase() + k.slice(1));
+    const w = document.getElementById('bestWave' + k[0].toUpperCase() + k.slice(1));
+    if (e) e.textContent = bests[k] || '—';
+    if (w) w.textContent = bestWaves[k] || '—';
+  }
+}
+function toggleMute() { muted = !muted; localStorage.setItem('starcatcher_muted', muted ? '1' : '0'); }
+
+function startLevel(lvl) {
+  G.level = lvl;
+  G.score = 0; G.combo = 1; G.maxCombo = 1; G.fever = 0; G.frenzy = 0;
+  G.wave = 1; G.maxHearts = DIFF[lvl].hearts; G.hearts = G.maxHearts;
+  G.powerT = 0; G.shieldT = 0; G.magnetT = 0; G.slowT = 0; G.shake = 0; G.paused = false;
+  G.px = W * 0.5; G.tx = G.px;
+  G.items = []; G.particles = []; G.pops = [];
+  G.phase = 'playing';
+  startWave();
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('over').style.display = 'none';
+  lastTime = 0;
+}
+function goMenu() {
+  G.phase = 'menu';
+  document.getElementById('menu').style.display = '';
+  document.getElementById('over').style.display = 'none';
+  updateBestDisplay();
+}
+function restart() { startLevel(G.level); }
+
+function comboTier(c) {
+  if (c >= 10) return 'SUPER!';
+  if (c >= 7) return 'Awesome!';
+  if (c >= 4) return 'Nice!';
+  return '';
+}
+
+function makeMission(wave) {
+  const cfg = DIFF[G.level], s = cfg.scale;
+  const pick = Math.floor(Math.random() * 3);
+  if (pick === 0) {
+    const target = Math.round((8 + wave * 2) * s);
+    return { label: 'Catch ' + target + ' stars', target, track: () => G.goodCaught, done: false };
+  }
+  if (pick === 1) {
+    const target = Math.max(1, Math.round((1 + Math.floor(wave / 2)) * s));
+    return { label: 'Collect ' + target + ' gold', target, track: () => G.goldCaught, done: false };
+  }
+  const target = Math.round((120 + wave * 70) * s);
+  return { label: 'Score ' + target + ' pts', target, track: () => G.waveScore, done: false };
+}
+
+function startWave() {
+  const cfg = DIFF[G.level];
+  G.waveTimer = cfg.waveDur; G.spawnTimer = 0;
+  G.goodCaught = 0; G.goldCaught = 0; G.waveScore = 0;
+  G.mission = makeMission(G.wave);
+}
+
+function waveFall() {
+  const cfg = DIFF[G.level];
+  return Math.min(cfg.fall * 1.9, cfg.fall * (1 + (G.wave - 1) * 0.12));
+}
+function waveSpawn() {
+  const cfg = DIFF[G.level];
+  return Math.max(0.28, cfg.spawn * (1 - (G.wave - 1) * 0.05));
+}
+
+function pickKind() {
+  const cfg = DIFF[G.level];
+  if (Math.random() < cfg.bad) return 'bad';
+  let r = Math.random(), acc = 0;
+  for (const g of GOOD_POOL) { acc += g.w; if (r <= acc) return g.kind; }
+  return 'good';
+}
+
+function spawn() {
+  const kind = pickKind();
+  const cfg = DIFF[G.level];
+  const prog = 1 - (G.waveTimer / cfg.waveDur);
+  const speed = waveFall() * (1 + prog * 0.25) + (Math.random() - 0.5) * 18;
+  G.items.push({ x: 26 + Math.random() * (W - 52), y: -20, vy: speed, kind, rot: Math.random() * 6 });
+}
+
+function pushPop(x, y, text, color, life) { G.pops.push({ x, y, text, color, life, max: life }); }
+function spark(x, y, col, n) {
+  for (let i = 0; i < n; i++) G.particles.push({
+    x, y, vx: (Math.random()-0.5)*180, vy: (Math.random()-0.5)*140-40,
+    life: 0.4 + Math.random()*0.35, col
+  });
+}
+function confettiBurst(x, y, n) {
+  const cols = ['#69F0AE','#FFD54F','#7FE7FF','#FF8A65','#B39DDB','#fff'];
+  for (let i = 0; i < n; i++) G.particles.push({
+    x, y, vx: (Math.random()-0.5)*260, vy: (Math.random()-0.5)*220-60,
+    life: 0.6 + Math.random()*0.5, col: cols[i % cols.length]
+  });
+}
+
+function addFever(n) {
+  G.fever += n;
+  if (G.fever >= 100 && G.frenzy <= 0) {
+    G.frenzy = 5; G.fever = 0;
+    pushPop(W/2, H*0.35, 'STAR FRENZY!', '#FFD54F', 1.2);
+    sndMission();
+  }
+}
+
+function gain(val, it) {
+  const pm = G.powerT > 0 ? 2 : 1;
+  const fm = G.frenzy > 0 ? 2 : 1;
+  const g = Math.round(val * G.combo * pm * fm);
+  G.score += g; G.waveScore += g;
+  if (g > 0) pushPop(it.x, it.y - 10, '+' + g, '#fff', 0.7);
+}
+
+function onCatch(it) {
+  const k = it.kind;
+  if (k === 'good') {
+    gain(KIND.good.val, it); G.combo = Math.min(12, G.combo + 1); G.goodCaught++;
+    addFever(8); sndGood(); spark(it.x, it.y, '#69F0AE', 7);
+  } else if (k === 'gold') {
+    gain(KIND.gold.val, it); G.combo = Math.min(12, G.combo + 2); G.goldCaught++;
+    addFever(16); sndGood(); spark(it.x, it.y, '#FFD54F', 10);
+  } else if (k === 'power') {
+    G.powerT = 4.5; G.combo = Math.min(12, G.combo + 2); gain(KIND.power.val, it);
+    addFever(10); sndPower(); spark(it.x, it.y, '#FFD54F', 14);
+  } else if (k === 'clock') {
+    G.waveTimer = Math.min(DIFF[G.level].waveDur + 8, G.waveTimer + 5);
+    gain(KIND.clock.val, it); sndPower(); spark(it.x, it.y, '#7FE7FF', 8);
+  } else if (k === 'shield') {
+    G.shieldT = 8; sndPower(); spark(it.x, it.y, '#9FA8DA', 8);
+  } else if (k === 'magnet') {
+    G.magnetT = 5; sndPower(); spark(it.x, it.y, '#FF8A65', 8);
+  } else if (k === 'slow') {
+    G.slowT = 5; sndPower(); spark(it.x, it.y, '#B39DDB', 8);
+  } else if (k === 'bomb') {
+    G.combo = 1; G.shake = 0.3; sndBad(); spark(it.x, it.y, '#90A4AE', 12);
+    pushPop(it.x, it.y - 10, 'bomb!', '#FF6E6E', 0.7);
+  } else if (k === 'bad') {
+    if (G.shieldT > 0) {
+      G.shieldT = 0; sndPower(); spark(it.x, it.y, '#9FA8DA', 10);
+      pushPop(it.x, it.y - 10, 'blocked!', '#9FA8DA', 0.7);
+    } else {
+      G.combo = 1; G.score = Math.max(0, G.score + KIND.bad.val); G.shake = 0.2;
+      sndBad(); spark(it.x, it.y, '#FF6E6E', 6);
+    }
+  }
+  if (G.combo > G.maxCombo) G.maxCombo = G.combo;
+}
+
+function loseHeart(x) {
+  G.combo = 1; G.hearts = Math.max(0, G.hearts - 1);
+  pushPop(x, H - 20, 'miss', '#FF6E6E', 0.6); G.shake = 0.25; sndBad();
+  if (G.hearts <= 0) endGame();
+}
+
+function completeMission() {
+  const bonus = 50 + G.wave * 25;
+  G.score += bonus;
+  G.hearts = Math.min(G.maxHearts, G.hearts + 1);
+  G.fever = Math.min(100, G.fever + 20);
+  pushPop(W/2, H*0.4, 'Mission! +' + bonus, '#FFD54F', 1.2);
+  confettiBurst(W/2, H*0.45, 26); sndMission();
+  G.wave++; startWave();
+}
+
+function update(dt) {
+  const cfg = DIFF[G.level];
+  G.waveTimer -= dt;
+  if (G.waveTimer <= 0) { G.wave++; startWave(); }
+
+  if (G.frenzy > 0) G.frenzy -= dt;
+  if (G.powerT > 0) G.powerT -= dt;
+  if (G.shieldT > 0) G.shieldT -= dt;
+  if (G.magnetT > 0) G.magnetT -= dt;
+  if (G.slowT > 0) G.slowT -= dt;
+  if (G.shake > 0) G.shake = Math.max(0, G.shake - dt);
+
+  G.spawnTimer += dt;
+  if (G.spawnTimer > waveSpawn()) { spawn(); G.spawnTimer = 0; }
+
+  G.px += (G.tx - G.px) * Math.min(1, 10 * dt);
+  G.px = Math.max(26, Math.min(W - 26, G.px));
+
+  const slowF = G.slowT > 0 ? 0.55 : 1;
+  const py = H - 70;
+
+  for (let i = G.items.length - 1; i >= 0; i--) {
+    const it = G.items[i];
+    it.y += it.vy * dt * slowF;
+    it.rot += dt * 1.5;
+    if (G.magnetT > 0 && (it.kind === 'good' || it.kind === 'gold')) {
+      it.x += (G.px - it.x) * Math.min(1, 3 * dt);
+    }
+    if (Math.abs(it.x - G.px) < 30 && it.y > py - 12 && it.y < py + 34) {
+      onCatch(it); G.items.splice(i, 1); continue;
+    }
+    if (it.y > H + 30) {
+      if (it.kind === 'good' || it.kind === 'gold') loseHeart(it.x);
+      G.items.splice(i, 1);
+    }
+  }
+
+  const m = G.mission;
+  if (m && !m.done && m.track() >= m.target) { m.done = true; completeMission(); }
+
+  for (let i = G.particles.length - 1; i >= 0; i--) {
+    const p = G.particles[i];
+    p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; p.vy += 180 * dt;
+    if (p.life <= 0) G.particles.splice(i, 1);
+  }
+  for (let i = G.pops.length - 1; i >= 0; i--) {
+    const s = G.pops[i];
+    s.y -= 38 * dt; s.life -= dt;
+    if (s.life <= 0) G.pops.splice(i, 1);
+  }
+}
+
+function endGame() {
+  G.phase = 'over';
+  const lvl = G.level;
+  const wasBest = G.score > bests[lvl];
+  if (wasBest) { bests[lvl] = G.score; try { localStorage.setItem('starcatcher_best_' + lvl, String(G.score)); } catch(e){} }
+  if (G.wave > bestWaves[lvl]) { bestWaves[lvl] = G.wave; try { localStorage.setItem('starcatcher_bestwave_' + lvl, String(G.wave)); } catch(e){} }
+  document.getElementById('over').style.display = '';
+  document.getElementById('finalScore').textContent = G.score;
+  const stats = document.getElementById('statsLine');
+  if (stats) stats.textContent = 'reached wave ' + G.wave + ' • max combo x' + G.maxCombo;
+  const nb = document.getElementById('newBest');
+  if (nb) nb.style.display = wasBest ? '' : 'none';
+}
+
+function rr(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function starPath(r) {
+  ctx.beginPath();
+  for (let k = 0; k < 10; k++) {
+    const rad = k % 2 ? r * 0.45 : r;
+    const a = (k * Math.PI / 5) - Math.PI / 2;
+    const x = Math.cos(a) * rad, y = Math.sin(a) * rad;
+    k ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.closePath();
+}
+
+function drawItem(it) {
+  ctx.save(); ctx.translate(it.x, it.y); ctx.rotate(it.rot || 0);
+  switch (it.kind) {
+    case 'good':
+      ctx.fillStyle = '#69F0AE'; ctx.strokeStyle = '#2E7D32'; ctx.lineWidth = 1.5;
+      starPath(12); ctx.fill(); ctx.stroke(); break;
+    case 'gold':
+      ctx.fillStyle = '#FFD54F'; ctx.strokeStyle = '#F57F17'; ctx.lineWidth = 2;
+      starPath(14); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-3, -3, 2, 0, 7); ctx.fill(); break;
+    case 'bad':
+      ctx.fillStyle = '#FF6E6E';
+      ctx.beginPath(); ctx.moveTo(-9,-7); ctx.lineTo(7,-10); ctx.lineTo(11,6); ctx.lineTo(-4,11); ctx.lineTo(-12,2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#B71C1C'; ctx.fillRect(-3,-3,6,6); break;
+    case 'power':
+      ctx.fillStyle = '#FFD54F'; ctx.beginPath(); ctx.arc(0,0,13,0,7); ctx.fill();
+      ctx.fillStyle = '#fff'; starPath(7); ctx.fill(); break;
+    case 'clock':
+      ctx.fillStyle = '#7FE7FF'; ctx.beginPath(); ctx.arc(0,0,13,0,7); ctx.fill();
+      ctx.strokeStyle = '#01579B'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-7); ctx.moveTo(0,0); ctx.lineTo(6,2); ctx.stroke(); break;
+    case 'shield':
+      ctx.fillStyle = '#9FA8DA'; ctx.strokeStyle = '#3949AB'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(0,-12); ctx.lineTo(11,-6); ctx.lineTo(11,4);
+      ctx.quadraticCurveTo(11,11,0,14); ctx.quadraticCurveTo(-11,11,-11,4); ctx.lineTo(-11,-6); ctx.closePath();
+      ctx.fill(); ctx.stroke(); break;
+    case 'magnet':
+      ctx.strokeStyle = '#E53935'; ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.arc(0,2,9,Math.PI,0); ctx.stroke();
+      ctx.strokeStyle = '#1E88E5'; ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.moveTo(-9,2); ctx.lineTo(-9,10); ctx.moveTo(9,2); ctx.lineTo(9,10); ctx.stroke(); break;
+    case 'slow':
+      ctx.fillStyle = '#B39DDB';
+      ctx.beginPath(); ctx.moveTo(-9,-10); ctx.lineTo(9,-10); ctx.lineTo(4,0); ctx.lineTo(9,10); ctx.lineTo(-9,10); ctx.lineTo(-4,0); ctx.closePath(); ctx.fill(); break;
+    case 'bomb':
+      ctx.fillStyle = '#455A64'; ctx.beginPath(); ctx.arc(0,2,11,0,7); ctx.fill();
+      ctx.strokeStyle = '#FFCA28'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(7,-7); ctx.quadraticCurveTo(12,-12,9,-16); ctx.stroke(); break;
+  }
+  ctx.restore();
+}
+
+function drawCatcher() {
+  const px = G.px, py = H - 60;
+  ctx.save(); ctx.translate(px, py);
+  const vel = (G.tx - G.px) * 0.08; ctx.rotate(vel * 0.012);
+  if (G.powerT > 0) { ctx.strokeStyle = 'rgba(255,213,79,0.6)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0,8,42,0,7); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(255,138,101,0.18)'; ctx.beginPath(); ctx.ellipse(0,18,38,14,0,0,7); ctx.fill();
+  ctx.fillStyle = '#FF8A65'; rr(-30,-4,60,30,8); ctx.fill();
+  ctx.fillStyle = '#FFCC80'; rr(-34,-12,68,12,6); ctx.fill();
+  ctx.fillStyle = '#3E2723';
+  ctx.beginPath(); ctx.arc(-9,4,2.6,0,7); ctx.arc(9,4,2.6,0,7); ctx.fill();
+  ctx.strokeStyle = '#3E2723'; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.arc(0,8,5,0.15,Math.PI-0.15); ctx.stroke();
+  ctx.restore();
+}
+
+function drawHUD() {
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.font = '700 16px system-ui';
+  ctx.fillText('SCORE ' + G.score, 14, 28);
+  ctx.font = '16px system-ui';
+  for (let i = 0; i < G.maxHearts; i++) {
+    ctx.fillStyle = i < G.hearts ? '#FF6E6E' : 'rgba(255,110,110,0.25)';
+    ctx.fillText(i < G.hearts ? '♥' : '♡', 14 + i * 16, 50);
+  }
+  const tier = comboTier(G.combo);
+  if (G.combo > 1) {
+    ctx.fillStyle = G.frenzy > 0 ? '#FFD54F' : '#fff'; ctx.font = '700 14px system-ui';
+    ctx.fillText('x' + G.combo + (tier ? (' ' + tier) : ''), 14, 70);
+  }
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = '700 13px system-ui';
+  ctx.fillText('WAVE ' + G.wave, W/2, 24);
+  const m = G.mission;
+  if (m) {
+    ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.font = '700 13px system-ui';
+    ctx.fillText(m.label, W/2, 42);
+    const prog = Math.min(1, m.track() / m.target);
+    const bw = Math.min(180, W * 0.5), bx = (W - bw) / 2;
+    ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.fillRect(bx, 48, bw, 5);
+    ctx.fillStyle = '#69F0AE'; ctx.fillRect(bx, 48, bw * prog, 5);
+  }
+  const cfg = DIFF[G.level], tp = Math.max(0, G.waveTimer / cfg.waveDur);
+  ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.fillRect(W/2 - 90, 12, 180, 4);
+  ctx.fillStyle = tp > 0.3 ? '#7FE7FF' : '#FF6E6E'; ctx.fillRect(W/2 - 90, 12, 180 * tp, 4);
+  const fx = W - 30, fy = 70;
+  ctx.fillStyle = 'rgba(255,255,255,0.15)'; rr(fx - 8, fy, 16, 90, 6); ctx.fill();
+  ctx.fillStyle = G.frenzy > 0 ? '#FFD54F' : '#FF8A65';
+  const fh = 90 * Math.min(1, G.fever / 100);
+  rr(fx - 8, fy + 90 - fh, 16, fh, 6); ctx.fill();
+  if (G.frenzy > 0) { ctx.fillStyle = '#FFD54F'; ctx.font = '700 11px system-ui'; ctx.fillText('FRENZY', fx, fy - 6); }
+  const pips = [];
+  if (G.powerT > 0) pips.push(['2x', '#FFD54F']);
+  if (G.shieldT > 0) pips.push(['🛡', '#9FA8DA']);
+  if (G.magnetT > 0) pips.push(['🧲', '#FF8A65']);
+  if (G.slowT > 0) pips.push(['🐌', '#B39DDB']);
+  pips.forEach((p, i) => { ctx.fillStyle = p[1]; ctx.fillText(p[0], W/2 + (i - (pips.length-1)/2) * 34, H - 30); });
+  const bx = W - 34, by = 30;
+  if (G.paused) {
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(bx-5,by-7); ctx.lineTo(bx-5,by+7); ctx.lineTo(bx+7,by); ctx.closePath(); ctx.fill();
+  } else {
+    ctx.fillStyle = '#fff'; ctx.fillRect(bx-7,by-7,4,14); ctx.fillRect(bx+2,by-7,4,14);
+  }
+  ctx.textAlign = 'left';
+}
+
+function draw() {
+  ctx.setTransform(1,0,0,1,0,0);
+  if (G.shake > 0) {
+    const s = G.shake * 14;
+    ctx.translate((Math.random()-0.5)*s, (Math.random()-0.5)*s);
+  }
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0, '#0a1329'); g.addColorStop(1, '#10204a');
+  ctx.fillStyle = g; ctx.fillRect(-20, -20, W + 40, H + 40);
+
+  const t = performance.now() / 300;
+  for (let i = 0; i < 40; i++) {
+    const sx = ((i * 67) % (W + 30)) - 15;
+    const sy = ((i * 53) % (H * 0.7));
+    ctx.fillStyle = 'rgba(255,255,255,' + (0.5 + Math.sin(t + i) * 0.4) + ')';
+    ctx.fillRect(sx, sy, 2, 2);
+  }
+
+  if (G.phase === 'menu') { ctx.setTransform(1,0,0,1,0,0); return; }
+
+  for (const it of G.items) drawItem(it);
+  for (const p of G.particles) {
+    ctx.globalAlpha = Math.max(0.1, p.life / 0.8);
+    ctx.fillStyle = p.col; ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+  }
+  ctx.globalAlpha = 1;
+  ctx.font = 'bold 13px system-ui'; ctx.textAlign = 'center';
+  for (const s of G.pops) {
+    ctx.globalAlpha = Math.max(0.2, s.life / s.max);
+    ctx.fillStyle = s.color; ctx.fillText(s.text, s.x, s.y);
+  }
+  ctx.globalAlpha = 1; ctx.textAlign = 'left';
+
+  drawCatcher();
+  drawHUD();
+  ctx.setTransform(1,0,0,1,0,0);
+}
+
+function updateLoop(ts) {
+  if (!lastTime) lastTime = ts;
+  const dt = Math.min((ts - lastTime) / 1000, 0.05);
+  lastTime = ts;
+  if (G.phase === 'playing' && !G.paused) update(dt);
+  draw();
+  if (G.phase === 'playing' && G.paused) {
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+    ctx.font = '700 22px system-ui'; ctx.fillText('PAUSED', W/2, H/2 - 10);
+    ctx.font = '14px system-ui'; ctx.fillText('Tap or press P to resume', W/2, H/2 + 18);
+    ctx.textAlign = 'left';
+  }
+  requestAnimationFrame(updateLoop);
+}
+requestAnimationFrame(updateLoop);
+
+let dragging = false;
+canvas.addEventListener('pointerdown', (e) => {
+  if (G.phase !== 'playing') return;
+  if (G.paused) { G.paused = false; return; }
+  dragging = true; G.tx = Math.max(26, Math.min(W - 26, e.clientX));
+});
+canvas.addEventListener('pointermove', (e) => {
+  if (dragging && G.phase === 'playing' && !G.paused) G.tx = Math.max(26, Math.min(W - 26, e.clientX));
+});
+window.addEventListener('pointerup', () => { dragging = false; });
+canvas.addEventListener('click', (e) => {
+  if (G.phase !== 'playing') return;
+  const bx = W - 34, by = 30;
+  if (Math.hypot(e.clientX - bx, e.clientY - by) < 22) G.paused = !G.paused;
+});
+window.addEventListener('keydown', (e) => {
+  if (e.key.toLowerCase() === 'p' && G.phase === 'playing') { G.paused = !G.paused; return; }
+  if (G.phase !== 'playing' || G.paused) return;
+  const step = 22;
+  if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') G.tx = Math.max(26, G.tx - step);
+  if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') G.tx = Math.min(W - 26, G.tx + step);
+});
+
+updateBestDisplay();
+G.phase = 'menu';
+
+window.__startTest = () => startLevel('easy');
+window.__tick = (dt) => { if (G.phase === 'playing') update(dt); };
+window.__G = () => G;
+window.__endTest = () => endGame();
+</script>
+<script src="playtime.js?v=2"></script>
+</body>
+</html>

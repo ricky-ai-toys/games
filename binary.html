@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#14213d">
+<meta name="description" content="A fun binary numbers game made especially for Amber.">
+<title>Amber's Binary Quest</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<style>
+:root{--navy:#14213d;--ink:#101828;--cream:#fff8e8;--coral:#ff7262;--yellow:#ffd85a;--sky:#5bc8ff;--green:#66d17a;--red:#f04452;--panel:rgba(14,25,54,.82);--glass:rgba(13,26,58,.72);--glass-line:rgba(255,255,255,.24)}
+*{box-sizing:border-box}html,body,#app{margin:0;width:100%;height:100%}body{font-family:ui-rounded,"SF Pro Rounded","Segoe UI",sans-serif;background:var(--navy);color:#fff;user-select:none;-webkit-user-select:none}
+.game{position:relative;width:100vw;height:100vh;height:100dvh;overflow:hidden;background:radial-gradient(circle at 50% -10%,#22346a,var(--navy) 60%)}
+.screen{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(180deg,rgba(13,28,64,.35),rgba(7,15,35,.76));overflow-y:auto}
+.card{width:min(560px,95vw);max-height:92vh;overflow:auto;padding:26px;border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.07));border:2px solid rgba(255,255,255,.2);box-shadow:0 24px 70px rgba(0,0,0,.42);text-align:center}
+.logo{font-size:clamp(38px,9vw,74px);font-weight:1000;line-height:.94;letter-spacing:-2px;color:var(--cream);text-shadow:0 5px 0 #b84c45,0 10px 25px rgba(0,0,0,.3)}.logo b{color:var(--coral)}
+.tag{margin:16px auto 20px;max-width:420px;line-height:1.45;color:rgba(255,255,255,.84)}
+.amber-preview{font-size:66px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.3));animation:float 2.4s ease-in-out infinite}@keyframes float{50%{transform:translateY(-8px) rotate(3deg)}}
+button{font:inherit}
+.btn{border:0;border-radius:16px;padding:13px 22px;font-weight:900;cursor:pointer;color:#18213a;background:linear-gradient(#ff8d80,var(--coral));box-shadow:0 6px 0 #b94c43,0 10px 20px rgba(0,0,0,.22);transition:.12s transform,.12s filter}.btn:hover{filter:brightness(1.08);transform:translateY(-2px)}.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #b94c43}.btn.big{font-size:22px;padding:16px 48px}.btn.blue{color:#fff;background:linear-gradient(#74d4ff,#269ed7);box-shadow:0 6px 0 #12658e}.btn.ghost{color:#fff;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.22);box-shadow:none}.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.small{font-size:12px;opacity:.72}
+.brand-chip{display:inline-flex;align-items:center;gap:8px;margin-bottom:12px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid var(--glass-line);font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.brand-chip i{width:8px;height:8px;border-radius:50%;background:var(--yellow);box-shadow:0 0 12px var(--yellow)}
+.hero-scene{position:relative;width:170px;height:132px;margin:0 auto 5px}.hero-glow{position:absolute;inset:18px 15px 0;border-radius:50%;background:radial-gradient(circle,rgba(255,216,90,.5),rgba(91,200,255,.16) 55%,transparent 72%);filter:blur(2px)}
+.amber-avatar{position:absolute;left:50%;top:50%;transform:translate(-50%,-47%);width:84px;height:100px;animation:heroBob 2.5s ease-in-out infinite;filter:drop-shadow(0 12px 10px rgba(0,0,0,.28))}.amber-avatar .hair{position:absolute;left:11px;top:4px;width:62px;height:57px;border-radius:50% 50% 42% 42%;background:#503227;border:4px solid #2c2430}.amber-avatar .hair:before,.amber-avatar .hair:after{content:"";position:absolute;top:30px;width:27px;height:34px;border-radius:50%;background:#503227;border:4px solid #2c2430}.amber-avatar .hair:before{left:-18px;transform:rotate(18deg)}.amber-avatar .hair:after{right:-18px;transform:rotate(-18deg)}.amber-avatar .face{position:absolute;left:18px;top:16px;width:48px;height:47px;border-radius:48% 48% 52% 52%;background:#ffd09c;border:3px solid #2c2430;z-index:2}.amber-avatar .eyes:before,.amber-avatar .eyes:after{content:"";position:absolute;top:17px;width:5px;height:7px;border-radius:50%;background:#172033}.amber-avatar .eyes:before{left:11px}.amber-avatar .eyes:after{right:11px}.amber-avatar .smile{position:absolute;left:50%;bottom:8px;width:13px;height:7px;border:2px solid #a74d4f;border-top:0;border-radius:0 0 12px 12px;transform:translateX(-50%)}.amber-avatar .body{position:absolute;left:17px;top:58px;width:50px;height:39px;border-radius:15px 15px 20px 20px;background:linear-gradient(135deg,#ff8d80,#ff5f62);border:4px solid #2c2430}.amber-avatar .star{position:absolute;left:50%;top:9px;transform:translateX(-50%);color:#ffd85a;font-size:18px}.amber-avatar .cape{position:absolute;left:4px;top:62px;width:34px;height:33px;border-radius:70% 10% 70% 20%;background:#5bc8ff;border:3px solid #2c2430;transform:rotate(15deg)}
+@keyframes heroBob{50%{transform:translate(-50%,-54%) rotate(2deg)}}
+.dedication{margin:12px auto 18px;max-width:400px;color:rgba(255,255,255,.88);font-size:14px}.dedication b{color:var(--yellow)}
+.mode-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:15px 0}.mode-card{position:relative;padding:11px 7px;border-radius:16px;border:2px solid transparent;background:rgba(255,255,255,.07);color:#fff;cursor:pointer}.mode-card strong{display:block;font-size:13px}.mode-card span{display:block;font-size:10px;opacity:.65;margin-top:3px}.mode-card.active{border-color:var(--yellow);background:linear-gradient(180deg,rgba(255,216,90,.22),rgba(255,255,255,.08));box-shadow:0 0 0 3px rgba(255,216,90,.1)}.mode-card em{font-style:normal;font-size:25px;display:block;margin-bottom:3px}
+.quick-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:13px}.quick{display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:14px;border:1px solid var(--glass-line);background:rgba(255,255,255,.08);color:#fff;font-weight:800;cursor:pointer}.quick:hover{background:rgba(255,255,255,.15)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.panel-title{text-align:left}.panel-title h2{margin:0}.panel-title p{margin:4px 0 0;font-size:12px;opacity:.68}.close-x{width:38px;height:38px;border-radius:50%;border:1px solid var(--glass-line);background:rgba(255,255,255,.08);color:#fff;font-size:18px;cursor:pointer}
+.tabs{display:flex;gap:7px;margin:10px 0 14px}.tabs button{flex:1}
+.setting{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.12)}
+.switch{border:0;border-radius:999px;width:51px;height:28px;padding:3px;background:#33415f;cursor:pointer}.switch i{display:block;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}.switch.on{background:var(--green)}.switch.on i{transform:translateX(23px)}
+.help{text-align:left;line-height:1.65}.help b{color:var(--yellow)}
+.toast{position:fixed;z-index:90;left:50%;top:29%;transform:translate(-50%,-50%);font-size:clamp(30px,7vw,56px);font-weight:1000;color:var(--yellow);text-shadow:0 4px 0 #8d6b00,0 9px 22px #000;animation:pop 1.25s both;pointer-events:none}@keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.45)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-90%) scale(.9)}}
+@media(max-width:520px){.card{padding:21px 16px;border-radius:22px}.hero-scene{transform:scale(.88);margin-top:-8px;margin-bottom:-8px}.dedication{margin:8px auto 13px}.logo{font-size:clamp(34px,11vw,54px)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Binary Quest widgets */
+.worldmap{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}
+.wtile{position:relative;padding:14px 10px;border-radius:16px;background:rgba(255,255,255,.07);border:2px solid transparent;color:#fff;cursor:pointer;text-align:center}
+.wtile em{font-style:normal;font-size:30px;display:block;margin-bottom:4px}
+.wtile strong{display:block;font-size:14px}
+.wtile .wstars{font-size:12px;color:var(--yellow);margin-top:4px;font-weight:900}
+.wtile.locked{opacity:.45;cursor:not-allowed}
+.wtile.open:hover{border-color:var(--yellow)}
+.wlesson{display:block;margin-top:5px;font-size:11px;opacity:.75;cursor:pointer}.wlesson:hover{opacity:1;color:var(--yellow)}
+.bulb-row{display:flex;gap:clamp(8px,2.5vw,18px);justify-content:center;margin:18px 0;flex-wrap:wrap}
+.bit{display:flex;flex-direction:column;align-items:center;gap:8px}
+.bulb{width:clamp(44px,11vw,64px);height:clamp(56px,14vw,80px);border-radius:50% 50% 42% 42%;background:#2a3a5f;border:3px solid rgba(255,255,255,.25);position:relative;transition:.25s}
+.bulb:after{content:"";position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);width:45%;height:10px;border-radius:4px;background:#3a4a70;border:2px solid rgba(255,255,255,.2)}
+.bulb.on{background:radial-gradient(circle at 50% 38%,#fff6c8,var(--yellow) 58%,#e8a613);border-color:#ffe9a0;box-shadow:0 0 34px 8px rgba(255,216,90,.55)}
+.bulb.pulse{transform:scale(1.18);box-shadow:0 0 46px 14px rgba(255,216,90,.85)}
+.bitval{font-weight:1000;font-size:15px;padding:3px 10px;border-radius:10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2)}
+.bitval.cur{background:var(--yellow);color:#26314a}
+.bitchar{font-size:13px;font-weight:900;opacity:.75}
+.bit-switch{border:0;border-radius:999px;width:64px;height:36px;padding:4px;background:#33415f;cursor:pointer;box-shadow:inset 0 2px 6px rgba(0,0,0,.35)}
+.bit-switch i{display:block;width:28px;height:28px;border-radius:50%;background:#fff;transition:.18s;box-shadow:0 2px 5px rgba(0,0,0,.3)}
+.bit-switch.on{background:var(--green)}.bit-switch.on i{transform:translateX(28px)}
+.bit-switch:disabled{opacity:.4;cursor:not-allowed}
+.bit-switch.spotlight{animation:spot 1s ease-in-out infinite;box-shadow:0 0 0 4px rgba(255,216,90,.65),0 0 22px rgba(255,216,90,.6)}
+@keyframes spot{50%{box-shadow:0 0 0 7px rgba(255,216,90,.35),0 0 30px rgba(255,216,90,.8)}}
+.target-big{font-size:clamp(40px,10vw,64px);font-weight:1000;color:var(--cream);text-shadow:0 4px 0 #b84c45}
+.total-chip{display:inline-block;margin:6px auto;padding:8px 18px;border-radius:14px;background:rgba(91,200,255,.16);border:1px solid rgba(91,200,255,.5);font-weight:1000;font-size:20px}
+.playwrap{width:min(620px,95vw);margin:auto;text-align:center;padding:12px}
+.hudbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 4px;flex-wrap:wrap}
+.pillb{background:rgba(8,18,42,.7);border:1px solid rgba(255,255,255,.18);padding:8px 12px;border-radius:15px;font-weight:900;font-size:13px;color:#fff}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:260px;margin:12px auto}
+.numpad button{padding:14px 0;font-size:20px;font-weight:1000;border:1px solid rgba(255,255,255,.22);border-radius:14px;background:rgba(255,255,255,.09);color:#fff;cursor:pointer}
+.numpad button:hover{background:rgba(255,255,255,.18)}.numpad button:disabled{opacity:.4}
+.answerbox{font-size:34px;font-weight:1000;min-height:46px;letter-spacing:4px;color:var(--yellow)}
+.timerbar{width:100%;height:12px;border-radius:8px;background:rgba(255,255,255,.15);overflow:hidden;margin:10px 0}
+.timerbar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--green),var(--yellow),var(--coral));transition:width .3s linear}
+.stars-line{font-size:44px;letter-spacing:6px;color:var(--yellow);text-shadow:0 3px 0 #8d6b00}
+.stars-line .dim{opacity:.22}
+.hintbubble{margin:10px auto;max-width:420px;padding:10px 15px;border-radius:14px;background:rgba(255,216,90,.92);color:#2d3850;font-size:14px;font-weight:900;animation:pop2 .3s both}
+@keyframes pop2{0%{opacity:0;transform:scale(.7)}100%{opacity:1;transform:scale(1)}}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.lesson-illus{font-size:56px;margin:8px 0}
+.lesson-text{line-height:1.6;font-size:16px;max-width:420px;margin:10px auto}
+.lesson-text b{color:var(--yellow)}
+.dots{display:flex;gap:6px;justify-content:center;margin:12px 0}
+.dots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25)}
+.dots i.cur{background:var(--yellow)}
+.confetti-piece{position:fixed;z-index:80;width:9px;height:9px;pointer-events:none;animation:cfall linear both}
+@keyframes cfall{to{transform:translateY(110vh) rotate(720deg);opacity:.6}}
+.badgeline{display:flex;align-items:center;gap:12px;padding:11px;margin:8px 0;border-radius:14px;background:rgba(255,255,255,.07);text-align:left}
+.badgeline .bicon{font-size:30px}.badgeline.locked{opacity:.45}
+.wordstrip{display:flex;gap:8px;justify-content:center;margin:12px 0;flex-wrap:wrap}
+.wordstrip span{width:44px;height:52px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:1000;border-radius:12px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.2)}
+.wordstrip span.cur{border-color:var(--yellow);box-shadow:0 0 12px rgba(255,216,90,.45)}
+.wordstrip span.got{background:rgba(102,209,122,.22);border-color:var(--green);color:#9df0ab}
+.bulb.mini{width:30px;height:38px}.bulb.mini:after{height:7px;bottom:-7px}
+.bit-switch.mini{width:42px;height:25px;padding:3px}.bit-switch.mini i{width:19px;height:19px}.bit-switch.mini.on i{transform:translateX(17px)}
+.letterpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:300px;margin:12px auto}
+.letterpad button{padding:13px 0;font-size:22px;font-weight:1000;border:1px solid rgba(255,255,255,.22);border-radius:14px;background:rgba(255,255,255,.09);color:#fff;cursor:pointer}
+.letterpad button:hover{background:rgba(255,255,255,.18)}.letterpad button:disabled{opacity:.4}
+.bulb-row.eight{gap:clamp(4px,1.4vw,10px)}
+.bulb-row.eight .bulb{width:clamp(28px,7vw,44px);height:clamp(37px,9vw,56px)}
+.bulb-row.eight .bitval{font-size:11px;padding:2px 6px}
+.bulb-row.eight .bit-switch{width:46px;height:28px;padding:3px}
+.bulb-row.eight .bit-switch i{width:22px;height:22px}
+.bulb-row.eight .bit-switch.on i{transform:translateX(18px)}
+</style>
+</head>
+<body>
+<div id="fallback" class="screen" style="position:fixed"><div class="card"><b>Loading Amber's Binary Quest…</b><div class="small" style="margin-top:8px">If this message stays, check your internet connection (the Vue library loads from the web).</div></div></div>
+<div id="app" class="game">
+
+<div v-if="screen==='menu'" class="screen"><div class="card"><div class="brand-chip"><i></i> Made especially for Amber</div><div class="hero-scene"><div class="hero-glow"></div><div class="amber-avatar" aria-label="Amber, the brave explorer"><div class="cape"></div><div class="hair"></div><div class="face"><div class="eyes"></div><div class="smile"></div></div><div class="body"><div class="star">★</div></div></div></div><div class="logo">Amber's<br><b>Binary Quest</b></div><div class="dedication">Crack the secret code of computers, <b>Amber</b> — one light at a time!</div>
+<div class="mode-cards"><button v-for="m in modes" :key="m.id" class="mode-card" :class="{active:save.mode===m.id}" @click="save.mode=m.id;persist()"><em>{{m.icon}}</em><strong>{{m.name}}</strong><span>{{m.id==='explorer'?'Hints always on':'Balanced challenge'}}</span></button></div>
+<div class="worldmap"><div v-for="(w,i) in WORLDS" :key="i" class="wtile" :class="worldOpen(i)?'open':'locked'" @click="openWorld(i)"><em>{{w.icon}}</em><strong>{{w.name}}</strong><div class="wstars" v-if="worldOpen(i)">⭐ {{worldStars(i)}}/24</div><div class="wstars" v-else>🔒 Needs {{UNLOCK_STARS}}⭐ in {{WORLDS[i-1].name}}</div><span v-if="worldOpen(i)" class="wlesson" @click.stop="replayLesson(i)">📖 Lesson</span></div></div>
+<div class="quick-actions"><button class="quick" @click="panel='badges';screen='panel'">🏅 Badges <b>{{save.badges.length}}/{{BADGES.length}}</b></button><button class="quick" @click="panel='badges';screen='panel'">💎 {{save.gems}}</button><button class="quick" @click="panel='settings';screen='panel'">⚙</button><button class="quick" @click="panel='help';screen='panel'">?</button><button class="quick" onclick="location.href='portal.html'" style="color:var(--sky)">← Games</button></div>
+<div class="small" style="margin-top:13px">⭐ {{totalStars()}}/120 stars collected</div></div></div>
+
+<div v-if="screen==='lesson'" class="screen"><div class="card">
+<div class="brand-chip"><i></i> {{WORLDS[wIdx].icon}} {{WORLDS[wIdx].name}} · Lesson</div>
+<div class="hero-scene" style="height:95px;transform:scale(.72);margin:-10px auto -6px"><div class="hero-glow"></div><div class="amber-avatar"><div class="cape"></div><div class="hair"></div><div class="face"><div class="eyes"></div><div class="smile"></div></div><div class="body"><div class="star">★</div></div></div></div>
+<div class="lesson-illus">{{lessonCards[lessonPage].illus}}</div>
+<div class="lesson-text" v-html="lessonCards[lessonPage].text"></div>
+<div v-if="lessonCards[lessonPage].interactive===true" class="bulb-row" style="margin:8px 0"><div class="bit"><div class="bulb" :class="{on:lessonBit===1}"></div><div class="bitval">1</div><button class="bit-switch spotlight" :class="{on:lessonBit===1}" @click="lessonBit=lessonBit?0:1;initAudio();sfx('gem')"><i></i></button></div></div>
+<div v-if="lessonCards[lessonPage].interactive===true&&lessonBit===1" class="hintbubble">⚡ You just flipped your first bit! That's binary!</div>
+<div v-if="lessonCards[lessonPage].interactive==='ascii'" class="bulb-row" style="margin:8px 0;gap:6px"><div v-for="(b,i) in lessonBits" :key="i" class="bit" style="gap:5px"><div class="bulb mini" :class="{on:b===1}"></div><div class="bitchar">{{b}}</div><button class="bit-switch mini" :class="{on:b===1,spotlight:i===7&&!lessonA}" :disabled="i<3" @click="flipLessonBit(i)"><i></i></button></div></div>
+<div v-if="lessonCards[lessonPage].interactive==='ascii'&&lessonA" class="hintbubble">🎉 01000001 = 65 = the letter A! You just wrote your first letter in computer code!</div>
+<div class="dots"><i v-for="(c,i) in lessonCards" :key="i" :class="{cur:i===lessonPage}"></i></div>
+<div class="row"><button class="btn big" @click="lessonNext">{{lessonPage>=lessonCards.length-1?'▶ Let\'s Play!':'Next ▶'}}</button></div>
+<div class="row" style="margin-top:10px"><button class="btn ghost" @click="lessonDone">Skip lesson</button></div>
+</div></div>
+
+<div v-if="screen==='play'" class="screen" style="align-items:flex-start">
+<div class="playwrap">
+<div class="hudbar"><span class="pillb">{{WORLDS[wIdx].icon}} {{WORLDS[wIdx].name}} · Level {{lIdx+1}}/8</span><span class="pillb">💎 {{save.gems}}</span><button class="pillb" style="cursor:pointer" @click="quitLevel">✕ Map</button></div>
+<div class="card" :class="{shake:shaking}" style="width:100%">
+<template v-if="level.mode==='lightning'">
+<div class="hudbar"><span class="pillb">⏱ {{timeLeft}}s</span><span class="pillb">✓ {{score}}</span><span class="pillb">🔥 {{streak}}</span></div>
+<div class="timerbar"><i :style="{width:(timeLeft/level.time*100)+'%'}"></i></div>
+<div v-if="lightKind==='build'"><div class="small">Make this number!</div><div class="target-big">{{lightTarget}}</div></div>
+<div v-else class="small">Crack the code — type the number!</div>
+</template>
+<template v-if="level.mode==='build'">
+<div class="small">{{level.fix?'Fix the code! Make this number:':'Make this number!'}}</div>
+<div class="target-big">{{level.target}}</div>
+</template>
+<template v-if="level.mode==='read'">
+<div class="small">Crack the code — what number is this?</div>
+</template>
+<template v-if="level.mode==='decode'">
+<div class="small">🕵️‍♀️ A secret letter! Which one is hiding in the lights?</div>
+</template>
+<template v-if="level.mode==='encode'">
+<div class="small">Write this letter in secret code!</div>
+<div class="target-big">{{level.letter}}</div>
+<div class="small">{{level.letter}} = number <b>{{level.letter.charCodeAt(0)}}</b> in the ASCII code{{level.lockPrefix?' — the 010 is set for you!':''}}</div>
+</template>
+<template v-if="level.mode==='word'">
+<div class="small">💌 Decode the secret message, letter by letter!</div>
+<div class="wordstrip"><span v-for="(ch,i) in level.word" :key="i" :class="{got:wordPos>i,cur:i===wordPos}">{{wordPos>i?ch:'?'}}</span></div>
+</template>
+<div class="bulb-row" :class="{eight:bitsArr.length===8}"><div v-for="(b,i) in bitsArr" :key="i" class="bit">
+<div class="bulb" :class="{on:b===1,pulse:pulseIdx===i}"></div>
+<div class="bitval" :class="{cur:pulseIdx===i}">{{place(i)}}</div>
+<div class="bitchar">{{b}}</div>
+<button v-if="buildUI" class="bit-switch" :class="{on:b===1,spotlight:spotIdx===i}" :disabled="tutLocked(i)||prefixLocked(i)" @click="toggleBit(i)"><i></i></button>
+</div></div>
+<div v-if="buildUI&&showTotal&&level.mode!=='lightning'" class="total-chip">Your lights make: {{total}}</div>
+<div v-if="hint" class="hintbubble">{{hint}}</div>
+<div v-if="tutText" class="hintbubble">👉 {{tutText}}</div>
+<template v-if="letterUI">
+<div class="letterpad"><button v-for="ch in letterOpts" :key="ch" :disabled="checking" @click="pickLetter(ch)">{{ch}}</button></div>
+</template>
+<template v-if="readUI">
+<div class="answerbox">{{answer||'_'}}</div>
+<div class="numpad"><button v-for="n in [1,2,3,4,5,6,7,8,9]" :key="n" @click="pad(n)">{{n}}</button><button @click="answer=''">C</button><button @click="pad(0)">0</button><button style="background:var(--green);color:#14213d" :disabled="checking||answer===''" @click="checkRead">✔</button></div>
+</template>
+<div class="row" style="margin-top:14px" v-if="buildUI"><button class="btn big" :disabled="checking" @click="checkBuild">✔ Check!</button></div>
+</div>
+</div>
+</div>
+
+<div v-if="screen==='result'" class="screen"><div class="card">
+<div class="amber-preview">{{earned===3?'🌟':earned===2?'😄':'👍'}}</div>
+<div class="logo" style="font-size:44px">{{earned===3?'Perfect!':'Level Done!'}}</div>
+<div class="stars-line"><span v-for="n in 3" :key="n" :class="{dim:n>earned}">★</span></div>
+<div v-if="level.mode==='lightning'" class="tag">Score: <b>{{score}}</b> · Need {{level.starScores.join(' / ')}} for ★ / ★★ / ★★★</div>
+<div v-if="level.mode==='word'&&level.word==='AMBER'&&earned>0" class="tag">💌 The secret message was for <b>YOU</b>, Amber!</div>
+<div class="tag">{{gemsWon?'+'+gemsWon+' 💎 · ':''}}{{earned===3?'First try — amazing, Amber!':'Every try makes you stronger, Amber!'}}</div>
+<div class="row"><button class="btn big" @click="nextFromResult">{{lIdx>6?'Back to Map':'Next Level ▶'}}</button></div>
+<div class="row" style="margin-top:12px"><button class="btn blue" @click="startLevel(wIdx,lIdx)">↻ Replay</button><button class="btn ghost" @click="screen='menu'">⌂ Map</button></div>
+</div></div>
+
+<div v-if="screen==='worldComplete'" class="screen"><div class="card">
+<div class="amber-preview">🏆</div>
+<div class="logo" style="font-size:44px">{{WORLDS[wIdx].name}} Complete!</div>
+<div class="tag">You've mastered <b>{{WORLDS[wIdx].name}}</b>! {{wIdx>3?'You beat the whole game — Binary Wizard Amber!':'A new world is waiting…'}}</div>
+<div class="row"><button class="btn big" @click="screen='menu'">▶ Continue</button></div>
+<div class="row" style="margin-top:12px"><button class="btn blue" @click="startLevel(wIdx,0)">↻ Replay World</button></div>
+</div></div>
+
+<div v-if="screen==='panel'" class="screen"><div class="card">
+<div class="panel-head"><div class="panel-title"><h2>Amber's Binary Kit</h2><p>Badges, settings and help.</p></div><button class="close-x" @click="screen='menu'">✕</button></div>
+<div class="tabs"><button class="btn" :class="{ghost:panel!=='badges'}" @click="panel='badges'">Badges</button><button class="btn" :class="{ghost:panel!=='settings'}" @click="panel='settings'">Settings</button><button class="btn" :class="{ghost:panel!=='help'}" @click="panel='help'">Help</button></div>
+<div v-if="panel==='badges'"><h2>🏅 {{save.badges.length}}/{{BADGES.length}} · ⭐ {{totalStars()}}/120 · 💎 {{save.gems}}</h2>
+<div v-for="b in BADGES" :key="b.id" class="badgeline" :class="{locked:!save.badges.includes(b.id)}"><span class="bicon">{{save.badges.includes(b.id)?b.icon:'🔒'}}</span><div><b>{{b.name}}</b><div class="small">{{b.desc}}</div></div></div></div>
+<div v-if="panel==='settings'"><h2>Settings</h2>
+<div class="setting"><span>Sound effects</span><button class="switch" :class="{on:save.sound}" @click="save.sound=!save.sound;persist()"><i></i></button></div>
+<div class="setting"><span>Reduced motion</span><button class="switch" :class="{on:save.reduced}" @click="save.reduced=!save.reduced;persist()"><i></i></button></div>
+<div class="setting"><span>Show help hints</span><button class="switch" :class="{on:save.hints}" @click="save.hints=!save.hints;persist()"><i></i></button></div></div>
+<div v-if="panel==='help'" class="help"><h2>How to Play</h2>
+<p><b>Goal:</b> Light up bulbs to build binary numbers! Each bulb has a value — ON bulbs add up.</p>
+<p><b>Build levels:</b> Flip switches so the lights add up to the target, then press Check.</p>
+<p><b>Code Reader:</b> Read the glowing pattern and type its number.</p>
+<p><b>Lightning:</b> Answer as many as you can before time runs out!</p>
+<p><b>Secret Messages:</b> Letters are numbers too! A = 65, B = 66… Decode glowing letters and write your own in ASCII code.</p>
+<p><b>Stars:</b> First try = ★★★. Stars unlock new worlds ({{UNLOCK_STARS}} needed).</p>
+<p><b>Explorer mode</b> keeps hints on all the time.</p></div>
+<button class="btn ghost" @click="screen='menu'">Back</button></div></div>
+
+<div v-if="toast" :key="toastKey" class="toast">{{toast}}</div>
+</div>
+<script>
+(()=>{'use strict';
+const {createApp,ref,reactive,computed,onMounted,onBeforeUnmount}=Vue;
+createApp({setup(){
+const screen=ref('menu'),panel=ref('badges'),toast=ref(''),toastKey=ref(0);
+const modes=[{id:'explorer',name:'Explorer',icon:'☁️'},{id:'adventure',name:'Adventure',icon:'🪂'}];
+const UNLOCK_STARS=10;
+const WORLDS=[
+{icon:'💡',name:'Light It Up',
+ lesson:[
+  {illus:'🖥️',text:'Deep inside every computer and tablet live <b>billions of tiny switches</b>. Each one can only do two things: turn <b>ON</b> or turn <b>OFF</b>. That\'s it!'},
+  {illus:'💡',text:'We write OFF as <b>0</b> and ON as <b>1</b>. A number made only of 0s and 1s is called <b>binary</b>. Computers think in binary all day long!'},
+  {illus:'✨',text:'In this game, every light bulb has a <b>value</b>. Turn bulbs ON to add their values together and hit the target number. Ready to flip your first switch, Amber?'},
+  {illus:'🔀',interactive:true,text:'Try it right here! Flip this switch to light the bulb worth <b>1</b>.'}],
+ levels:[
+  {mode:'build',bits:2,target:1,tutorial:[{spot:1,text:'This bulb is worth 1 — flip its switch to light it up!'},{check:true,text:'The lights make 1 — press Check!'}]},
+  {mode:'build',bits:2,target:3,tutorial:[{spot:1,text:'First light the 1 bulb…'},{spot:0,text:'…now ALSO flip the 2 bulb. 2 + 1 = 3!'},{check:true,text:'Press Check!'}]},
+  {mode:'build',bits:2,target:2},
+  {mode:'build',bits:3,target:4},
+  {mode:'build',bits:3,target:5},
+  {mode:'build',bits:3,target:6},
+  {mode:'build',bits:3,target:7},
+  {mode:'build',bits:3,target:0}]},
+{icon:'⚡',name:'Power Up',
+ lesson:[
+  {illus:'✖️',text:'Here\'s the magic rule: every new bulb is worth <b>DOUBLE</b> the last one. 1… 2… 4… <b>8</b>!'},
+  {illus:'🧮',text:'Why doubling? Because with just <b>4 bulbs</b> you can build EVERY number from 0 to 15 — and each number has exactly <b>one</b> secret code!'},
+  {illus:'🕵️',text:'11 = 8 + 2 + 1, so its code is <b>1011</b>. No other combination works. Can you find the one-and-only code for every target?'}],
+ levels:[
+  {mode:'build',bits:4,target:8},
+  {mode:'build',bits:4,target:9},
+  {mode:'build',bits:4,target:12},
+  {mode:'build',bits:4,target:10,preset:[1,0,0,1],fix:true},
+  {mode:'build',bits:4,target:15},
+  {mode:'build',bits:4,target:11},
+  {mode:'build',bits:4,target:13,preset:[1,1,1,1],fix:true},
+  {mode:'build',bits:4,target:14}]},
+{icon:'🔍',name:'Code Reader',
+ lesson:[
+  {illus:'🤖',text:'Binary is a <b>secret code</b>! <b>1010</b> looks like a robot sneeze… but it secretly means <b>10</b>. (8 + 2, because only those bulbs are ON.)'},
+  {illus:'✋',text:'Fun trick: you can count to <b>31</b> on ONE hand! Thumb = 1, pointer = 2, middle = 4, ring = 8, pinky = 16. Fingers up are 1s, fingers down are 0s!'},
+  {illus:'🔦',text:'Now the game flips around: the bulbs light up in a pattern, and YOU crack the code. Add up the glowing bulbs and type the answer!'}],
+ levels:[
+  {mode:'read',bits:4,pattern:[0,1,0,1]},
+  {mode:'read',bits:4,pattern:[1,0,0,0]},
+  {mode:'read',bits:4,pattern:[1,0,1,0]},
+  {mode:'read',bits:4,pattern:[1,1,1,1]},
+  {mode:'read',bits:5,pattern:[1,0,0,0,0]},
+  {mode:'read',bits:5,pattern:[1,0,1,0,1]},
+  {mode:'read',bits:5,pattern:[1,1,0,1,0]},
+  {mode:'read',bits:5,pattern:[1,1,1,1,1]}]},
+{icon:'🚀',name:'Lightning Round',
+ lesson:[
+  {illus:'⚡',text:'Real computers flip their switches <b>BILLIONS of times every second</b>. That\'s faster than every human on Earth blinking at once!'},
+  {illus:'🏁',text:'Time to find out: how fast is <b>Amber</b>? Answer as many binary puzzles as you can before the clock runs out. Streaks earn bonus gems!'}],
+ levels:[
+  {mode:'lightning',bits:3,kinds:['build'],time:60,starScores:[3,5,7]},
+  {mode:'lightning',bits:3,kinds:['read'],time:60,starScores:[3,5,7]},
+  {mode:'lightning',bits:4,kinds:['build'],time:60,starScores:[3,5,8]},
+  {mode:'lightning',bits:4,kinds:['read'],time:60,starScores:[3,5,8]},
+  {mode:'lightning',bits:4,kinds:['build','read'],time:60,starScores:[4,6,9]},
+  {mode:'lightning',bits:5,kinds:['read'],time:60,starScores:[3,5,8]},
+  {mode:'lightning',bits:5,kinds:['build','read'],time:60,starScores:[4,6,9]},
+  {mode:'lightning',bits:5,kinds:['build','read'],time:75,starScores:[5,8,12]}]},
+{icon:'💌',name:'Secret Messages',
+ lesson:[
+  {illus:'🔤',text:'Computers can\'t store letters — only numbers! So every letter gets a <b>secret number</b>. This famous letter-code is called <b>ASCII</b>.'},
+  {illus:'🅰️',text:'A = <b>65</b>, B = 66, C = 67… all the way to Z = 90. So the letter A in binary is <b>01000001</b> — that\'s 64 + 1!'},
+  {illus:'🕵️‍♀️',text:'Spy trick: every capital letter starts with <b>010</b>. Only the LAST 5 lights ever change — and 5 bits is exactly what you mastered, Amber!'},
+  {illus:'✍️',interactive:'ascii',text:'The <b>010</b> is already set for you. Flip the last switch to make <b>65</b> — and write your very first letter: <b>A</b>!'}],
+ levels:[
+  {mode:'decode',bits:8,letter:'A'},
+  {mode:'decode',bits:8,letter:'B'},
+  {mode:'decode',bits:8,letter:'H'},
+  {mode:'encode',bits:8,letter:'C',lockPrefix:true},
+  {mode:'encode',bits:8,letter:'E'},
+  {mode:'encode',bits:8,letter:'M'},
+  {mode:'word',bits:8,word:'HI'},
+  {mode:'word',bits:8,word:'AMBER'}]}
+];
+const BADGES=[
+{id:'bit',icon:'💡',name:'Bit Beginner',desc:'Finish every level in Light It Up',check:()=>worldDone(0)},
+{id:'power',icon:'⚡',name:'Power Player',desc:'Finish every level in Power Up',check:()=>worldDone(1)},
+{id:'code',icon:'🔍',name:'Code Cracker',desc:'Finish every level in Code Reader',check:()=>worldDone(2)},
+{id:'light',icon:'🚀',name:'Lightning Legend',desc:'Finish every level in Lightning Round',check:()=>worldDone(3)},
+{id:'agent',icon:'🕵️‍♀️',name:'Secret Agent',desc:'Finish every level in Secret Messages',check:()=>worldDone(4)},
+{id:'perfect',icon:'🌟',name:'Perfect Star',desc:'Collect all 120 stars',check:()=>totalStars()===120},
+{id:'wizard',icon:'🧙‍♀️',name:'Binary Wizard',desc:'Earn every other badge',check:()=>['bit','power','code','light','agent','perfect'].every(b=>save.badges.includes(b))}];
+const defaults={version:1,stars:{},gems:0,badges:[],mode:'adventure',sound:true,reduced:false,hints:true,seenLessons:[],tutorialDone:false};
+let loaded={};try{loaded=JSON.parse(localStorage.getItem('amber_binary_v1')||'{}')}catch(e){}
+const save=reactive({...defaults,...loaded,stars:{...(loaded.stars||{})},badges:[...(loaded.badges||[])],seenLessons:[...(loaded.seenLessons||[])]});
+function persist(){try{localStorage.setItem('amber_binary_v1',JSON.stringify(save))}catch(e){}}
+function worldStars(w){let s=0;for(const k in save.stars)if(k.startsWith(w+'-'))s+=save.stars[k];return s}
+function worldOpen(w){return w===0||worldStars(w-1)>=UNLOCK_STARS}
+function worldDone(w){return WORLDS[w].levels.every((_,l)=>(save.stars[w+'-'+l]||0)>0)}
+function totalStars(){return Object.values(save.stars).reduce((a,b)=>a+b,0)}
+function showToast(t){toast.value=t;toastKey.value++;setTimeout(()=>{if(toast.value===t)toast.value=''},1250)}
+let audio=null;
+function initAudio(){if(!save.sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();audio.resume()}catch(e){}}
+function sfx(type){if(!save.sound||!audio)return;const map={jump:[300,520,.1],land:[150,95,.07],gem:[700,1100,.12],hit:[180,60,.25],bounce:[350,750,.14],win:[520,1040,.4],buy:[450,850,.16],wrong:[220,110,.2],tick:[900,600,.05],star:[600,1200,.18]};let[a,b,d]=map[type]||map.land,o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime;o.type=type==='hit'||type==='wrong'?'sawtooth':'sine';o.frequency.setValueAtTime(a,t);o.frequency.exponentialRampToValueAtTime(b,t+d);g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(audio.destination);o.start();o.stop(t+d)}
+function confettiBurst(){if(save.reduced)return;const colors=['#ffd85a','#ff7262','#5bc8ff','#66d17a','#b96cff'];for(let i=0;i<36;i++){const el=document.createElement('div');el.className='confetti-piece';el.style.cssText=`left:${Math.random()*100}vw;top:-12px;background:${colors[i%5]};animation-duration:${1.2+Math.random()*1.4}s;animation-delay:${Math.random()*.4}s;border-radius:${Math.random()<.5?'50%':'2px'}`;document.body.appendChild(el);setTimeout(()=>el.remove(),3200)}}
+function checkBadges(){for(const b of BADGES){if(!save.badges.includes(b.id)&&b.check()){save.badges.push(b.id);persist();showToast('🏅 '+b.name+'!');sfx('win');confettiBurst()}}}
+// ---- play state ----
+const wIdx=ref(0),lIdx=ref(0),bitsArr=ref([]),tries=ref(0),answer=ref(''),hint=ref(''),shaking=ref(false),checking=ref(false),earned=ref(0),gemsWon=ref(0),tutStep=ref(0),pulseIdx=ref(-1),wordPos=ref(0),letterOpts=ref([]);
+const level=computed(()=>WORLDS[wIdx.value].levels[lIdx.value]);
+const levelId=computed(()=>wIdx.value+'-'+lIdx.value);
+const total=computed(()=>bitsArr.value.reduce((s,b,i)=>s+(b?place(i):0),0));
+function place(i){return Math.pow(2,bitsArr.value.length-1-i)}
+const showTotal=computed(()=>save.mode==='explorer'||wIdx.value<2||level.value.mode==='encode');
+const isTutorial=computed(()=>wIdx.value===0&&lIdx.value<2&&!save.tutorialDone);
+const buildUI=computed(()=>level.value.mode==='build'||level.value.mode==='encode'||(level.value.mode==='lightning'&&lightKind.value==='build'));
+const readUI=computed(()=>level.value.mode==='read'||(level.value.mode==='lightning'&&lightKind.value==='read'));
+const letterUI=computed(()=>level.value.mode==='decode'||level.value.mode==='word');
+const tutText=computed(()=>{if(!isTutorial.value)return'';const t=level.value.tutorial?.[tutStep.value];return t?t.text:''});
+const spotIdx=computed(()=>{if(!isTutorial.value)return -1;const t=level.value.tutorial?.[tutStep.value];return t&&t.spot!==undefined?t.spot:-1});
+function tutLocked(i){return isTutorial.value&&spotIdx.value!==-1&&spotIdx.value!==i}
+function prefixLocked(i){return level.value.lockPrefix===true&&i<3}
+function asciiBits(ch){const n=ch.charCodeAt(0);return Array.from({length:8},(_,i)=>(n>>(7-i))&1)}
+function makeLetterOpts(ch){const c=ch.charCodeAt(0);const set=new Set([ch]);let guard=0;while(set.size<6&&guard++<80){const near=Math.random()<.6;const code=near?Math.min(90,Math.max(65,c+[-2,-1,1,2][Math.floor(Math.random()*4)])):65+Math.floor(Math.random()*26);set.add(String.fromCharCode(code))}return[...set].sort(()=>Math.random()-.5)}
+function openWorld(w){if(!worldOpen(w))return;wIdx.value=w;initAudio();if(!save.seenLessons.includes(w)){lessonPage.value=0;lessonBit.value=0;lessonBits.value=[0,1,0,0,0,0,0,0];screen.value='lesson'}else startLevel(w,nextLevel(w))}
+function nextLevel(w){const i=WORLDS[w].levels.findIndex((_,l)=>!(save.stars[w+'-'+l]>0));return i<0?0:i}
+function startLevel(w,l){wIdx.value=w;lIdx.value=l;const lv=WORLDS[w].levels[l];tries.value=0;hint.value='';answer.value='';tutStep.value=0;pulseIdx.value=-1;checking.value=false;wordPos.value=0;stopLightning();
+ if(lv.mode==='decode'){bitsArr.value=asciiBits(lv.letter);letterOpts.value=makeLetterOpts(lv.letter)}
+ else if(lv.mode==='word'){bitsArr.value=asciiBits(lv.word[0]);letterOpts.value=makeLetterOpts(lv.word[0])}
+ else if(lv.mode==='encode'){bitsArr.value=lv.lockPrefix?[0,1,0,0,0,0,0,0]:Array(lv.bits).fill(0)}
+ else bitsArr.value=lv.mode==='read'?[...lv.pattern]:(lv.preset?[...lv.preset]:Array(lv.bits).fill(0));
+ if(lv.mode==='lightning')startLightning(lv);screen.value='play';initAudio()}
+function toggleBit(i){if(checking.value)return;bitsArr.value[i]=bitsArr.value[i]?0:1;sfx(bitsArr.value[i]?'gem':'land');if(isTutorial.value&&spotIdx.value===i)tutStep.value++}
+function quitLevel(){stopLightning();screen.value='menu'}
+function checkBuild(){if(level.value.mode==='lightning'){lightAnswer(total.value===lightTarget.value);return}
+ tries.value++;
+ const target=level.value.mode==='encode'?level.value.letter.charCodeAt(0):level.value.target;
+ if(total.value===target){if(isTutorial.value&&lIdx.value===1){save.tutorialDone=true;persist()}finishLevel();return}
+ sfx('wrong');shaking.value=true;setTimeout(()=>shaking.value=false,450);
+ const wantHint=save.mode==='explorer'||(save.hints&&tries.value>=2);
+ if(wantHint){const d=target-total.value;hint.value=d>0?`Your lights make ${total.value} — you need ${d} more!`:`Your lights make ${total.value} — that's ${-d} too many!`}
+ else hint.value='Not quite — try again, Amber!'}
+function pickLetter(ch){if(checking.value)return;initAudio();
+ const isWord=level.value.mode==='word';
+ const want=isWord?level.value.word[wordPos.value]:level.value.letter;
+ if(!isWord)tries.value++;
+ if(ch===want){hint.value='';
+  if(isWord){wordPos.value++;sfx('gem');
+   if(wordPos.value>=level.value.word.length){finishLevel();return}
+   showToast(want+'!');bitsArr.value=asciiBits(level.value.word[wordPos.value]);letterOpts.value=makeLetterOpts(level.value.word[wordPos.value]);return}
+  finishLevel();return}
+ if(isWord)tries.value++;
+ sfx('wrong');shaking.value=true;setTimeout(()=>shaking.value=false,450);
+ const wantHint=save.mode==='explorer'||(save.hints&&tries.value>=2);
+ hint.value=wantHint?`The lights add up to ${patternValue()}. A=65, B=66… count up from A!`:'Not quite — add up the glowing bulbs first!'}
+function pad(n){if(answer.value.length>=2)return;answer.value+=n;sfx('tick')}
+function patternValue(){return bitsArr.value.reduce((s,b,i)=>s+(b?place(i):0),0)}
+function checkRead(){if(level.value.mode==='lightning'){const ok=parseInt(answer.value,10)===patternValue();if(!ok)answer.value='';lightAnswer(ok);return}
+ tries.value++;
+ if(parseInt(answer.value,10)===patternValue()){finishLevel();return}
+ sfx('wrong');shaking.value=true;setTimeout(()=>shaking.value=false,450);answer.value='';
+ hint.value='Not quite — add up the glowing bulbs!';
+ if(save.mode==='explorer'||(save.hints&&tries.value>=2))pulseBulbs()}
+function pulseBulbs(){let i=-1;const on=bitsArr.value.map((b,idx)=>b?idx:-1).filter(x=>x>=0);const t=setInterval(()=>{i++;if(i>=on.length){pulseIdx.value=-1;clearInterval(t);return}pulseIdx.value=on[i];sfx('tick')},600)}
+// ---- lightning ----
+const score=ref(0),streak=ref(0),streakGems=ref(0),timeLeft=ref(0),lightKind=ref('build'),lightTarget=ref(0);
+let lightTimer=0;
+function startLightning(lv){score.value=0;streak.value=0;streakGems.value=0;timeLeft.value=lv.time;nextQuestion(lv);clearInterval(lightTimer);lightTimer=setInterval(()=>{timeLeft.value--;if(timeLeft.value<=3&&timeLeft.value>0)sfx('tick');if(timeLeft.value<=0){clearInterval(lightTimer);finishLevel()}},1000)}
+function stopLightning(){clearInterval(lightTimer)}
+function nextQuestion(lv){lv=lv||level.value;answer.value='';hint.value='';lightKind.value=lv.kinds[Math.floor(Math.random()*lv.kinds.length)];const max=Math.pow(2,lv.bits)-1,n=1+Math.floor(Math.random()*max);if(lightKind.value==='build'){lightTarget.value=n;bitsArr.value=Array(lv.bits).fill(0)}else{bitsArr.value=Array.from({length:lv.bits},(_,i)=>(n>>(lv.bits-1-i))&1)}}
+function lightAnswer(ok){if(ok){score.value++;streak.value++;sfx('gem');if(streak.value%3===0){streakGems.value+=2;showToast('🔥 Streak! +2 💎')}nextQuestion()}else{streak.value=0;sfx('wrong');shaking.value=true;setTimeout(()=>shaking.value=false,450)}}
+// ---- scoring ----
+function starsFor(){const lv=level.value;if(lv.mode==='lightning'){const s=lv.starScores;return score.value>=s[2]?3:score.value>=s[1]?2:1}if(lv.mode==='word')return tries.value===0?3:tries.value<=2?2:1;return tries.value<=1?3:tries.value===2?2:1}
+function finishLevel(){if(checking.value)return;checking.value=true;stopLightning();sfx('win');const s=starsFor(),prev=save.stars[levelId.value]||0;earned.value=s;gemsWon.value=Math.max(0,s-prev)*2+(level.value.mode==='lightning'?streakGems.value:0);save.gems+=gemsWon.value;if(s>prev)save.stars[levelId.value]=s;persist();confettiBurst();setTimeout(()=>{checking.value=false;screen.value=(lIdx.value===7&&worldDone(wIdx.value))?'worldComplete':'result';checkBadges()},700)}
+function nextFromResult(){if(lIdx.value<7)startLevel(wIdx.value,lIdx.value+1);else screen.value='menu'}
+// ---- lessons ----
+const lessonPage=ref(0),lessonBit=ref(0),lessonBits=ref([0,1,0,0,0,0,0,0]);
+const lessonA=computed(()=>lessonBits.value.reduce((s,b,i)=>s+(b?Math.pow(2,7-i):0),0)===65);
+function flipLessonBit(i){if(i<3)return;lessonBits.value[i]=lessonBits.value[i]?0:1;initAudio();sfx(lessonBits.value[i]?'gem':'land');if(lessonA.value)sfx('win')}
+const lessonCards=computed(()=>WORLDS[wIdx.value].lesson);
+function lessonNext(){if(lessonPage.value<lessonCards.value.length-1){lessonPage.value++;sfx('tick')}else lessonDone()}
+function lessonDone(){if(!save.seenLessons.includes(wIdx.value)){save.seenLessons.push(wIdx.value);persist()}startLevel(wIdx.value,nextLevel(wIdx.value))}
+function replayLesson(w){if(!worldOpen(w))return;wIdx.value=w;lessonPage.value=0;lessonBit.value=0;lessonBits.value=[0,1,0,0,0,0,0,0];screen.value='lesson'}
+// ---- lifecycle ----
+const esc=e=>{if(e.code==='Escape'&&['panel','result','worldComplete'].includes(screen.value))screen.value='menu'};
+onMounted(()=>{const f=document.getElementById('fallback');if(f)f.style.display='none';window.addEventListener('keydown',esc)});
+onBeforeUnmount(()=>{stopLightning();window.removeEventListener('keydown',esc)});
+return{screen,panel,toast,toastKey,modes,UNLOCK_STARS,WORLDS,BADGES,save,persist,worldStars,worldOpen,totalStars,initAudio,sfx,
+wIdx,lIdx,bitsArr,tries,answer,hint,shaking,checking,earned,gemsWon,pulseIdx,level,total,place,showTotal,buildUI,readUI,letterUI,tutText,spotIdx,tutLocked,prefixLocked,wordPos,letterOpts,pickLetter,
+openWorld,startLevel,toggleBit,quitLevel,checkBuild,checkRead,pad,nextFromResult,
+score,streak,timeLeft,lightKind,lightTarget,
+lessonPage,lessonBit,lessonBits,lessonA,flipLessonBit,lessonCards,lessonNext,lessonDone,replayLesson};
+}}).mount('#app');})();
+</script>
+<script src="playtime.js?v=2"></script>
+</body></html>

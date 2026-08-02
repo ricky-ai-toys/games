@@ -1,0 +1,992 @@
+<!doctype html>
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kite Runner">
+  <meta name="theme-color" content="#0b1530">
+  <meta name="description" content="Hold to soar, let go to glide — collect stars and chase the breeze in Amber's Kite Runner!">
+  <title>Amber's Kite Runner</title>
+  <style>
+    :root {
+      --gold: #ffd180;
+      --cream: #fff5d6;
+      --pink: #ff8a65;
+      --pink2: #e91e63;
+      --sky: #65d8ff;
+      --navy: #0b1530;
+      --navy-deep: #070f22;
+      --cyan: #5ffbf1;
+      --ink: #f4f6ff;
+      --safe-t: env(safe-area-inset-top, 0px);
+      --safe-r: env(safe-area-inset-right, 0px);
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-l: env(safe-area-inset-left, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--navy-deep);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", Inter, system-ui, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 10%, rgba(95,216,255,0.10), transparent 50%),
+        radial-gradient(ellipse 70% 45% at 85% 15%, rgba(233,30,99,0.12), transparent 45%),
+        radial-gradient(ellipse 70% 50% at 50% 110%, rgba(255,209,128,0.10), transparent 55%),
+        linear-gradient(165deg, #0a1228 0%, #070f22 100%);
+    }
+
+    #game-shell {
+      position: relative;
+      width: min(100vw, calc(100dvh * 1024 / 768));
+      height: min(100dvh, calc(100vw * 768 / 1024));
+      max-width: 100vw;
+      max-height: 100dvh;
+      aspect-ratio: 1024 / 768;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 90% 45% at 50% 6%, rgba(95,216,255,0.22), transparent 55%),
+        radial-gradient(ellipse 70% 45% at 20% 10%, rgba(233,30,99,0.16), transparent 50%),
+        radial-gradient(ellipse 60% 40% at 50% 105%, rgba(255,209,128,0.12), transparent 50%),
+        linear-gradient(180deg, #133a66 0%, #102d57 45%, #0b1a38 100%);
+      touch-action: none;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+    }
+
+    #kite-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    #hud {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      padding-top: var(--safe-t);
+      padding-right: var(--safe-r);
+      padding-bottom: var(--safe-b);
+      padding-left: var(--safe-l);
+    }
+
+    #brand-panel {
+      position: absolute;
+      top: max(10px, var(--safe-t));
+      left: max(12px, var(--safe-l));
+      max-width: min(52vw, 280px);
+    }
+
+    #game-title {
+      margin: 0;
+      font: 800 clamp(16px, 4.2vw, 28px)/1.1 Georgia, "Times New Roman", serif;
+      letter-spacing: .03em;
+      background: linear-gradient(135deg, #65d8ff, #5ffbf1 45%, #ffd180);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 0 12px rgba(95, 216, 255, .4));
+    }
+
+    #game-tagline {
+      margin: 4px 0 0;
+      color: #cfe6ff;
+      font-size: clamp(8px, 2.2vw, 11px);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    #score-panel {
+      position: absolute;
+      top: max(10px, var(--safe-t));
+      right: max(12px, var(--safe-r));
+      min-width: min(42vw, 180px);
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 209, 128, .4);
+      border-radius: 16px;
+      background: linear-gradient(160deg, rgba(12,22,48,0.88), rgba(18,32,64,0.82));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 10px 28px rgba(0, 0, 0, .4);
+      text-align: right;
+    }
+
+    #score-label {
+      margin: 0;
+      color: #d8c9ff;
+      font-size: 9px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    #score {
+      margin: 2px 0;
+      color: var(--gold);
+      font: 800 clamp(20px, 5vw, 32px)/1 ui-monospace, SFMono-Regular, monospace;
+      text-shadow: 0 0 12px rgba(255, 200, 87, .55);
+    }
+
+    #status-line {
+      margin: 4px 0 0;
+      color: #e8e4ff;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .mult-chip {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: linear-gradient(155deg, rgba(255,209,128,.22), rgba(233,30,99,.16));
+      border: 1px solid rgba(255,209,128,.4);
+      color: #ffd180;
+      font-weight: 900;
+      letter-spacing: .05em;
+      font-size: 11px;
+    }
+
+    .mult-chip.hot {
+      background: linear-gradient(155deg, #ff8a65, #e91e63);
+      color: #fff;
+      border-color: rgba(255,255,255,.5);
+      box-shadow: 0 0 10px rgba(233,30,99,.5);
+    }
+
+    #dist-line {
+      margin: 3px 0 0;
+      color: var(--sky);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    #stage-badge {
+      position: absolute;
+      top: max(10px, var(--safe-t));
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--cyan);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      text-shadow: 0 1px 6px rgba(0,0,0,.5);
+    }
+
+    #best-line {
+      margin: 3px 0 0;
+      color: var(--cyan);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    #message {
+      position: absolute;
+      top: max(88px, calc(var(--safe-t) + 72px));
+      left: 50%;
+      min-width: 180px;
+      max-width: min(90vw, 360px);
+      margin: 0;
+      padding: 7px 14px;
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 999px;
+      background: rgba(7, 9, 30, .72);
+      color: #fff1bd;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-align: center;
+      opacity: 0;
+      transform: translate(-50%, -8px);
+      transition: opacity .18s ease, transform .18s ease;
+      pointer-events: none;
+    }
+
+    #message.visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    #controls {
+      position: absolute;
+      right: max(10px, var(--safe-r));
+      bottom: max(10px, var(--safe-b));
+      left: max(10px, var(--safe-l));
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .control-button {
+      pointer-events: auto;
+      border: 1px solid rgba(255, 255, 255, .35);
+      border-radius: 16px;
+      background: linear-gradient(155deg, rgba(95,216,255,.3), rgba(95,251,241,.26));
+      box-shadow: 0 5px 0 rgba(13, 27, 58, .85), 0 8px 18px rgba(0, 0, 0, .4);
+      color: #fff;
+      font: 850 12px/1 system-ui, sans-serif;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 12px 16px;
+      min-height: 44px;
+      transition: transform .06s ease, box-shadow .08s ease, background .1s ease;
+    }
+
+    #pause-btn {
+      justify-self: end;
+      width: auto;
+    }
+
+    .control-button:active {
+      transform: translateY(2px) scale(.98);
+      box-shadow: 0 2px 0 rgba(13, 27, 58, .85);
+    }
+
+    #pause-btn.active {
+      background: linear-gradient(155deg, #ff8a65, #e91e63);
+    }
+
+    /* --- overlay menu --- */
+    #overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5, 9, 26, .78);
+      z-index: 20;
+      padding: 18px;
+      opacity: 1;
+      transition: opacity .2s ease;
+    }
+    #overlay.hidden { opacity: 0; pointer-events: none; }
+
+    .menu-card {
+      width: min(560px, 94vw);
+      max-height: 92vh;
+      overflow: auto;
+      padding: 24px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(22,40,80,.92), rgba(12,24,52,.94));
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: 0 24px 60px rgba(0,0,0,.5);
+      text-align: center;
+    }
+
+    .menu-card h1 {
+      margin: 0;
+      font: 800 clamp(26px, 7vw, 42px)/1 Georgia, serif;
+      background: linear-gradient(135deg, #65d8ff, #5ffbf1 45%, #ffd180);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .menu-card .kite-emoji { font-size: clamp(46px, 12vw, 70px); margin: 4px 0; filter: drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
+
+    .menu-card .sub {
+      margin: 8px auto 18px;
+      max-width: 430px;
+      color: #e3ecff;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .mode-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .mode-card {
+      padding: 14px 10px;
+      border-radius: 16px;
+      border: 2px solid transparent;
+      background: rgba(255,255,255,.07);
+      color: #fff;
+      cursor: pointer;
+      font: inherit;
+      transition: border-color .12s ease, background .12s ease;
+    }
+    .mode-card em { font-style: normal; font-size: 26px; display: block; margin-bottom: 4px; }
+    .mode-card strong { display: block; font-size: 15px; }
+    .mode-card span { display: block; font-size: 10px; opacity: .62; margin-top: 3px; }
+    .mode-card.active { border-color: var(--gold); background: linear-gradient(180deg, rgba(255,209,128,.2), rgba(255,255,255,.07)); }
+
+    .btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 22px;
+      font-weight: 900;
+      font: inherit;
+      cursor: pointer;
+      color: #18213a;
+      background: linear-gradient(155deg, #65d8ff, #3fb2e0);
+      box-shadow: 0 5px 0 #12658e, 0 8px 18px rgba(0,0,0,.25);
+      color: #fff;
+      font-size: 18px;
+    }
+    .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #12658e; }
+
+    .best-row {
+      margin-top: 14px;
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .legend {
+      margin: 16px auto 4px;
+      text-align: left;
+      display: inline-block;
+      font-size: 12.5px;
+      line-height: 1.7;
+      color: #dfe8ff;
+    }
+    .legend b { color: var(--gold); }
+
+    #overlay.in-game .menu-card { width: min(420px, 92vw); }
+  </style>
+</head>
+<body>
+  <div id="game-shell">
+    <canvas id="kite-canvas"></canvas>
+    <div id="hud">
+      <div id="brand-panel">
+        <h1 id="game-title">Kite Runner</h1>
+        <p id="game-tagline">Hold to soar · Let go to glide</p>
+      </div>
+      <div id="stage-badge">Casual</div>
+      <div id="score-panel">
+        <p id="score-label">Score</p>
+        <p id="score">0</p>
+        <p id="status-line"><span class="mult-chip">★ x1</span></p>
+        <p id="dist-line">🪁 0m</p>
+        <p id="best-line">Best 0</p>
+      </div>
+      <p id="message"></p>
+      <div id="controls">
+        <button id="pause-btn" class="control-button">⏸ Pause</button>
+      </div>
+    </div>
+    <div id="overlay">
+      <div class="menu-card">
+        <div class="kite-emoji">🪁</div>
+        <h1>Amber's Kite Runner</h1>
+        <p class="sub">Hold to make your kite soar, let go to glide. Weave through clouds, grab stars, ride the wind — and dodge the birds!</p>
+        <div class="mode-cards">
+          <button class="mode-card" data-mode="easy"><em>☁️</em><strong>Casual</strong><span>Easy breeze, no birds</span></button>
+          <button class="mode-card" data-mode="hard"><em>🌪️</em><strong>Adventure</strong><span>Birds + faster wind</span></button>
+        </div>
+        <button id="play-btn" class="btn">▶ Let's Fly</button>
+        <div class="legend">
+          <b>★</b> +10 &nbsp;·&nbsp; <b>🌬️</b> soar boost &nbsp;·&nbsp; <b>☁️/🐦</b> slow / dodge
+        </div>
+        <p class="best-row">🏆 Best: <span id="menu-best">0</span></p>
+        <p style="margin-top:8px; font-size:12px; opacity:.6">
+          <button style="all:unset; cursor:pointer; color:#65d8ff" onclick="location.href='portal.html'">← Games</button>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+    const W = 1024, H = 768;
+    const shell = document.getElementById('game-shell');
+    const canvas = document.getElementById('kite-canvas');
+    const ctx = canvas.getContext('2d');
+    const overlay = document.getElementById('overlay');
+    const scoreEl = document.getElementById('score');
+    const statusEl = document.getElementById('status-line');
+    const distEl = document.getElementById('dist-line');
+    const bestEl = document.getElementById('best-line');
+    const stageEl = document.getElementById('stage-badge');
+    const messageEl = document.getElementById('message');
+    const menuBestEl = document.getElementById('menu-best');
+    const playBtn = document.getElementById('play-btn');
+    const pauseBtn = document.getElementById('pause-btn');
+    const modeCards = Array.from(document.querySelectorAll('.mode-card'));
+
+    const DIFFS = {
+      easy:  { label: 'Casual', stars: 6,   clouds: 2.2,  birds: 0,    wind: 0.45,  fallG: 1150, thrust: 1500, hearts: 99, birdSpeed: 0 },
+      hard:  { label: 'Adventure', stars: 8, clouds: 2.6, birds: 0.32, wind: 0.55,  fallG: 1500, thrust: 1750, hearts: 3,  birdSpeed: 260 }
+    };
+    function loadDiff() {
+      try { const d = localStorage.getItem('kite_diff'); if (d && DIFFS[d]) return d; } catch (e) {}
+      return 'easy';
+    }
+    let difficulty = loadDiff();
+    function cfg() { return DIFFS[difficulty] || DIFFS.easy; }
+
+    const HOLD_KEY = 'kite_best';
+    function loadBest() { try { return parseInt(localStorage.getItem(HOLD_KEY) || '0', 10) || 0; } catch (e) { return 0; } }
+    function saveBest(v) { try { if (v > loadBest()) { localStorage.setItem(HOLD_KEY, String(v)); return true; } } catch (e) {} return false; }
+    let bestScore = loadBest();
+
+    // --- audio ---
+    let audioCtx = null;
+    function initAudio() { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } catch (e) {} }
+    function blip(freq, dur, type, vol) {
+      try {
+        initAudio(); if (!audioCtx) return;
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain(), t = audioCtx.currentTime;
+        o.type = type || 'sine'; o.frequency.setValueAtTime(freq, t);
+        g.gain.setValueAtTime(vol || 0.1, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.1));
+        o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + (dur || 0.1) + 0.02);
+      } catch (e) {}
+    }
+
+    // --- game state ---
+    const kite = { x: 260, y: 480, vy: 0, r: 26, tilt: 0, holding: false, sparkle: 0 };
+    const world = { scroll: 0, height: 0, speed: 140, windUntil: 0, windDir: 0, shake: 0, bestStage: 0 };
+    let stars = [], clouds = [], winds = [], birds = [], puffs = [], fx = [];
+    let running = false, paused = false, over = false;
+    let score = 0, combo = 0, comboTimer = 0, stage = 0, hearts = 3;
+    let lastTime = 0, spawnAccStar = 0, spawnAccCloud = 0, spawnAccWind = 0, spawnAccBird = 0;
+    let messageTimer = 0;
+    let dist = 0;
+    let runTime = 0;
+    let shieldUntil = 0;
+
+    // --- touch ---
+    let holding = false;
+    function pressStart() { if (running && !over && !paused) { holding = true; kite.holding = true; initAudio(); } }
+    function pressEnd() { holding = false; kite.holding = false; }
+
+    const bounds = { top: 40, bottom: 700 };
+
+    function resize() {
+      const rect = shell.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      let cssW = Math.max(1, rect.width), cssH = Math.max(1, rect.height);
+      const target = W / H, actual = cssW / cssH;
+      if (Math.abs(actual - target) > 0.02) {
+        if (actual > target) cssW = cssH * target; else cssH = cssW / target;
+      }
+      canvas.width = Math.round(cssW * dpr);
+      canvas.height = Math.round(cssH * dpr);
+      const sx = canvas.width / W, sy = canvas.height / H;
+      const s = Math.min(sx, sy);
+      const ox = (canvas.width - W * s) / 2, oy = (canvas.height - H * s) / 2;
+      ctx.setTransform(s, 0, 0, s, ox, oy); // uniform scale only
+    }
+    window.addEventListener('resize', resize);
+
+    // --- input ---
+    shell.addEventListener('pointerdown', function (e) { if (e.target === canvas) { e.preventDefault(); pressStart(); } });
+    shell.addEventListener('pointerup', pressEnd);
+    shell.addEventListener('pointercancel', pressEnd);
+    shell.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); pressStart(); }
+    });
+    document.addEventListener('keyup', function (e) {
+      if (e.code === 'Space' || e.code === 'ArrowUp') pressEnd();
+    });
+
+    // --- spawning (screen-space: spawn just off the right edge, entities move LEFT) ---
+    function randomStar() {
+      return { x: W + 40 + Math.random() * 400, y: bounds.top + 60 + Math.random() * (bounds.bottom - bounds.top - 150), got: false, phase: Math.random() * 6.28 };
+    }
+    function randomCloud() {
+      return { x: W + 40 + Math.random() * 300, y: 60 + Math.random() * (H - 240), r: 12 + Math.random() * 6 };
+    }
+    function randomWind() {
+      return { x: W + 40 + Math.random() * 200, y: 130 + Math.random() * (H - 320), got: false, phase: 0 };
+    }
+    function randomBird() {
+      return { x: W + 60 + Math.random() * 300, y: 120 + Math.random() * (H - 280), vx: -(cfg().birdSpeed * (0.8 + Math.random() * 0.4)), flap: 0 };
+    }
+
+    // spawn returns a FRACTIONAL accumulator so entities arrive at a steady cadence (no burst)
+    function spawn(pf, arr, acc, rate, cap) {
+      acc += rate * (1 / 60);
+      let budget = Math.floor(acc);
+      while (budget > 0 && arr.length < cap) { arr.push(pf()); budget -= 1; }
+      return acc - Math.floor(acc); // keep only the fractional part
+    }
+
+    function showMessage(txt, dur) {
+      messageEl.textContent = txt; messageEl.classList.add('visible');
+      messageTimer = 3;
+    }
+
+    function addFx(type, x, y, text) {
+      fx.push({ type: type, x: x, y: y, text: text, t: 0, dur: 0.7 });
+    }
+
+    function reset(keepOverlay) {
+      kite.x = 260; kite.y = 480; kite.vy = 0; kite.holding = false; kite.tilt = 0;
+      world.scroll = 0; world.height = 0; world.speed = 140; world.windUntil = 0; world.shake = 0;
+      score = 0; combo = 0; comboTimer = 0; stage = 0; dist = 0;
+      stars = []; clouds = []; winds = []; birds = []; puffs = []; fx = [];
+      spawnAccStar = 0; spawnAccCloud = 0; spawnAccWind = 0; spawnAccBird = 0;
+      runTime = 0;
+      shieldUntil = 0;
+      hearts = cfg().hearts;
+      over = false;
+      updateHUD();
+      if (!keepOverlay) { overlay.classList.add('hidden'); }
+    }
+
+    function start() {
+      initAudio();
+      reset(false);
+      running = true; paused = false; over = false;
+      stageEl.textContent = cfg().label;
+      if (!lastTime) lastTime = performance.now();
+    }
+
+    function gameOver() {
+      if (over) return;
+      over = true; running = false;
+      const newBest = saveBest(score);
+      bestScore = loadBest();
+      updateHUD();
+      pauseBtn.classList.remove('active');
+      blip(160, 0.3, 'sawtooth', 0.08);
+      overlay.classList.remove('hidden');
+      overlay.classList.add('in-game');
+      const btns = overlay.querySelectorAll('.mode-card');
+      for (const b of btns) { const m = b.getAttribute('data-mode'); b.classList.toggle('active', m === difficulty); }
+      overlay.querySelector('.menu-card h1').textContent = newBest ? '🏆 New Best!' : (cfg().hearts <= 3 ? '🐦 Dodged as far as you could!' : '☁️ Beautiful flight!');
+      overlay.querySelector('.sub').textContent = '⭐ ' + score + ' pts · 🪁 ' + Math.max(1, Math.round(dist)) + 'm · Best ' + bestScore;
+      menuBestEl.textContent = bestScore;
+    }
+
+    function hitStar(s) {
+      s.got = true;
+      combo += 1; comboTimer = 2.5;
+      const mult = currentMult();
+      const pts = 10 * mult;
+      score += pts;
+      addFx('float', s.x, s.y, '+' + pts);
+      addFx('star', s.x, s.y);
+      blip(700 + Math.min(combo, 20) * 25, 0.08, 'triangle', 0.09);
+      updateHUD();
+    }
+
+    function hitWind(w) {
+      w.got = true;
+      world.windUntil = performance.now() + 1800;
+      world.windDir = Math.random() < 0.5 ? -1 : 1;
+      kite.vy = -560;
+      addFx('wind', w.x, w.y);
+      blip(500, 0.25, 'sine', 0.12);
+      showMessage('🌬️ Wind at your back!', 1.2);
+    }
+
+    function hitCloud(c) {
+      world.speed = Math.max(60, world.speed - 70);
+      addFx('cloud', c.x, c.y);
+      blip(220, 0.12, 'triangle', 0.05);
+      showMessage('☁️ Slowed by the cloud', 0.8);
+    }
+
+    function hitBird(b) {
+      hearts -= 1;
+      addFx('hit', kite.x, kite.y);
+      if (cfg().hearts <= 3) addFx('-heart', kite.x, kite.y - 34, '-♥');
+      blip(130, 0.2, 'sawtooth', 0.1);
+      world.shake = 0.4;
+      kite.vy = 260;
+      updateHUD();
+      showMessage('🐦 Ouch! -1', 1);
+      if (hearts <= 0) gameOver();
+    }
+
+    // --- circles collide ---
+    function collide(cx, cy, cr) {
+      const dx = kite.x - cx, dy = kite.y - cy, rr = cr + kite.r;
+      return dx * dx + dy * dy <= rr * rr;
+    }
+
+    function currentMult() { return Math.min(combo >= 20 ? 8 : combo >= 12 ? 5 : combo >= 6 ? 3 : combo >= 3 ? 2 : 1, 8); }
+
+    function updateHUD() {
+      scoreEl.textContent = score;
+      const m = currentMult();
+      statusEl.innerHTML = '<span class="mult-chip' + (m >= 3 ? ' hot' : '') + '">★ x' + m + '</span>' + (cfg().hearts <= 3 ? ' <span style="color:#ff8a65;font-weight:900">♥' + hearts + '</span>' : '');
+      distEl.textContent = '🪁 ' + Math.max(0, Math.round(dist)) + 'm';
+      bestEl.textContent = 'Best ' + bestScore;
+      menuBestEl.textContent = bestScore;
+    }
+
+    function update(dt) {
+      if (!running || paused || over) return;
+
+      const c = cfg();
+      world.speed = Math.min(520, world.speed + 2.2 * dt);
+      world.scroll += world.speed * dt;
+      dist += world.speed * dt / 50;
+      runTime += dt;
+
+      // stage progression every ~1000 world units
+      const newStage = Math.floor(dist / 450);
+      if (newStage !== stage) {
+        stage = newStage;
+        showMessage(stage + 1 === 1 ? 'Stage 1' : 'Stage ' + (stage + 1), 1);
+      }
+
+      // kite physics
+      const thrust = kite.holding ? c.thrust : 0;
+      kite.vy += (c.fallG - thrust) * dt;
+      if (kite.holding && kite.vy < -620) kite.vy = -620;
+      if (!kite.holding && kite.vy > 640) kite.vy = 640;
+      kite.y += kite.vy * dt;
+      kite.tilt += ((kite.holding ? 0.5 : -0.4) - kite.tilt) * 6 * dt;
+
+      // slow down in wind gust handled below; wind horizontal drift
+      if (performance.now() < world.windUntil) {
+        kite.x += world.windDir * 140 * dt;
+      }
+
+      // squeeze against bounds + bounce gently
+      if (kite.y < bounds.top) { kite.y = bounds.top; if (kite.vy < 0) kite.vy = 0; }
+      if (kite.y > bounds.bottom) { kite.y = bounds.bottom; if (kite.vy > 0) kite.vy *= -0.4; }
+
+      // --- spawn (each type keeps its own accumulator; spawn just off right edge in screen space) ---
+      spawnAccStar = spawn(randomStar, stars, spawnAccStar, c.stars, 30);
+      spawnAccCloud = spawn(randomCloud, clouds, spawnAccCloud, c.clouds, 10);
+      spawnAccWind = spawn(randomWind, winds, spawnAccWind, c.wind, 4);
+      spawnAccBird = spawn(randomBird, birds, spawnAccBird, c.birds, c.birds ? 5 : 0);
+
+      // move entities LEFT in screen space; despawn when they pass off the left edge
+      for (const s of stars) { s.x -= world.speed * dt; if (s.x < kite.x - 500) s.got = true; }
+      for (const cl of clouds) { cl.x -= world.speed * 0.9 * dt; }
+      for (const w of winds) { w.x -= world.speed * dt; }
+      for (const b of birds) { b.x += b.vx * dt; b.flap += 8 * dt; }
+
+      // cleanup
+      stars = stars.filter(function (s) { return !s.got && s.x < W + 520; });
+      clouds = clouds.filter(function (cl) { return cl.x > -300; });
+      winds = winds.filter(function (w) { return !w.got && w.x > -300; });
+      birds = birds.filter(function (b) { return b.x > -300 && b.x < kite.x + 1400; });
+
+      // combo timer decay
+      if (comboTimer > 0) { comboTimer -= dt; if (comboTimer <= 0) { combo = 0; updateHUD(); } }
+
+      // collisions
+      for (const s of stars) { if (!s.got && collide(s.x, s.y, 22)) hitStar(s); }
+      for (const w of winds) { if (!w.got && collide(w.x, w.y, 34)) hitWind(w); }
+      for (const cl of clouds) { if (collide(cl.x, cl.y - 30, cl.r + 60)) { hitCloud(cl); cl.x = -999; } }
+      for (const b of birds) {
+        if (b.dead) continue;
+        const dist2 = Math.hypot(b.x - kite.x, b.y - kite.y);
+        // near-miss (close but not a hit) grants a brief shield in Adventure — never a cheap-feeling death
+        if (cfg().hearts <= 3 && dist2 < 88 && dist2 > 24 + kite.r && performance.now() > shieldUntil) {
+          shieldUntil = performance.now() + 1000;
+          addFx('shield', kite.x, kite.y);
+          blip(620, 0.18, 'sine', 0.07);
+          showMessage('😅 Close! Shield up', 1);
+          continue;
+        }
+        if (collide(b.x, b.y, 24)) {
+          if (performance.now() < shieldUntil) { b.dead = true; continue; }
+          hitBird(b); b.dead = true;
+        }
+      }
+      birds = birds.filter(function (b) { return !b.dead; });
+
+      // puffs from holding
+      if (kite.holding && Math.random() < 0.25) {
+        puffs.push({ x: kite.x - 18, y: kite.y + 20, r: 5 + Math.random() * 5, vy: 20, t: 0 });
+      }
+      for (const p of puffs) { p.y += p.vy * dt; p.x -= 30 * dt; p.r += 10 * dt; p.t += dt; }
+      puffs = puffs.filter(function (p) { return p.t < 0.9; });
+
+      // fx anim
+      for (const f of fx) f.t += dt;
+      fx = fx.filter(function (f) { return f.t < f.dur; });
+
+      // world shake decay
+      if (world.shake > 0) world.shake = Math.max(0, world.shake - dt);
+      if (messageTimer > 0) { messageTimer -= dt; if (messageTimer <= 0) messageEl.classList.remove('visible'); }
+
+      updateHUD();
+    }
+
+    function drawSky() {
+      ctx.fillStyle = '#133a66';
+      ctx.fillRect(0, 0, W, H);
+
+      // sun glow
+      const g = ctx.createRadialGradient(880, 90, 10, 880, 90, 180);
+      g.addColorStop(0, 'rgba(255,236,170,0.8)');
+      g.addColorStop(0.35, 'rgba(255,220,120,0.28)');
+      g.addColorStop(1, 'rgba(255,220,120,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(700, 0, 320, 300);
+      ctx.fillStyle = '#ffedb0';
+      ctx.beginPath(); ctx.arc(880, 90, 42, 0, 6.283); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.beginPath(); ctx.arc(878, 88, 30, 0, 6.283); ctx.fill();
+
+      // far mountains
+      ctx.fillStyle = 'rgba(10,28,60,0.65)';
+      ctx.beginPath(); ctx.moveTo(0, 640);
+      for (let x = 0; x <= W; x += 20) { const y = 640 - 80 * Math.abs(Math.sin(x * 0.006 + world.scroll * 0.0002)); ctx.lineTo(x, y); }
+      ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath(); ctx.fill();
+
+      // hills
+      ctx.fillStyle = 'rgba(7,20,44,0.7)';
+      ctx.beginPath(); ctx.moveTo(0, 700);
+      for (let x = 0; x <= W; x += 20) { const y = 700 - 60 * Math.abs(Math.sin(x * 0.004 + world.scroll * 0.0004)); ctx.lineTo(x, y); }
+      ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath(); ctx.fill();
+    }
+
+    function drawCloud(cl) {
+      const cx = cl.x, cy = cl.y;
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      // simple puffy cloud of circles
+      for (let i = -1; i <= 1; i++) {
+        ctx.beginPath();
+        ctx.arc(cx + i * cl.r * 1.2, cy, cl.r, 0, 6.283);
+        ctx.fill();
+      }
+      ctx.beginPath(); ctx.arc(cx, cy - cl.r * 0.7, cl.r * 0.8, 0, 6.283); ctx.fill();
+    }
+
+    function drawStar(s) {
+      const pulse = 10 + 4 * Math.sin(s.phase + performance.now() * 0.004);
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.fillStyle = '#ffd85a';
+      ctx.shadowColor = 'rgba(255,216,90,0.7)';
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const a = -Math.PI / 2 + (i * 4 * Math.PI) / 5;
+        const a2 = a + Math.PI / 5;
+        ctx.lineTo(Math.cos(a) * pulse, Math.sin(a) * pulse);
+        ctx.lineTo(Math.cos(a2) * pulse * 0.45, Math.sin(a2) * pulse * 0.45);
+      }
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+
+    function drawWind(w) {
+      const b = 26 + 10 * Math.sin(w.phase + performance.now() * 0.006);
+      ctx.save();
+      ctx.translate(w.x, w.y);
+      ctx.font = Math.floor(b) + 'px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🌬️', 0, 0);
+      ctx.restore();
+    }
+
+    function drawBird(b) {
+      const flip = Math.sin(b.flap);
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.fillStyle = '#3a3a52';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 16, 10, 0, 0, 6.283);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-6, -4); ctx.lineTo(-22, -14 - flip * 6); ctx.lineTo(-8, 2);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(6, -4); ctx.lineTo(22, -14 + flip * 6); ctx.lineTo(8, 2);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#ffd85a';
+      ctx.beginPath(); ctx.moveTo(14, -2); ctx.lineTo(24, -6); ctx.lineTo(15, 2); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+
+    function drawKite() {
+      ctx.save();
+      ctx.translate(kite.x, kite.y);
+      ctx.rotate(kite.tilt);
+      // sparkle trail
+      if (kite.holding) {
+        ctx.fillStyle = 'rgba(95,251,241,0.18)';
+        for (let i = 0; i < 4; i++) {
+          const a = performance.now() * 0.005 + i * 1.2;
+          ctx.beginPath();
+          ctx.arc(-i * 9 - 6, 26 + Math.sin(a) * 6, 6 - i, 0, 6.283);
+          ctx.fill();
+        }
+      }
+      // kite body: diamond
+      const grad = ctx.createLinearGradient(-26, -30, 26, 30);
+      grad.addColorStop(0, '#ff8a65');
+      grad.addColorStop(1, '#e91e63');
+      ctx.fillStyle = grad;
+      ctx.shadowColor = 'rgba(233,30,99,0.45)';
+      ctx.shadowBlur = 18;
+      ctx.beginPath();
+      ctx.moveTo(0, -34); ctx.lineTo(26, 0); ctx.lineTo(0, 34); ctx.lineTo(-26, 0);
+      ctx.closePath(); ctx.fill();
+      ctx.shadowBlur = 0;
+      // cross bars
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, -34); ctx.lineTo(0, 34); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-26, 0); ctx.lineTo(26, 0); ctx.stroke();
+      // center dot
+      ctx.fillStyle = '#fff5d6';
+      ctx.beginPath(); ctx.arc(0, 0, 4, 0, 6.283); ctx.fill();
+      // tail ribbons
+      ctx.strokeStyle = '#ffd180';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-6, 28);
+      ctx.quadraticCurveTo(-18, 44 + Math.sin(performance.now() * 0.005) * 4, -8, 58 + Math.sin(performance.now() * 0.005) * 6);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(6, 28);
+      ctx.quadraticCurveTo(16, 44 + Math.cos(performance.now() * 0.005) * 4, 8, 58 + Math.cos(performance.now() * 0.005) * 6);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawFx() {
+      for (const f of fx) {
+        const a = 1 - f.t / f.dur;
+        if (f.type === 'star') {
+          ctx.fillStyle = 'rgba(255,216,90,' + (0.8 * a) + ')';
+          ctx.font = Math.floor(26 * a * 4) + 'px system-ui';
+          ctx.textAlign = 'center';
+          ctx.fillText('★', f.x, f.y - 20 * f.t * 60);
+        } else if (f.type === 'wind') {
+          ctx.fillStyle = 'rgba(95,251,241,' + (0.8 * a) + ')';
+          ctx.font = '40px system-ui';
+          ctx.textAlign = 'center';
+          ctx.fillText('🌬️', f.x, f.y - 10);
+        } else if (f.type === 'cloud') {
+          ctx.fillStyle = 'rgba(255,255,255,' + (0.6 * a) + ')';
+          ctx.font = '34px system-ui';
+          ctx.textAlign = 'center';
+          ctx.fillText('☁️', f.x, f.y);
+        } else if (f.type === 'hit') {
+          ctx.strokeStyle = 'rgba(255,90,90,' + a + ')';
+          ctx.lineWidth = 5;
+          ctx.beginPath(); ctx.arc(f.x, f.y, 20 + (1 - a) * 40, 0, 6.283); ctx.stroke();
+        } else if (f.type === 'float') {
+          ctx.fillStyle = 'rgba(255,224,120,' + a + ')';
+          ctx.font = '900 30px system-ui';
+          ctx.textAlign = 'center';
+          ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+          ctx.lineWidth = 4;
+          ctx.strokeText(f.text || '+10', f.x, f.y - 46 * (f.t / f.dur) - 20);
+          ctx.fillText(f.text || '+10', f.x, f.y - 46 * (f.t / f.dur) - 20);
+        } else if (f.type === '-heart') {
+          ctx.fillStyle = 'rgba(255,110,110,' + a + ')';
+          ctx.font = '900 30px system-ui';
+          ctx.textAlign = 'center';
+          ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+          ctx.lineWidth = 4;
+          ctx.strokeText(f.text || '-♥', f.x, f.y - 40 * (f.t / f.dur));
+          ctx.fillText(f.text || '-♥', f.x, f.y - 40 * (f.t / f.dur));
+        } else if (f.type === 'shield') {
+          ctx.strokeStyle = 'rgba(95,251,241,' + (0.8 * a) + ')';
+          ctx.lineWidth = 4;
+          ctx.beginPath(); ctx.arc(f.x, f.y, kite.r + 14 + (1 - a) * 22, 0, 6.283); ctx.stroke();
+          ctx.fillStyle = 'rgba(95,251,241,' + (0.14 * a) + ')';
+          ctx.fill();
+        }
+      }
+    }
+
+    function draw(dt) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // uniform scale + letterbox offset + shake
+      const sx = canvas.width / W, sy = canvas.height / H, s = Math.min(sx, sy);
+      const bx = (canvas.width - W * s) / 2, by = (canvas.height - H * s) / 2;
+      const shx = world.shake > 0 ? (Math.random() - 0.5) * 14 * (world.shake / 0.4) : 0;
+      const shy = world.shake > 0 ? (Math.random() - 0.5) * 14 * (world.shake / 0.4) : 0;
+      ctx.setTransform(s, 0, 0, s, bx + shx, by + shy);
+
+      drawSky();
+
+      // clouds (behind kite)
+      for (const cl of clouds) drawCloud(cl);
+      // winds
+      for (const w of winds) drawWind(w);
+      // stars
+      for (const st of stars) drawStar(st);
+      // birds
+      for (const b of birds) drawBird(b);
+      // kite
+      drawKite();
+      // puffs
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      for (const p of puffs) {
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill();
+      }
+      drawFx();
+
+      // HUD "hold to soar" hint bottom — fades out after ~6s so it never clutters play
+      if (runTime < 6) {
+        const hintA = runTime > 4.5 ? 0.22 * (6 - runTime) / 1.5 : 0.22;
+        ctx.fillStyle = 'rgba(255,255,255,' + hintA + ')';
+        ctx.font = 'italic 600 18px system-ui';
+        ctx.textAlign = 'center';
+        ctx.fillText('HOLD to soar', W / 2, H - 60);
+      }
+    }
+
+    let rafId = null;
+    function frame(now) {
+      const dt = Math.min(0.05, (now - (lastTime || now)) / 1000);
+      lastTime = now;
+      update(dt);
+      draw(dt);
+      rafId = requestAnimationFrame(frame);
+    }
+
+    // --- menu wiring ---
+    function setMode(m) { if (!DIFFS[m]) m = 'easy'; difficulty = m; try { localStorage.setItem('kite_diff', m); } catch (e) {} for (const b of modeCards) b.classList.toggle('active', b.getAttribute('data-mode') === m); }
+
+    for (const b of modeCards) b.addEventListener('click', function () { initAudio(); setMode(b.getAttribute('data-mode')); blip(300, 0.06, 'triangle', 0.06); });
+
+    playBtn.addEventListener('click', function () { initAudio(); start(); });
+    pauseBtn.addEventListener('click', function () {
+      if (!running) return;
+      paused = !paused;
+      pauseBtn.classList.toggle('active', paused);
+      pauseBtn.textContent = paused ? '▶ Resume' : '⏸ Pause';
+      blip(300, 0.06, 'triangle', 0.06);
+    });
+
+    // initial difficulty highlight
+    setMode(difficulty);
+
+    resize();
+    lastTime = 0;
+    rafId = requestAnimationFrame(frame);
+  })();
+  </script>
+  <script src="playtime.js?v=2"></script>
+</body></html>

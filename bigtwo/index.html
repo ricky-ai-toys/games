@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Big Two">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0b1530">
+  <meta name="description" content="Amber's Big Two (鋤大D) — kid-friendly card adventure with buddies Maple, Finn, and Pip!">
+  <title>Amber's Big Two · 鋤大D</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Portal alignment: navy theme + Games back link */
+    :root {
+      --portal-navy: #0b1530;
+      --portal-coral: #ff8a65;
+      --portal-gold: #ffd180;
+    }
+    html, body {
+      background: var(--portal-navy) !important;
+    }
+    #game-container {
+      height: 100vh;
+      height: 100dvh;
+    }
+    .portal-home {
+      position: fixed;
+      top: max(10px, env(safe-area-inset-top, 0px));
+      left: max(10px, env(safe-area-inset-left, 0px));
+      z-index: 50;
+      display: inline-flex;
+      align-items: center;
+      min-height: 40px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(11, 21, 48, 0.88);
+      color: #fff;
+      font: 800 12px/1 system-ui, sans-serif;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .portal-home:active { transform: scale(0.97); }
+  </style>
+</head>
+<body>
+
+<a class="portal-home" href="../portal.html">← Games</a>
+
+<div id="game-container">
+
+  <div id="confetti-layer" aria-hidden="true"></div>
+
+  <div class="screen-overlay" id="menu-screen">
+    <button class="settings-btn" id="settings-btn" title="Settings" type="button">⚙️</button>
+
+    <div class="settings-panel hidden" id="settings-panel">
+      <h3>Settings</h3>
+      <div class="settings-row">
+        <span>Sound Effects</span>
+        <div class="toggle on" id="toggle-sfx" data-setting="sfx"></div>
+      </div>
+      <div class="settings-row">
+        <span>Win Confetti</span>
+        <div class="toggle on" id="toggle-confetti" data-setting="confetti"></div>
+      </div>
+    </div>
+
+    <div class="kid-deco menu-deco" aria-hidden="true">
+      <span class="floaty f1">⭐</span>
+      <span class="floaty f2">🌈</span>
+      <span class="floaty f3">🎈</span>
+      <span class="floaty f4">🦋</span>
+      <span class="floaty f5">🍭</span>
+      <span class="floaty f6">✨</span>
+    </div>
+
+    <div class="menu-content">
+      <div class="amber-character" aria-hidden="true">🦊</div>
+      <p class="kid-hello">Hi friend! Let's play cards! 🎉</p>
+      <h1 class="game-title">
+        Amber's Big Two
+        <span class="subtitle">鋤大D · CARD ADVENTURE</span>
+      </h1>
+
+      <div class="buddy-row" aria-hidden="true">
+        <span title="Maple">🦉</span>
+        <span title="Finn">🐦</span>
+        <span title="Pip">🐰</span>
+        <span title="You">🦊</span>
+      </div>
+
+      <div class="difficulty-section">
+        <p class="difficulty-label">PICK YOUR FUN LEVEL</p>
+        <div class="difficulty-cards">
+          <div class="diff-card easy" data-difficulty="easy" tabindex="0">
+            <div class="diff-icon">🌸</div>
+            <div class="diff-name">Easy</div>
+            <div class="diff-desc">Gentle buddies — great for learning!</div>
+          </div>
+          <div class="diff-card normal" data-difficulty="normal" tabindex="0">
+            <div class="diff-icon">🌻</div>
+            <div class="diff-name">Normal</div>
+            <div class="diff-desc">A fun challenge with friends!</div>
+          </div>
+          <div class="diff-card hard" data-difficulty="hard" tabindex="0">
+            <div class="diff-icon">⚡</div>
+            <div class="diff-name">Hard</div>
+            <div class="diff-desc">Smart play — hold onto your 2s!</div>
+          </div>
+          <div class="diff-card expert" data-difficulty="expert" tabindex="0">
+            <div class="diff-icon">💎</div>
+            <div class="diff-name">Expert</div>
+            <div class="diff-desc">Only the bravest foxes!</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="high-scores" id="high-scores">Best stars load here</div>
+
+      <button class="btn btn-secondary" id="btn-how-to" type="button">How to Play 📖</button>
+      <p class="controls-help">Tap cards → Play! · Skip is always OK 😊 · Hint 💡 is your friend</p>
+    </div>
+  </div>
+
+  <div class="screen-overlay hidden" id="rules-screen">
+    <div class="rules-card">
+      <h2>How to Play 🦊</h2>
+      <div class="rules-body">
+        <p><strong>Goal:</strong> Be first to play all 13 cards!</p>
+        <p><strong>Rank (high → low):</strong> 2 A K Q J 10 9 8 7 6 5 4 3</p>
+        <p><strong>Suits (high → low):</strong> ♠ ♥ ♣ ♦</p>
+        <p>The player with <strong>3♦</strong> starts. Their first combo must include it.</p>
+        <p>On your turn, play a <strong>higher combo of the same kind</strong>, or <strong>Skip</strong>.</p>
+        <p>After three Skips, the last player to play starts a free new trick.</p>
+        <h3>Combos</h3>
+        <ul>
+          <li><strong>Single</strong> — one card</li>
+          <li><strong>Pair</strong> — two same rank</li>
+          <li><strong>Triple</strong> — three same rank</li>
+          <li><strong>Five cards</strong> (weak → strong): straight · flush · full house · four+kicker · straight flush</li>
+        </ul>
+        <p><strong>Straights:</strong> five in a row like 3-4-5-6-7 or J-Q-K-A-2 (no wrap-around).</p>
+        <p><strong>Stars ⭐:</strong> when you win, you earn stars from cards left in buddies' hands.</p>
+        <p class="rules-tip">💡 Stuck? Tap <strong>Hint</strong>. Skipping is smart — never feel bad about it!</p>
+      </div>
+      <button class="btn btn-primary" id="btn-close-rules" type="button">Got it!</button>
+    </div>
+  </div>
+
+  <div class="screen-overlay hidden" id="table-screen">
+    <div class="kid-deco table-deco" aria-hidden="true">
+      <span class="floaty f1">⭐</span>
+      <span class="floaty f3">🌸</span>
+      <span class="floaty f5">✨</span>
+      <span class="floaty f2">🍀</span>
+    </div>
+
+    <div class="table-top-bar">
+      <button class="btn btn-tiny" id="btn-menu-ingame" type="button">← Home</button>
+      <div class="table-cheer" id="table-cheer">Have fun! 🌈</div>
+      <div id="scoreboard" class="scoreboard"></div>
+    </div>
+
+    <div class="felt">
+      <div class="felt-stickers" aria-hidden="true">
+        <span class="sticker s1">🌼</span>
+        <span class="sticker s2">🍄</span>
+        <span class="sticker s3">🐝</span>
+      </div>
+      <div class="seat seat-north" id="seat-north">
+        <div class="seat-avatar">🦉</div>
+        <div class="seat-name">Maple</div>
+        <div class="seat-backs"></div>
+        <div class="seat-count">13 left</div>
+      </div>
+      <div class="seat seat-west" id="seat-west">
+        <div class="seat-avatar">🐰</div>
+        <div class="seat-name">Pip</div>
+        <div class="seat-backs"></div>
+        <div class="seat-count">13 left</div>
+      </div>
+      <div class="seat seat-east" id="seat-east">
+        <div class="seat-avatar">🐦</div>
+        <div class="seat-name">Finn</div>
+        <div class="seat-backs"></div>
+        <div class="seat-count">13 left</div>
+      </div>
+
+      <div id="trick-area" class="trick-area"></div>
+
+      <div class="seat seat-south" id="seat-south">
+        <div class="seat-avatar you-avatar">🦊</div>
+        <div class="seat-name">Amber (you!)</div>
+        <div class="seat-count">13 cards</div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <div id="status-text" class="status-text">Your turn</div>
+      <div id="tip-text" class="tip-text"></div>
+    </div>
+
+    <div id="player-hand" class="player-hand"></div>
+
+    <div class="controls">
+      <button class="btn btn-primary" id="btn-play" type="button">Play! ✨</button>
+      <button class="btn btn-secondary" id="btn-pass" type="button">Skip 😊</button>
+      <button class="btn btn-secondary" id="btn-hint" type="button">Hint 💡</button>
+      <button class="btn btn-secondary" id="btn-sort" type="button">Sort 🔀</button>
+    </div>
+  </div>
+
+  <div class="screen-overlay hidden" id="round-end-screen">
+    <div class="gameover-card">
+      <h2 id="round-title">Hand over</h2>
+      <p class="encouragement" id="round-msg">Great play!</p>
+      <div id="round-breakdown" class="round-breakdown"></div>
+      <div class="round-stars" id="round-stars">Your total: 0⭐</div>
+      <div class="gameover-buttons">
+        <button class="btn btn-primary" id="btn-next-hand" type="button">Next Hand</button>
+        <button class="btn btn-secondary" id="btn-round-menu" type="button">Menu</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/constants.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/cards.js"></script>
+<script src="js/combos.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/handEval.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+<script src="../playtime.js?v=2"></script>
+</body>
+</html>

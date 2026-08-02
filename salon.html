@@ -1,0 +1,1561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Amber's Beauty Salon">
+<meta name="theme-color" content="#0d1b3a">
+<meta name="description" content="Style customers' hair, makeup, and nails to match their wishes!">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230d1b3a'/%3E%3Ctext y='.9em' x='.1em' font-size='80'%3E%F0%9F%92%87%3C/text%3E%3C/svg%3E">
+<title>Amber's Beauty Salon</title>
+<style>
+  :root {
+    --bg: #0d1b3a; --card: rgba(255,255,255,0.07); --border: rgba(255,255,255,0.16);
+    --pink: #FF8A65; --pink2: #E91E63; --gold: #FFD700; --green: #69F0AE; --ink: #fff;
+    --shadow-pink: #C75B39; --shadow-blue: #0D47A1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    background: var(--bg); color: var(--ink);
+    user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  }
+  #app {
+    width: 100vw; height: 100vh; height: 100dvh; position: relative; overflow: hidden;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(233,30,99,0.22), transparent 50%),
+      radial-gradient(ellipse 70% 45% at 85% 20%, rgba(255,138,101,0.18), transparent 45%),
+      radial-gradient(ellipse 60% 40% at 50% 100%, rgba(66,165,245,0.12), transparent 50%),
+      linear-gradient(165deg, #152548 0%, #0d1b3a 45%, #0a1428 100%);
+  }
+  .bg-orbs { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .bg-orbs span {
+    position: absolute; border-radius: 50%; filter: blur(40px); opacity: 0.45;
+    animation: orbFloat 12s ease-in-out infinite;
+  }
+  .bg-orbs span:nth-child(1) {
+    width: 180px; height: 180px; left: -5%; top: 15%;
+    background: rgba(233,30,99,0.5); animation-delay: 0s;
+  }
+  .bg-orbs span:nth-child(2) {
+    width: 220px; height: 220px; right: -8%; top: 40%;
+    background: rgba(255,138,101,0.4); animation-delay: -4s;
+  }
+  .bg-orbs span:nth-child(3) {
+    width: 160px; height: 160px; left: 30%; bottom: -5%;
+    background: rgba(206,147,216,0.35); animation-delay: -7s;
+  }
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(18px, -22px) scale(1.08); }
+    66% { transform: translate(-14px, 12px) scale(0.95); }
+  }
+  .overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; z-index: 10; padding: 16px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  .card {
+    background: linear-gradient(160deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04));
+    border: 1px solid var(--border); border-radius: 22px;
+    padding: 22px 20px; width: min(420px, 94vw); max-height: 90dvh; overflow-y: auto; text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    opacity: 1; transform: none;
+    animation: cardIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(18px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .title {
+    font-size: clamp(28px, 7vw, 44px); font-weight: 900; letter-spacing: 0.5px;
+    background: linear-gradient(135deg, #FF8A65, #E91E63 55%, #FFD54F);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 8px; animation: titlePulse 2.4s ease-in-out infinite;
+  }
+  @keyframes titlePulse {
+    0%, 100% { filter: brightness(1); transform: scale(1); }
+    50% { filter: brightness(1.12); transform: scale(1.02); }
+  }
+  .sub { opacity: 0.88; font-size: 13px; margin-bottom: 14px; line-height: 1.45; }
+  .btn {
+    border: 0; border-radius: 14px; padding: 12px 22px; margin: 5px; font-weight: 800;
+    font-size: 15px; cursor: pointer; color: #1a1a1a; min-height: 44px; font-family: inherit;
+    background: linear-gradient(135deg, #FF8A65, #FF6F61);
+    box-shadow: 0 5px 0 var(--shadow-pink), 0 8px 18px rgba(0,0,0,0.35);
+    transition: transform 0.08s, box-shadow 0.08s, filter 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--shadow-pink), 0 10px 22px rgba(0,0,0,0.35); }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--shadow-pink), 0 4px 8px rgba(0,0,0,0.35); }
+  .btn-sec {
+    background: linear-gradient(135deg, #42A5F5, #1976D2); color: #fff;
+    box-shadow: 0 5px 0 var(--shadow-blue), 0 8px 18px rgba(0,0,0,0.35);
+  }
+  .btn-sec:hover { box-shadow: 0 7px 0 var(--shadow-blue), 0 10px 22px rgba(0,0,0,0.35); }
+  .btn-sec:active { box-shadow: 0 2px 0 var(--shadow-blue), 0 4px 8px rgba(0,0,0,0.35); }
+  .btn-ghost {
+    background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--border);
+    box-shadow: none;
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.16); transform: none; box-shadow: none; }
+  .btn-ghost:active { transform: scale(0.97); box-shadow: none; }
+  .btn:disabled { opacity: 0.4; pointer-events: none; transform: none; box-shadow: none; }
+  .row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+  .play {
+    position: absolute; inset: 0; display: flex; flex-direction: column; z-index: 2;
+    padding: max(8px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+    opacity: 1; animation: fadeIn 0.35s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .topbar {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    font-weight: 700; font-size: 13px; margin-bottom: 6px; flex-shrink: 0;
+  }
+  .topbar .score-live {
+    min-width: 52px; text-align: right; font-weight: 900; color: var(--gold);
+    text-shadow: 0 0 12px rgba(255,215,0,0.35); transition: transform 0.15s;
+  }
+  .cust-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.09), rgba(233,30,99,0.08));
+    border: 1px solid var(--border); border-radius: 16px;
+    padding: 10px 12px; margin-bottom: 6px; flex-shrink: 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    opacity: 1; animation: slideDown 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .cust-name { font-weight: 900; font-size: 16px; margin-bottom: 6px; letter-spacing: 0.2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  .chip {
+    font-size: 11px; padding: 5px 11px; border-radius: 999px; font-weight: 700;
+    background: rgba(233,30,99,0.28); border: 1px solid rgba(233,30,99,0.45);
+    transition: background 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+  .chip.ok {
+    background: rgba(105,240,174,0.28); border-color: rgba(105,240,174,0.65);
+    box-shadow: 0 0 12px rgba(105,240,174,0.35);
+    animation: chipPop 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  @keyframes chipPop {
+    0% { transform: scale(0.85); }
+    60% { transform: scale(1.12); }
+    100% { transform: scale(1); }
+  }
+  .preview {
+    flex: 1; min-height: 180px; max-height: 42dvh; position: relative;
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 0%, rgba(255,210,230,0.35), transparent 55%),
+      radial-gradient(ellipse at 15% 80%, rgba(255,138,101,0.12), transparent 40%),
+      radial-gradient(ellipse at 85% 75%, rgba(206,147,216,0.14), transparent 40%),
+      linear-gradient(180deg, #3a4f7a 0%, #1e3058 40%, #121f3c 100%);
+    border-radius: 20px; border: 1px solid var(--border); margin-bottom: 6px;
+    display: flex; align-items: flex-end; justify-content: center; overflow: hidden;
+    box-shadow: inset 0 0 50px rgba(255,138,101,0.1), 0 12px 32px rgba(0,0,0,0.3);
+    padding-bottom: 4px;
+  }
+  .preview::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2;
+    background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,0.07) 50%, transparent 60%);
+    animation: shine 5s ease-in-out infinite;
+  }
+  @keyframes shine {
+    0%, 100% { transform: translateX(-30%); opacity: 0; }
+    40% { opacity: 1; }
+    70% { transform: translateX(30%); opacity: 0; }
+  }
+  .mirror-frame {
+    position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+    width: min(88%, 320px); height: 72%; border-radius: 18px 18px 40% 40%;
+    border: 3px solid rgba(255,215,0,0.35);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.08), inset 0 0 30px rgba(255,255,255,0.06);
+    pointer-events: none; z-index: 1;
+  }
+  .mirror-frame::after {
+    content: ''; position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+    width: 36%; height: 10px; border-radius: 8px;
+    background: linear-gradient(90deg, #C9A227, #FFE082, #C9A227);
+  }
+  .salon-desk {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 18%;
+    background: linear-gradient(180deg, #5d4037 0%, #3e2723 100%);
+    border-top: 3px solid #8d6e63; z-index: 1;
+    box-shadow: 0 -8px 20px rgba(0,0,0,0.25);
+  }
+  .salon-desk::before {
+    content: ''; position: absolute; top: 30%; left: 12%; right: 12%; height: 4px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    border-radius: 2px;
+  }
+  .avatar-wrap {
+    position: relative; z-index: 3; width: min(220px, 62vw); height: min(260px, 58vw);
+    max-height: 92%; margin-bottom: 2%;
+    animation: facePop 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,0.4));
+  }
+  .avatar-wrap svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  @keyframes facePop {
+    from { opacity: 0; transform: scale(0.88) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .gallery-item .mini .avatar-wrap {
+    width: 90px; height: 110px; margin: 0 auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    animation: none;
+  }
+  .stations { display: flex; gap: 5px; margin-bottom: 6px; flex-shrink: 0; }
+  .stations button {
+    flex: 1; min-height: 44px; border: 1px solid var(--border); border-radius: 12px;
+    background: rgba(255,255,255,0.07); color: #fff; font-weight: 700; font-size: 11px;
+    font-family: inherit; cursor: pointer; padding: 6px 2px;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s, outline-color 0.15s;
+  }
+  .stations button:active { transform: scale(0.96); }
+  .stations button.on {
+    outline: 2px solid var(--pink); background: rgba(255,138,101,0.28);
+    box-shadow: 0 0 16px rgba(255,138,101,0.25);
+  }
+  .stations button.filled::after { content: ' \2713'; color: var(--green); font-weight: 900; }
+  .stations button.filled { border-color: rgba(105,240,174,0.4); }
+  .picker {
+    display: flex; gap: 8px; overflow-x: auto; padding: 6px 2px 10px;
+    flex-shrink: 0; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .picker::-webkit-scrollbar { display: none; }
+  .pick {
+    flex: 0 0 auto; width: 76px; min-height: 78px; border-radius: 14px;
+    border: 2px solid var(--border); background: rgba(255,255,255,0.07);
+    color: #fff; font-size: 11px; font-weight: 700; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; font-family: inherit; padding: 6px;
+    transition: transform 0.12s, border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  }
+  .pick:active { transform: scale(0.92); }
+  .pick.on {
+    border-color: var(--pink); background: rgba(255,138,101,0.28);
+    box-shadow: 0 0 0 1px rgba(255,138,101,0.4), 0 6px 16px rgba(255,138,101,0.2);
+    animation: pickOn 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  @keyframes pickOn {
+    from { transform: scale(0.94); }
+    to { transform: scale(1); }
+  }
+  .pick .sw {
+    width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff4;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  }
+  .colors { display: flex; gap: 8px; justify-content: center; margin-bottom: 6px; flex-wrap: wrap; }
+  .color-dot {
+    width: 36px; height: 36px; border-radius: 50%; border: 2px solid #fff4; cursor: pointer;
+    transition: transform 0.12s, outline 0.15s; box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+  }
+  .color-dot:active { transform: scale(0.9); }
+  .color-dot.on {
+    outline: 3px solid #FFD700; outline-offset: 2px;
+    animation: colorOn 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  @keyframes colorOn {
+    from { transform: scale(0.85); }
+    to { transform: scale(1); }
+  }
+  .actions { display: flex; gap: 6px; justify-content: center; flex-shrink: 0; flex-wrap: wrap; }
+  .toast {
+    position: absolute; top: 16%; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, rgba(20,20,30,0.92), rgba(40,20,40,0.9));
+    padding: 14px 24px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.18);
+    font-weight: 800; z-index: 20; pointer-events: none; white-space: nowrap;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.45); opacity: 1;
+    animation: toastIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(-16px) scale(0.9); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  }
+  .level-btn { min-width: 96px; display: flex; flex-direction: column; align-items: center; }
+  .bests { font-size: 11px; opacity: 0.75; margin-top: 4px; font-weight: 700; }
+  .gallery-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0;
+  }
+  .gallery-item {
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    border-radius: 14px; padding: 8px; position: relative;
+    opacity: 1; animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .gallery-item:nth-child(2) { animation-delay: 0.05s; }
+  .gallery-item:nth-child(3) { animation-delay: 0.1s; }
+  .gallery-item:nth-child(4) { animation-delay: 0.15s; }
+  .gallery-item .mini {
+    height: 120px; display: flex; align-items: flex-end; justify-content: center;
+    border-radius: 10px; overflow: hidden;
+    background: radial-gradient(ellipse at 50% 20%, rgba(255,192,203,0.22), transparent 65%),
+      linear-gradient(180deg, #2a3d68, #152548);
+  }
+  .gallery-item .del {
+    position: absolute; top: 4px; right: 4px; width: 28px; height: 28px;
+    border-radius: 50%; border: 0; background: rgba(255,80,80,0.85); color: #fff;
+    font-weight: 800; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .match-bar {
+    height: 8px; border-radius: 999px; background: rgba(255,255,255,0.12);
+    overflow: hidden; margin-top: 10px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.25);
+  }
+  .match-bar > i {
+    display: block; height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, #69F0AE, #FFD700 70%, #FF8A65);
+    transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 0 0 10px rgba(105,240,174,0.4);
+  }
+  .result-emoji {
+    font-size: 56px; line-height: 1; margin-bottom: 6px;
+    opacity: 1; animation: resultPop 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  .result-score {
+    font-size: 36px; font-weight: 900;
+    background: linear-gradient(135deg, #FFD700, #FF8A65);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    opacity: 1; animation: resultPop 0.5s 0.08s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  .result-total {
+    font-size: 48px; font-weight: 900; margin: 10px 0;
+    background: linear-gradient(135deg, #FF8A65, #E91E63, #FFD54F);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    opacity: 1; animation: resultPop 0.55s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  @keyframes resultPop {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .new-best {
+    color: var(--gold); font-weight: 900; margin-bottom: 8px;
+    animation: bestFlash 0.8s ease-in-out infinite alternate;
+  }
+  @keyframes bestFlash {
+    from { text-shadow: 0 0 8px rgba(255,215,0,0.3); }
+    to { text-shadow: 0 0 20px rgba(255,215,0,0.8); }
+  }
+  .face-pick {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    transition: transform 0.12s;
+  }
+  .face-pick:active { transform: scale(0.94); }
+  .face-pick .skin-dot {
+    width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 2px;
+    border: 2px solid rgba(255,255,255,0.25);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+  .confetti {
+    position: absolute; inset: 0; pointer-events: none; z-index: 25; overflow: hidden;
+  }
+  .confetti i {
+    position: absolute; top: -12px; width: 8px; height: 12px; border-radius: 2px;
+    animation: confettiFall linear forwards;
+    opacity: 0.95;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0.2; }
+  }
+  .menu-hero {
+    font-size: 42px; line-height: 1; margin-bottom: 4px;
+    opacity: 1; animation: facePop 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  .section-label {
+    font-weight: 800; margin: 4px 0 8px; font-size: 13px; opacity: 0.9;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+  // New Babel defaults to automatic JSX runtime (import), which breaks file:// UMD React.
+  Babel.registerPreset('react-classic', function () {
+    return {
+      presets: [[Babel.availablePresets.react, { runtime: 'classic', development: false }]],
+    };
+  });
+</script>
+<script type="text/babel" data-presets="react-classic">
+const { useState, useEffect, useMemo } = React;
+
+const COLORS = {
+  pink: '#F48FB1', blonde: '#FFE082', brown: '#8D6E63', blue: '#64B5F6',
+  purple: '#CE93D8', black: '#37474F', red: '#EF5350', mint: '#80CBC4',
+  orange: '#FFB74D', silver: '#B0BEC5', lavender: '#B39DDB', teal: '#26A69A',
+  rose: '#F06292', copper: '#D84315',
+};
+const SKINS = {
+  fair: '#FFE0B2', light: '#FFCC80', peach: '#F0B27A', medium: '#E0A878',
+  olive: '#C68642', deep: '#A67C52', rich: '#8D5524',
+};
+const SHIRTS = {
+  coral: ['#FF8A80', '#E91E63'], rose: ['#F48FB1', '#AD1457'], sky: ['#81D4FA', '#1565C0'],
+  mint: ['#A5D6A7', '#2E7D32'], gold: ['#FFE082', '#F9A825'], lilac: ['#CE93D8', '#6A1B9A'],
+  navy: ['#90CAF9', '#0D47A1'], cream: ['#FFF8E1', '#FFCC80'], black: ['#78909C', '#263238'],
+  peach: ['#FFAB91', '#E64A19'],
+};
+const HAIR = [
+  { id: 'bob', name: 'Bob', tags: ['hair:bob'] },
+  { id: 'long', name: 'Long', tags: ['hair:long'] },
+  { id: 'pigtails', name: 'Pigtails', tags: ['hair:pigtails'] },
+  { id: 'bun', name: 'Bun', tags: ['hair:bun'] },
+  { id: 'short', name: 'Short', tags: ['hair:short'] },
+  { id: 'wavy', name: 'Wavy', tags: ['hair:wavy'] },
+  { id: 'braids', name: 'Braids', tags: ['hair:braids'] },
+  { id: 'ponytail', name: 'Pony', tags: ['hair:ponytail'] },
+  { id: 'curly', name: 'Curly', tags: ['hair:curly'] },
+  { id: 'bangs', name: 'Bangs', tags: ['hair:bangs'] },
+  { id: 'afro', name: 'Afro', tags: ['hair:afro'] },
+  { id: 'halfup', name: 'Half-up', tags: ['hair:halfup'] },
+  { id: 'spacebuns', name: 'Buns', tags: ['hair:spacebuns'] },
+  { id: 'pixie', name: 'Pixie', tags: ['hair:pixie'] },
+];
+const MAKEUP = [
+  { id: 'natural', name: 'Natural', tags: ['makeup:natural'], lips: '#E57373', blush: 0.28 },
+  { id: 'glam', name: 'Glam', tags: ['makeup:glam'], lips: '#E91E63', blush: 0.4, fullLips: true },
+  { id: 'sparkle', name: 'Sparkle', tags: ['makeup:sparkle'], lips: '#E91E63', blush: 0.35, sparkle: true, fullLips: true },
+  { id: 'cateye', name: 'Cat-eye', tags: ['makeup:cateye'], lips: '#C75B39', cateye: true, blush: 0.22 },
+  { id: 'freckles', name: 'Freckles', tags: ['makeup:freckles'], lips: '#C75B39', freckles: true, blush: 0.3 },
+  { id: 'blush', name: 'Blush', tags: ['makeup:blush'], lips: '#F48FB1', blush: 0.55 },
+  { id: 'smokey', name: 'Smokey', tags: ['makeup:smokey'], lips: '#AD1457', smokey: true, fullLips: true, blush: 0.25 },
+  { id: 'glossy', name: 'Glossy', tags: ['makeup:glossy'], lips: '#FF80AB', fullLips: true, gloss: true, blush: 0.32 },
+  { id: 'cherry', name: 'Cherry', tags: ['makeup:cherry'], lips: '#C62828', fullLips: true, blush: 0.38 },
+  { id: 'soft', name: 'Soft', tags: ['makeup:soft'], lips: '#F8BBD0', blush: 0.42 },
+  { id: 'dramatic', name: 'Drama', tags: ['makeup:dramatic'], lips: '#880E4F', cateye: true, fullLips: true, blush: 0.2 },
+];
+const NAILS = [
+  { id: 'pastel', name: 'Pastel', tags: ['nails:pastel'], color: '#F8BBD0' },
+  { id: 'glitter', name: 'Glitter', tags: ['nails:glitter'], color: '#FFD700' },
+  { id: 'french', name: 'French', tags: ['nails:french'], color: '#FFF8E1' },
+  { id: 'neon', name: 'Neon', tags: ['nails:neon'], color: '#76FF03' },
+  { id: 'rainbow', name: 'Rainbow', tags: ['nails:rainbow'], color: '#E040FB' },
+  { id: 'black', name: 'Black', tags: ['nails:black'], color: '#212121' },
+  { id: 'chrome', name: 'Chrome', tags: ['nails:chrome'], color: '#B0BEC5' },
+  { id: 'coral', name: 'Coral', tags: ['nails:coral'], color: '#FF8A65' },
+  { id: 'aqua', name: 'Aqua', tags: ['nails:aqua'], color: '#4DD0E1' },
+  { id: 'ombre', name: 'Ombre', tags: ['nails:ombre'], color: '#F48FB1' },
+  { id: 'polka', name: 'Polka', tags: ['nails:polka'], color: '#FFCDD2' },
+  { id: 'lavender', name: 'Lilac', tags: ['nails:lavender'], color: '#B39DDB' },
+];
+const ACC = [
+  { id: 'bow', name: 'Bow', tags: ['acc:bow'], emoji: '\uD83C\uDF80', slot: 'side' },
+  { id: 'tiara', name: 'Tiara', tags: ['acc:tiara'], emoji: '\uD83D\uDC51', slot: 'crown' },
+  { id: 'glasses', name: 'Glasses', tags: ['acc:glasses'], emoji: '\uD83D\uDC53', slot: 'eyes' },
+  { id: 'flower', name: 'Flower', tags: ['acc:flower'], emoji: '\uD83C\uDF3A', slot: 'side' },
+  { id: 'headphones', name: 'Phones', tags: ['acc:headphones'], emoji: '\uD83C\uDFA7', slot: 'ears' },
+  { id: 'starclip', name: 'Star', tags: ['acc:star'], emoji: '\u2B50', slot: 'side' },
+  { id: 'heartclip', name: 'Heart', tags: ['acc:heart'], emoji: '\uD83D\uDC96', slot: 'side' },
+  { id: 'sunglasses', name: 'Shades', tags: ['acc:sunglasses'], emoji: '\uD83D\uDD76\uFE0F', slot: 'eyes' },
+  { id: 'earrings', name: 'Earrings', tags: ['acc:earrings'], emoji: '\uD83D\uDC8E', slot: 'ears' },
+  { id: 'pearl', name: 'Pearls', tags: ['acc:pearl'], emoji: '\uD83D\uDC8E', slot: 'neck' },
+  { id: 'butterfly', name: 'Butterfly', tags: ['acc:butterfly'], emoji: '\uD83E\uDD8B', slot: 'side' },
+  { id: 'beanie', name: 'Beanie', tags: ['acc:beanie'], emoji: '\uD83E\uDDE2', slot: 'crown' },
+  { id: 'ribbon', name: 'Ribbon', tags: ['acc:ribbon'], emoji: '\uD83C\uDFEE', slot: 'side' },
+  { id: 'catclip', name: 'Cat', tags: ['acc:cat'], emoji: '\uD83D\uDC31', slot: 'side' },
+];
+const CHIP_LABELS = {
+  'hair:bob': 'Bob cut', 'hair:long': 'Long hair', 'hair:pigtails': 'Pigtails',
+  'hair:bun': 'Bun', 'hair:short': 'Short hair', 'hair:wavy': 'Wavy',
+  'hair:braids': 'Braids', 'hair:ponytail': 'Ponytail', 'hair:curly': 'Curly',
+  'hair:bangs': 'Bangs', 'hair:afro': 'Afro', 'hair:halfup': 'Half-up',
+  'hair:spacebuns': 'Space buns', 'hair:pixie': 'Pixie cut',
+  'color:pink': 'Pink hair', 'color:blonde': 'Blonde', 'color:brown': 'Brown',
+  'color:blue': 'Blue hair', 'color:purple': 'Purple', 'color:black': 'Black hair',
+  'color:red': 'Red hair', 'color:mint': 'Mint hair', 'color:orange': 'Orange',
+  'color:silver': 'Silver', 'color:lavender': 'Lavender', 'color:teal': 'Teal',
+  'color:rose': 'Rose hair', 'color:copper': 'Copper',
+  'makeup:natural': 'Natural', 'makeup:glam': 'Glam lips', 'makeup:sparkle': 'Sparkle',
+  'makeup:cateye': 'Cat-eye', 'makeup:freckles': 'Freckles', 'makeup:blush': 'Blush',
+  'makeup:smokey': 'Smokey eyes', 'makeup:glossy': 'Glossy lips', 'makeup:cherry': 'Cherry lips',
+  'makeup:soft': 'Soft glow', 'makeup:dramatic': 'Drama look',
+  'nails:pastel': 'Pastel nails', 'nails:glitter': 'Glitter nails', 'nails:french': 'French tips',
+  'nails:neon': 'Neon nails', 'nails:rainbow': 'Rainbow nails', 'nails:black': 'Black nails',
+  'nails:chrome': 'Chrome nails', 'nails:coral': 'Coral nails', 'nails:aqua': 'Aqua nails',
+  'nails:ombre': 'Ombre nails', 'nails:polka': 'Polka nails', 'nails:lavender': 'Lilac nails',
+  'acc:bow': 'Bow', 'acc:tiara': 'Tiara', 'acc:glasses': 'Glasses', 'acc:flower': 'Flower',
+  'acc:headphones': 'Headphones', 'acc:star': 'Star clip', 'acc:heart': 'Heart clip',
+  'acc:sunglasses': 'Sunglasses', 'acc:earrings': 'Earrings', 'acc:pearl': 'Pearls',
+  'acc:butterfly': 'Butterfly', 'acc:beanie': 'Beanie', 'acc:ribbon': 'Ribbon', 'acc:cat': 'Cat clip',
+};
+function chipLabel(w) { return CHIP_LABELS[w] || w.replace(':', ' '); }
+const CUSTOMERS = [
+  { id: 'princess', name: 'Lily', skin: 'fair', shirt: 'gold', eyes: '#5D4037', want: ['hair:long', 'color:pink', 'makeup:sparkle', 'acc:tiara', 'nails:glitter'] },
+  { id: 'sporty', name: 'Mia', skin: 'medium', shirt: 'sky', eyes: '#3E2723', want: ['hair:short', 'color:brown', 'makeup:natural', 'nails:neon'] },
+  { id: 'sleepover', name: 'Zoe', skin: 'light', shirt: 'lilac', eyes: '#6D4C41', want: ['hair:pigtails', 'color:blonde', 'makeup:freckles', 'nails:pastel', 'acc:bow'] },
+  { id: 'cool', name: 'Nova', skin: 'deep', shirt: 'black', eyes: '#212121', want: ['hair:bob', 'color:black', 'makeup:cateye', 'acc:headphones', 'nails:french'] },
+  { id: 'fancy', name: 'Ella', skin: 'peach', shirt: 'rose', eyes: '#4E342E', want: ['hair:wavy', 'color:brown', 'makeup:glam', 'acc:tiara', 'nails:glitter'] },
+  { id: 'beach', name: 'Sky', skin: 'fair', shirt: 'mint', eyes: '#0277BD', want: ['hair:long', 'color:blonde', 'makeup:natural', 'nails:rainbow', 'acc:flower'] },
+  { id: 'spooky', name: 'Pip', skin: 'medium', shirt: 'lilac', eyes: '#4A148C', want: ['hair:bun', 'color:purple', 'makeup:cateye', 'nails:neon', 'acc:bow'] },
+  { id: 'book', name: 'Ivy', skin: 'rich', shirt: 'cream', eyes: '#3E2723', want: ['hair:bob', 'color:brown', 'makeup:soft', 'acc:glasses', 'nails:pastel'] },
+  { id: 'star', name: 'Luna', skin: 'light', shirt: 'navy', eyes: '#1565C0', want: ['hair:ponytail', 'color:blue', 'makeup:sparkle', 'acc:star', 'nails:glitter'] },
+  { id: 'heart', name: 'Ruby', skin: 'olive', shirt: 'coral', eyes: '#BF360C', want: ['hair:braids', 'color:red', 'makeup:blush', 'acc:heart', 'nails:pastel'] },
+  { id: 'mint', name: 'Jade', skin: 'deep', shirt: 'mint', eyes: '#1B5E20', want: ['hair:wavy', 'color:mint', 'makeup:natural', 'nails:french', 'acc:flower'] },
+  { id: 'party', name: 'Poppy', skin: 'fair', shirt: 'rose', eyes: '#6A1B9A', want: ['hair:pigtails', 'color:purple', 'makeup:glam', 'nails:rainbow', 'acc:bow'] },
+  { id: 'curlyq', name: 'Cora', skin: 'peach', shirt: 'peach', eyes: '#5D4037', want: ['hair:curly', 'color:copper', 'makeup:glossy', 'acc:earrings', 'nails:coral'] },
+  { id: 'afrostar', name: 'Asha', skin: 'rich', shirt: 'gold', eyes: '#3E2723', want: ['hair:afro', 'color:black', 'makeup:cherry', 'acc:pearl', 'nails:chrome'] },
+  { id: 'bangs', name: 'Bea', skin: 'light', shirt: 'sky', eyes: '#37474F', want: ['hair:bangs', 'color:silver', 'makeup:smokey', 'acc:sunglasses', 'nails:black'] },
+  { id: 'space', name: 'Suki', skin: 'medium', shirt: 'lilac', eyes: '#4A148C', want: ['hair:spacebuns', 'color:lavender', 'makeup:sparkle', 'acc:butterfly', 'nails:lavender'] },
+  { id: 'half', name: 'Hana', skin: 'olive', shirt: 'mint', eyes: '#33691E', want: ['hair:halfup', 'color:teal', 'makeup:soft', 'acc:ribbon', 'nails:aqua'] },
+  { id: 'pix', name: 'Pax', skin: 'fair', shirt: 'navy', eyes: '#1565C0', want: ['hair:pixie', 'color:blue', 'makeup:dramatic', 'acc:cat', 'nails:black'] },
+  { id: 'cozy', name: 'Kim', skin: 'peach', shirt: 'cream', eyes: '#5D4037', want: ['hair:bun', 'color:orange', 'makeup:blush', 'acc:beanie', 'nails:coral'] },
+  { id: 'glam2', name: 'Gigi', skin: 'deep', shirt: 'rose', eyes: '#3E2723', want: ['hair:long', 'color:rose', 'makeup:glossy', 'acc:earrings', 'nails:ombre'] },
+  { id: 'nerd', name: 'Nell', skin: 'light', shirt: 'sky', eyes: '#0277BD', want: ['hair:bangs', 'color:brown', 'makeup:freckles', 'acc:glasses', 'nails:polka'] },
+  { id: 'rock', name: 'Rexi', skin: 'medium', shirt: 'black', eyes: '#212121', want: ['hair:pixie', 'color:red', 'makeup:smokey', 'acc:sunglasses', 'nails:chrome'] },
+  { id: 'sweet', name: 'Sia', skin: 'fair', shirt: 'peach', eyes: '#6D4C41', want: ['hair:spacebuns', 'color:pink', 'makeup:cherry', 'acc:heart', 'nails:polka'] },
+  { id: 'ocean', name: 'Oli', skin: 'olive', shirt: 'sky', eyes: '#00695C', want: ['hair:curly', 'color:teal', 'makeup:natural', 'acc:butterfly', 'nails:aqua'] },
+];
+const LEVELS = {
+  easy: { label: 'Easy', n: 5, need: 2 },
+  med: { label: 'Medium', n: 7, need: 3 },
+  hard: { label: 'Hard', n: 10, need: 4 },
+};
+const STATIONS = [
+  { id: 'hair', label: 'Hair' },
+  { id: 'makeup', label: 'Makeup' },
+  { id: 'nails', label: 'Nails' },
+  { id: 'acc', label: 'Extra' },
+];
+
+let audioCtx = null;
+function audio() {
+  if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+  return audioCtx;
+}
+function blip(freq, dur, type, muted) {
+  if (muted) return;
+  const ctx = audio(); if (!ctx) return;
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type || 'sine'; o.frequency.value = freq; g.gain.value = 0.1;
+  const t = ctx.currentTime;
+  o.connect(g); g.connect(ctx.destination);
+  o.start(t); g.gain.linearRampToValueAtTime(0.0001, t + dur); o.stop(t + dur + 0.02);
+}
+
+function productTags(look) {
+  const tags = [];
+  if (look.hair) {
+    const h = HAIR.find(x => x.id === look.hair.style);
+    if (h) tags.push(...h.tags);
+    if (look.hair.color) tags.push('color:' + look.hair.color);
+  }
+  if (look.makeup) {
+    const m = MAKEUP.find(x => x.id === look.makeup);
+    if (m) tags.push(...m.tags);
+  }
+  if (look.nails) {
+    const n = NAILS.find(x => x.id === look.nails);
+    if (n) tags.push(...n.tags);
+  }
+  if (look.acc) {
+    const a = ACC.find(x => x.id === look.acc);
+    if (a) tags.push(...a.tags);
+  }
+  return tags;
+}
+
+function scoreLook(look, want, difficulty) {
+  const filled = [look.hair, look.makeup, look.nails, look.acc].filter(Boolean).length;
+  const fillPts = filled === 4 ? 25 : filled * 5;
+  const have = productTags(look);
+  const matches = want.filter(w => have.includes(w));
+  const need = LEVELS[difficulty].need;
+  let matchPts = 0;
+  matches.forEach((_, i) => { matchPts += i < need ? 20 : 8; });
+  let bonus = 0;
+  const colors = have.filter(t => t.startsWith('color:'));
+  if (colors.length >= 1 && have.some(t => t.includes('sparkle') || t.includes('glitter'))) bonus += 5;
+  if (difficulty === 'hard' && matches.length >= want.length) bonus += 10;
+  if (difficulty === 'easy' && matches.length >= 2) matchPts = Math.max(matchPts, 40);
+  return Math.min(100, fillPts + matchPts + bonus);
+}
+
+function matchCount(look, want) {
+  const have = productTags(look);
+  return want.filter(w => have.includes(w)).length;
+}
+
+function loadBest(lvl) {
+  try { return parseInt(localStorage.getItem('salon_best_' + lvl) || '0', 10); } catch (e) { return 0; }
+}
+function saveBest(lvl, score) {
+  const prev = loadBest(lvl);
+  if (score > prev) {
+    try { localStorage.setItem('salon_best_' + lvl, String(score)); } catch (e) {}
+    return true;
+  }
+  return false;
+}
+function loadGallery() {
+  try { return JSON.parse(localStorage.getItem('salon_gallery') || '[]'); } catch (e) { return []; }
+}
+function saveGallery(arr) {
+  try { localStorage.setItem('salon_gallery', JSON.stringify(arr.slice(-24))); } catch (e) {}
+}
+
+function Confetti({ count }) {
+  const bits = useMemo(() => {
+    const colors = ['#FF8A65', '#E91E63', '#FFD700', '#69F0AE', '#42A5F5', '#CE93D8', '#fff'];
+    const n = count || 28;
+    const arr = [];
+    for (let i = 0; i < n; i++) {
+      arr.push({
+        left: Math.random() * 100,
+        delay: Math.random() * 0.6,
+        dur: 1.6 + Math.random() * 1.4,
+        color: colors[i % colors.length],
+        w: 6 + Math.random() * 6,
+        h: 8 + Math.random() * 10,
+        rot: Math.random() * 360,
+      });
+    }
+    return arr;
+  }, [count]);
+  return (
+    <div className="confetti" aria-hidden="true">
+      {bits.map((b, i) => (
+        <i
+          key={i}
+          style={{
+            left: b.left + '%',
+            width: b.w,
+            height: b.h,
+            background: b.color,
+            animationDuration: b.dur + 's',
+            animationDelay: b.delay + 's',
+            transform: 'rotate(' + b.rot + 'deg)',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function BgOrbs() {
+  return (
+    <div className="bg-orbs" aria-hidden="true">
+      <span /><span /><span />
+    </div>
+  );
+}
+
+function hairBackSvg(style, c) {
+  if (!c) return null;
+  if (style === 'long' || style === 'wavy' || style === 'halfup') {
+    return (
+      <g>
+        <ellipse cx="100" cy="118" rx="58" ry="72" fill={c} />
+        <path d="M48 90 Q42 150 50 195 Q70 185 78 140" fill={c} />
+        <path d="M152 90 Q158 150 150 195 Q130 185 122 140" fill={c} />
+        {(style === 'wavy' || style === 'halfup') && (
+          <g opacity="0.28" fill="#000">
+            <path d="M62 130 Q70 145 62 160 Q72 155 68 140 Z" />
+            <path d="M138 130 Q130 145 138 160 Q128 155 132 140 Z" />
+          </g>
+        )}
+      </g>
+    );
+  }
+  if (style === 'curly') {
+    return (
+      <g>
+        <circle cx="62" cy="88" r="18" fill={c} /><circle cx="100" cy="78" r="22" fill={c} />
+        <circle cx="138" cy="88" r="18" fill={c} /><circle cx="52" cy="118" r="16" fill={c} />
+        <circle cx="148" cy="118" r="16" fill={c} /><circle cx="70" cy="145" r="15" fill={c} />
+        <circle cx="130" cy="145" r="15" fill={c} /><circle cx="100" cy="150" r="18" fill={c} />
+        <circle cx="48" cy="150" r="12" fill={c} /><circle cx="152" cy="150" r="12" fill={c} />
+      </g>
+    );
+  }
+  if (style === 'afro') {
+    return (
+      <g>
+        <circle cx="100" cy="95" r="62" fill={c} />
+        <circle cx="55" cy="100" r="28" fill={c} /><circle cx="145" cy="100" r="28" fill={c} />
+        <circle cx="70" cy="55" r="24" fill={c} /><circle cx="130" cy="55" r="24" fill={c} />
+        <circle cx="100" cy="48" r="26" fill={c} />
+      </g>
+    );
+  }
+  if (style === 'bob' || style === 'bangs') {
+    return <path d="M48 88 Q46 130 58 148 Q78 160 100 158 Q122 160 142 148 Q154 130 152 88 Q140 120 100 122 Q60 120 48 88 Z" fill={c} />;
+  }
+  if (style === 'short' || style === 'pixie') {
+    return <ellipse cx="100" cy={style === 'pixie' ? 92 : 95} rx={style === 'pixie' ? 44 : 48} ry={style === 'pixie' ? 36 : 42} fill={c} />;
+  }
+  if (style === 'pigtails' || style === 'braids') {
+    return (
+      <g>
+        <ellipse cx="100" cy="95" rx="46" ry="40" fill={c} />
+        <ellipse cx="42" cy="130" rx="18" ry="32" fill={c} />
+        <ellipse cx="158" cy="130" rx="18" ry="32" fill={c} />
+        {style === 'braids' && (
+          <g stroke={c} strokeWidth="7" fill="none" strokeLinecap="round">
+            <path d="M42 110 Q36 140 44 165" />
+            <path d="M158 110 Q164 140 156 165" />
+          </g>
+        )}
+        <circle cx="48" cy="108" r="7" fill="#FF8A80" />
+        <circle cx="152" cy="108" r="7" fill="#FF8A80" />
+      </g>
+    );
+  }
+  if (style === 'ponytail') {
+    return (
+      <g>
+        <ellipse cx="100" cy="95" rx="48" ry="42" fill={c} />
+        <path d="M128 78 Q165 70 168 120 Q170 155 148 168 Q155 130 145 95 Z" fill={c} />
+        <circle cx="138" cy="82" r="6" fill="#FFD54F" />
+      </g>
+    );
+  }
+  if (style === 'bun') {
+    return (
+      <g>
+        <ellipse cx="100" cy="100" rx="50" ry="44" fill={c} />
+        <circle cx="100" cy="48" r="22" fill={c} />
+        <circle cx="100" cy="48" r="14" fill={c} opacity="0.85" />
+      </g>
+    );
+  }
+  if (style === 'spacebuns') {
+    return (
+      <g>
+        <ellipse cx="100" cy="100" rx="48" ry="42" fill={c} />
+        <circle cx="58" cy="52" r="18" fill={c} />
+        <circle cx="142" cy="52" r="18" fill={c} />
+        <circle cx="58" cy="52" r="10" fill={c} opacity="0.85" />
+        <circle cx="142" cy="52" r="10" fill={c} opacity="0.85" />
+      </g>
+    );
+  }
+  return <ellipse cx="100" cy="100" rx="52" ry="48" fill={c} />;
+}
+
+function hairFrontSvg(style, c) {
+  if (!c) return null;
+  if (style === 'bun' || style === 'spacebuns') {
+    return <path d="M55 78 Q100 55 145 78 Q138 95 100 98 Q62 95 55 78 Z" fill={c} />;
+  }
+  if (style === 'short' || style === 'pixie') {
+    return <path d="M52 78 Q100 48 148 78 Q140 92 100 90 Q60 92 52 78 Z" fill={c} />;
+  }
+  if (style === 'bob') {
+    return (
+      <g>
+        <path d="M50 80 Q100 45 150 80 Q142 100 100 102 Q58 100 50 80 Z" fill={c} />
+        <path d="M58 88 Q72 100 68 115" stroke={c} strokeWidth="8" fill="none" strokeLinecap="round" />
+        <path d="M142 88 Q128 100 132 115" stroke={c} strokeWidth="8" fill="none" strokeLinecap="round" />
+      </g>
+    );
+  }
+  if (style === 'bangs') {
+    return (
+      <g>
+        <path d="M50 80 Q100 45 150 80 Q142 100 100 102 Q58 100 50 80 Z" fill={c} />
+        <path d="M62 78 Q80 108 70 118" fill={c} />
+        <path d="M100 72 Q108 110 100 120" fill={c} />
+        <path d="M138 78 Q120 108 130 118" fill={c} />
+        <rect x="58" y="78" width="84" height="22" rx="4" fill={c} />
+      </g>
+    );
+  }
+  if (style === 'halfup') {
+    return (
+      <g>
+        <path d="M48 82 Q100 42 152 82 Q145 108 100 110 Q55 108 48 82 Z" fill={c} />
+        <circle cx="100" cy="58" r="12" fill={c} />
+        <circle cx="100" cy="58" r="6" fill="#FFD54F" />
+      </g>
+    );
+  }
+  if (style === 'afro' || style === 'curly') {
+    return <path d="M58 85 Q100 62 142 85 Q135 100 100 102 Q65 100 58 85 Z" fill={c} opacity="0.95" />;
+  }
+  if (style === 'wavy' || style === 'long') {
+    return (
+      <g>
+        <path d="M48 82 Q100 42 152 82 Q145 108 100 110 Q55 108 48 82 Z" fill={c} />
+        <path d="M62 95 Q70 115 58 130" stroke={c} strokeWidth="10" fill="none" strokeLinecap="round" opacity="0.9" />
+        <path d="M138 95 Q130 115 142 130" stroke={c} strokeWidth="10" fill="none" strokeLinecap="round" opacity="0.9" />
+      </g>
+    );
+  }
+  return <path d="M50 80 Q100 48 150 80 Q140 100 100 102 Q60 100 50 80 Z" fill={c} />;
+}
+
+function AccSvg({ acc }) {
+  if (!acc) return null;
+  if (acc.id === 'glasses') {
+    return (
+      <g>
+        <circle cx="82" cy="108" r="12" fill="rgba(180,220,255,0.25)" stroke="#37474F" strokeWidth="2.5" />
+        <circle cx="118" cy="108" r="12" fill="rgba(180,220,255,0.25)" stroke="#37474F" strokeWidth="2.5" />
+        <line x1="94" y1="108" x2="106" y2="108" stroke="#37474F" strokeWidth="2.5" strokeLinecap="round" />
+        <line x1="70" y1="106" x2="58" y2="100" stroke="#37474F" strokeWidth="2" strokeLinecap="round" />
+        <line x1="130" y1="106" x2="142" y2="100" stroke="#37474F" strokeWidth="2" strokeLinecap="round" />
+        <ellipse cx="78" cy="104" rx="3" ry="2" fill="#fff" opacity="0.5" />
+        <ellipse cx="114" cy="104" rx="3" ry="2" fill="#fff" opacity="0.5" />
+      </g>
+    );
+  }
+  if (acc.id === 'sunglasses') {
+    return (
+      <g>
+        <rect x="66" y="100" width="28" height="18" rx="5" fill="#212121" />
+        <rect x="106" y="100" width="28" height="18" rx="5" fill="#212121" />
+        <line x1="94" y1="108" x2="106" y2="108" stroke="#212121" strokeWidth="3" />
+        <line x1="66" y1="106" x2="54" y2="100" stroke="#212121" strokeWidth="2.5" strokeLinecap="round" />
+        <line x1="134" y1="106" x2="146" y2="100" stroke="#212121" strokeWidth="2.5" strokeLinecap="round" />
+        <rect x="70" y="103" width="12" height="4" rx="1" fill="#90CAF9" opacity="0.45" />
+        <rect x="110" y="103" width="12" height="4" rx="1" fill="#90CAF9" opacity="0.45" />
+      </g>
+    );
+  }
+  if (acc.id === 'tiara') {
+    return (
+      <g>
+        <path d="M68 58 L78 38 L90 52 L100 32 L110 52 L122 38 L132 58 Z" fill="#FFD700" stroke="#FFA000" strokeWidth="1" />
+        <circle cx="100" cy="36" r="4" fill="#E91E63" />
+        <circle cx="78" cy="42" r="2.5" fill="#42A5F5" />
+        <circle cx="122" cy="42" r="2.5" fill="#42A5F5" />
+      </g>
+    );
+  }
+  if (acc.id === 'beanie') {
+    return (
+      <g>
+        <path d="M52 88 Q52 48 100 42 Q148 48 148 88 Q140 78 100 76 Q60 78 52 88 Z" fill="#5C6BC0" />
+        <ellipse cx="100" cy="86" rx="50" ry="10" fill="#7986CB" />
+        <circle cx="100" cy="44" r="8" fill="#E91E63" />
+      </g>
+    );
+  }
+  if (acc.id === 'headphones') {
+    return (
+      <g>
+        <path d="M55 95 Q55 55 100 50 Q145 55 145 95" fill="none" stroke="#212121" strokeWidth="6" strokeLinecap="round" />
+        <rect x="42" y="92" width="18" height="28" rx="6" fill="#424242" stroke="#212121" strokeWidth="1.5" />
+        <rect x="140" y="92" width="18" height="28" rx="6" fill="#424242" stroke="#212121" strokeWidth="1.5" />
+        <rect x="46" y="98" width="10" height="16" rx="3" fill="#E91E63" />
+        <rect x="144" y="98" width="10" height="16" rx="3" fill="#E91E63" />
+      </g>
+    );
+  }
+  if (acc.id === 'earrings') {
+    return (
+      <g>
+        <circle cx="56" cy="122" r="4" fill="#FFD700" />
+        <circle cx="56" cy="132" r="3" fill="#E91E63" />
+        <circle cx="144" cy="122" r="4" fill="#FFD700" />
+        <circle cx="144" cy="132" r="3" fill="#E91E63" />
+      </g>
+    );
+  }
+  if (acc.id === 'pearl') {
+    return (
+      <g>
+        <path d="M72 152 Q100 162 128 152" fill="none" stroke="#ECEFF1" strokeWidth="3.5" strokeLinecap="round" />
+        <circle cx="80" cy="154" r="3" fill="#FAFAFA" stroke="#B0BEC5" strokeWidth="0.5" />
+        <circle cx="100" cy="158" r="3.5" fill="#FAFAFA" stroke="#B0BEC5" strokeWidth="0.5" />
+        <circle cx="120" cy="154" r="3" fill="#FAFAFA" stroke="#B0BEC5" strokeWidth="0.5" />
+      </g>
+    );
+  }
+  if (acc.id === 'bow') {
+    return (
+      <g transform="translate(138,72)">
+        <ellipse cx="-10" cy="0" rx="12" ry="9" fill="#E91E63" />
+        <ellipse cx="10" cy="0" rx="12" ry="9" fill="#E91E63" />
+        <circle cx="0" cy="0" r="5" fill="#FF8A80" />
+      </g>
+    );
+  }
+  if (acc.id === 'ribbon') {
+    return (
+      <g transform="translate(48,76) rotate(-15)">
+        <path d="M-14 0 Q0 -10 14 0 Q0 6 -14 0 Z" fill="#42A5F5" />
+        <rect x="-3" y="-4" width="6" height="14" rx="2" fill="#1976D2" />
+        <path d="M-2 8 L-8 18 M2 8 L8 18" stroke="#1976D2" strokeWidth="2.5" strokeLinecap="round" />
+      </g>
+    );
+  }
+  if (acc.id === 'flower') {
+    return (
+      <g transform="translate(48,78)">
+        <circle cx="0" cy="-8" r="6" fill="#F48FB1" />
+        <circle cx="7" cy="-2" r="6" fill="#F48FB1" />
+        <circle cx="4" cy="6" r="6" fill="#F48FB1" />
+        <circle cx="-4" cy="6" r="6" fill="#F48FB1" />
+        <circle cx="-7" cy="-2" r="6" fill="#F48FB1" />
+        <circle cx="0" cy="0" r="4" fill="#FFD54F" />
+      </g>
+    );
+  }
+  if (acc.id === 'butterfly') {
+    return (
+      <g transform="translate(48,72)">
+        <ellipse cx="-8" cy="-2" rx="10" ry="7" fill="#CE93D8" transform="rotate(-25)" />
+        <ellipse cx="8" cy="-2" rx="10" ry="7" fill="#F48FB1" transform="rotate(25)" />
+        <ellipse cx="-6" cy="6" rx="7" ry="5" fill="#B39DDB" transform="rotate(20)" />
+        <ellipse cx="6" cy="6" rx="7" ry="5" fill="#F8BBD0" transform="rotate(-20)" />
+        <ellipse cx="0" cy="2" rx="2" ry="8" fill="#5D4037" />
+      </g>
+    );
+  }
+  if (acc.id === 'starclip') {
+    return (
+      <g transform="translate(140,70)">
+        <polygon points="0,-12 3.5,-3.5 12,-3.5 5,2 7.5,11 0,5.5 -7.5,11 -5,2 -12,-3.5 -3.5,-3.5" fill="#FFD700" stroke="#FFA000" strokeWidth="0.8" />
+      </g>
+    );
+  }
+  if (acc.id === 'heartclip') {
+    return (
+      <g transform="translate(142,72)">
+        <path d="M0 8 C0 8 -12 -2 -12 -8 C-12 -14 -6 -14 0 -8 C6 -14 12 -14 12 -8 C12 -2 0 8 0 8 Z" fill="#E91E63" />
+      </g>
+    );
+  }
+  if (acc.id === 'catclip') {
+    return (
+      <g transform="translate(140,68)">
+        <circle cx="0" cy="4" r="9" fill="#FFB74D" />
+        <path d="M-8 -2 L-10 -12 L-2 -4 Z" fill="#FFB74D" />
+        <path d="M8 -2 L10 -12 L2 -4 Z" fill="#FFB74D" />
+        <circle cx="-3" cy="3" r="1.2" fill="#212121" />
+        <circle cx="3" cy="3" r="1.2" fill="#212121" />
+        <ellipse cx="0" cy="7" rx="2" ry="1.2" fill="#E91E63" />
+      </g>
+    );
+  }
+  return null;
+}
+
+function HandsSvg({ skin, nailColor, nailId }) {
+  const polish = nailColor || null;
+  const french = nailId === 'french';
+  const glitter = nailId === 'glitter' || nailId === 'rainbow' || nailId === 'chrome';
+  const polka = nailId === 'polka';
+  const ombre = nailId === 'ombre';
+  const tip = french ? '#FFF8E1' : polish;
+  const base = french ? '#F8BBD0' : polish;
+  const nail = (x, y, rot) => (
+    <g transform={'translate(' + x + ',' + y + ') rotate(' + rot + ')'}>
+      {polish && (
+        <ellipse cx="0" cy="0" rx="5" ry="7.5" fill={base} stroke="rgba(0,0,0,0.15)" strokeWidth="0.6" />
+      )}
+      {ombre && polish && (
+        <ellipse cx="0" cy="-2" rx="4" ry="4" fill="#E91E63" opacity="0.55" />
+      )}
+      {french && <path d="M-4 -4 Q0 -8 4 -4 Q2 -2 0 -1.5 Q-2 -2 -4 -4 Z" fill={tip} />}
+      {glitter && polish && (
+        <g fill="#fff" opacity="0.75">
+          <circle cx="-1.5" cy="-2" r="0.9" />
+          <circle cx="1.5" cy="1" r="0.7" />
+          <circle cx="0" cy="-4" r="0.6" />
+        </g>
+      )}
+      {polka && polish && (
+        <g fill="#E91E63">
+          <circle cx="-1.5" cy="-2" r="1.1" />
+          <circle cx="1.5" cy="1.5" r="1.1" />
+        </g>
+      )}
+    </g>
+  );
+  return (
+    <g>
+      <ellipse cx="48" cy="198" rx="16" ry="12" fill={skin} />
+      <ellipse cx="152" cy="198" rx="16" ry="12" fill={skin} />
+      {nail(38, 190, -25)}
+      {nail(48, 186, -8)}
+      {nail(58, 188, 12)}
+      {nail(142, 188, -12)}
+      {nail(152, 186, 8)}
+      {nail(162, 190, 25)}
+    </g>
+  );
+}
+
+function FacePreview({ look, skinId, shirtId, eyeColor }) {
+  const skin = SKINS[skinId] || SKINS.light;
+  const hairColor = look.hair ? (COLORS[look.hair.color] || COLORS.brown) : null;
+  const style = (look.hair && look.hair.style) || null;
+  const makeup = look.makeup ? MAKEUP.find(m => m.id === look.makeup) : null;
+  const nails = look.nails ? NAILS.find(n => n.id === look.nails) : null;
+  const acc = look.acc ? ACC.find(a => a.id === look.acc) : null;
+  const shirt = SHIRTS[shirtId] || SHIRTS.coral;
+  const iris = eyeColor || '#4E342E';
+  const uid = useMemo(() => 'a' + Math.random().toString(36).slice(2, 9), []);
+
+  const lipColor = (makeup && makeup.lips) || '#C75B39';
+  const fullLips = makeup && makeup.fullLips;
+  const blushOp = makeup ? (makeup.blush != null ? makeup.blush : 0.28) : 0.22;
+  const cateye = makeup && makeup.cateye;
+  const freckles = makeup && makeup.freckles;
+  const sparkle = makeup && makeup.sparkle;
+  const smokey = makeup && makeup.smokey;
+  const gloss = makeup && makeup.gloss;
+  const skinShine = uid + '-skin';
+  const shirtGrad = uid + '-shirt';
+  const soft = uid + '-soft';
+
+  return (
+    <div className="avatar-wrap">
+      <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id={skinShine} cx="40%" cy="35%" r="60%">
+            <stop offset="0%" stopColor="#fff" stopOpacity="0.22" />
+            <stop offset="55%" stopColor="#fff" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id={shirtGrad} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={shirt[0]} />
+            <stop offset="100%" stopColor={shirt[1]} />
+          </linearGradient>
+          <filter id={soft} x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="0.6" />
+          </filter>
+        </defs>
+
+        {hairBackSvg(style, hairColor)}
+
+        <path d="M70 155 Q100 168 130 155 L138 200 Q100 210 62 200 Z" fill={'url(#' + shirtGrad + ')'} />
+        <ellipse cx="100" cy="168" rx="22" ry="10" fill={skin} />
+
+        <ellipse cx="100" cy="108" rx="42" ry="48" fill={skin} />
+        <ellipse cx="100" cy="108" rx="42" ry="48" fill={'url(#' + skinShine + ')'} />
+
+        <g opacity={blushOp} filter={'url(#' + soft + ')'}>
+          <ellipse cx="72" cy="118" rx="10" ry="6" fill="#FF8A80" />
+          <ellipse cx="128" cy="118" rx="10" ry="6" fill="#FF8A80" />
+        </g>
+
+        {freckles && (
+          <g fill="#A16C42" opacity="0.75">
+            <circle cx="74" cy="116" r="1.3" /><circle cx="80" cy="120" r="1.1" />
+            <circle cx="70" cy="122" r="1" /><circle cx="126" cy="116" r="1.3" />
+            <circle cx="120" cy="120" r="1.1" /><circle cx="130" cy="122" r="1" />
+            <circle cx="100" cy="122" r="1" />
+          </g>
+        )}
+
+        {smokey && (
+          <g opacity="0.45" filter={'url(#' + soft + ')'}>
+            <ellipse cx="82" cy="108" rx="14" ry="10" fill="#5D4037" />
+            <ellipse cx="118" cy="108" rx="14" ry="10" fill="#5D4037" />
+          </g>
+        )}
+
+        <g>
+          <ellipse cx="82" cy="108" rx="8" ry="9" fill="#fff" />
+          <ellipse cx="118" cy="108" rx="8" ry="9" fill="#fff" />
+          <circle cx="83" cy="109" r="4.2" fill={iris} />
+          <circle cx="119" cy="109" r="4.2" fill={iris} />
+          <circle cx="83" cy="109" r="2" fill="#212121" />
+          <circle cx="119" cy="109" r="2" fill="#212121" />
+          <circle cx="81.5" cy="107.5" r="1.4" fill="#fff" />
+          <circle cx="117.5" cy="107.5" r="1.4" fill="#fff" />
+          {cateye && (
+            <g stroke="#212121" strokeWidth="2.2" fill="none" strokeLinecap="round">
+              <path d="M72 104 Q78 100 90 104" />
+              <path d="M90 106 L98 102" />
+              <path d="M128 104 Q122 100 110 104" />
+              <path d="M110 106 L102 102" />
+            </g>
+          )}
+          {!cateye && (
+            <g stroke="#5D4037" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.7">
+              <path d="M74 100 Q82 96 90 100" />
+              <path d="M110 100 Q118 96 126 100" />
+            </g>
+          )}
+        </g>
+
+        <ellipse cx="100" cy="118" rx="4" ry="3" fill={skin} opacity="0.55" stroke="rgba(0,0,0,0.08)" />
+
+        <path
+          d={fullLips ? 'M88 134 Q100 148 112 134 Q100 142 88 134 Z' : 'M90 134 Q100 144 110 134'}
+          fill={fullLips ? lipColor : 'none'}
+          stroke={lipColor}
+          strokeWidth="2.4"
+          strokeLinecap="round"
+        />
+        {gloss && fullLips && (
+          <ellipse cx="96" cy="136" rx="3" ry="1.5" fill="#fff" opacity="0.45" />
+        )}
+
+        {sparkle && (
+          <g fill="#FFD700" opacity="0.9">
+            <polygon points="64,92 66,97 71,97 67,100 69,105 64,102 59,105 61,100 57,97 62,97" />
+            <polygon points="136,88 137.5,91.5 141,91.5 138.2,93.5 139.5,97 136,95 132.5,97 133.8,93.5 131,91.5 134.5,91.5" />
+            <circle cx="148" cy="120" r="1.5" fill="#fff" />
+            <circle cx="55" cy="125" r="1.2" fill="#fff" />
+          </g>
+        )}
+
+        {hairFrontSvg(style, hairColor)}
+        <AccSvg acc={acc} />
+        <HandsSvg skin={skin} nailColor={nails ? nails.color : null} nailId={nails ? nails.id : null} />
+      </svg>
+    </div>
+  );
+}
+
+function DesignScreen({ customer, difficulty, free, muted, onDone, onBack, progressLabel }) {
+  const [station, setStation] = useState('hair');
+  const [look, setLook] = useState({ hair: null, makeup: null, nails: null, acc: null });
+  const [hairColor, setHairColor] = useState('pink');
+  const [history, setHistory] = useState([]);
+  const [toast, setToast] = useState(null);
+  const [faceTick, setFaceTick] = useState(0);
+  const [scoreBump, setScoreBump] = useState(false);
+
+  const applyLook = (next, bumpFace) => {
+    setHistory(h => h.length > 20 ? h.slice(-20).concat([look]) : h.concat([look]));
+    setLook(next);
+    if (bumpFace) setFaceTick(t => t + 1);
+  };
+
+  const pick = (stationId, id) => {
+    blip(660, 0.08, 'sine', muted);
+    const next = { ...look };
+    if (stationId === 'hair') next.hair = { style: id, color: hairColor };
+    else if (stationId === 'makeup') next.makeup = id;
+    else if (stationId === 'nails') next.nails = id;
+    else next.acc = id;
+    applyLook(next, true);
+  };
+
+  useEffect(() => {
+    if (look.hair && look.hair.color !== hairColor) {
+      setLook(prev => prev.hair ? { ...prev, hair: { ...prev.hair, color: hairColor } } : prev);
+    }
+  }, [hairColor]);
+
+  const prevScore = React.useRef(0);
+  const liveScore = customer && !free ? scoreLook(look, customer.want, difficulty) : 0;
+  useEffect(() => {
+    if (!free && liveScore > prevScore.current) {
+      setScoreBump(true);
+      const t = setTimeout(() => setScoreBump(false), 200);
+      prevScore.current = liveScore;
+      return () => clearTimeout(t);
+    }
+    prevScore.current = liveScore;
+  }, [liveScore, free]);
+
+  const undo = () => {
+    if (!history.length) return;
+    blip(440, 0.06, 'triangle', muted);
+    const prev = history[history.length - 1];
+    setHistory(h => h.slice(0, -1));
+    setLook(prev);
+    setFaceTick(t => t + 1);
+  };
+
+  const clearStation = () => {
+    const next = { ...look };
+    if (station === 'hair') next.hair = null;
+    else if (station === 'makeup') next.makeup = null;
+    else if (station === 'nails') next.nails = null;
+    else next.acc = null;
+    applyLook(next, true);
+  };
+
+  const finish = () => {
+    if (free) {
+      onDone({ look, score: 0, free: true });
+      return;
+    }
+    const sc = scoreLook(look, customer.want, difficulty);
+    blip(sc >= 60 ? 880 : 220, 0.12, sc >= 60 ? 'sine' : 'sawtooth', muted);
+    setToast(sc >= 80 ? 'Love it! +' + sc : sc >= 50 ? 'Nice! +' + sc : 'Hmm\u2026 +' + sc);
+    setTimeout(() => onDone({ look, score: sc }), 780);
+  };
+
+  let options = HAIR;
+  if (station === 'makeup') options = MAKEUP;
+  else if (station === 'nails') options = NAILS;
+  else if (station === 'acc') options = ACC;
+
+  const selectedId = station === 'hair' ? (look.hair && look.hair.style)
+    : station === 'makeup' ? look.makeup
+    : station === 'nails' ? look.nails
+    : look.acc;
+
+  const have = productTags(look);
+  const filled = [look.hair, look.makeup, look.nails, look.acc].filter(Boolean).length;
+  const matches = customer && customer.want ? matchCount(look, customer.want) : 0;
+  const wantLen = customer && customer.want ? customer.want.length : 1;
+
+  return (
+    <div className="play">
+      <div className="topbar">
+        <button className="btn btn-ghost" style={{ padding: '8px 12px', fontSize: 13 }} onClick={onBack}>Menu</button>
+        <span>{progressLabel || (free ? 'Free Style' : customer.name)}</span>
+        <span
+          className="score-live"
+          style={scoreBump ? { transform: 'scale(1.2)' } : undefined}
+        >{!free ? liveScore : ''}</span>
+      </div>
+      {!free && customer && (
+        <div className="cust-card">
+          <div className="cust-name">{customer.name} wants\u2026</div>
+          <div className="chips">
+            {customer.want.map(w => (
+              <span key={w} className={'chip' + (have.includes(w) ? ' ok' : '')}>
+                {have.includes(w) ? '\u2713 ' : ''}{chipLabel(w)}
+              </span>
+            ))}
+          </div>
+          <div className="match-bar"><i style={{ width: (matches / wantLen * 100) + '%' }} /></div>
+        </div>
+      )}
+      <div className="preview">
+        <div className="mirror-frame" />
+        <div className="salon-desk" />
+        <FacePreview
+          key={faceTick}
+          look={look}
+          skinId={customer && customer.skin}
+          shirtId={customer && customer.shirt}
+          eyeColor={customer && customer.eyes}
+        />
+      </div>
+      <div className="stations">
+        {STATIONS.map(s => {
+          const has = s.id === 'hair' ? look.hair : s.id === 'makeup' ? look.makeup : s.id === 'nails' ? look.nails : look.acc;
+          return (
+            <button
+              key={s.id}
+              className={(station === s.id ? 'on ' : '') + (has ? 'filled' : '')}
+              onClick={() => { setStation(s.id); blip(400, 0.04, 'triangle', muted); }}
+            >{s.label}</button>
+          );
+        })}
+      </div>
+      {station === 'hair' && (
+        <div className="colors">
+          {Object.keys(COLORS).map(c => (
+            <div
+              key={c}
+              className={'color-dot' + (hairColor === c ? ' on' : '')}
+              style={{ background: COLORS[c] }}
+              onClick={() => { setHairColor(c); blip(520, 0.05, 'triangle', muted); }}
+            />
+          ))}
+        </div>
+      )}
+      <div className="picker">
+        {options.map(o => (
+          <button
+            key={o.id}
+            className={'pick' + (selectedId === o.id ? ' on' : '')}
+            onClick={() => pick(station, o.id)}
+          >
+            {station === 'hair' && <div className="sw" style={{ background: COLORS[hairColor] }} />}
+            {station === 'makeup' && <div className="sw" style={{ background: o.lips || '#F8BBD0' }} />}
+            {station === 'nails' && <div className="sw" style={{ background: o.color }} />}
+            {station === 'acc' && <span style={{ fontSize: 22 }}>{o.emoji}</span>}
+            <span>{o.name}</span>
+          </button>
+        ))}
+      </div>
+      <div className="actions">
+        <button className="btn btn-ghost" onClick={undo} disabled={!history.length}>Undo</button>
+        <button className="btn btn-ghost" onClick={clearStation}>Clear</button>
+        <button className="btn" onClick={finish} disabled={filled === 0}>{free ? 'Save look' : 'Done!'}</button>
+      </div>
+      {toast && <div className="toast">{toast}</div>}
+    </div>
+  );
+}
+
+function OpenSalon({ level, muted, onBack }) {
+  const cfg = LEVELS[level];
+  const [queue] = useState(() => {
+    const list = [...CUSTOMERS];
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list.slice(0, cfg.n);
+  });
+  const [idx, setIdx] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [phase, setPhase] = useState('design');
+  const [lastScore, setLastScore] = useState(0);
+  const [newBest, setNewBest] = useState(false);
+
+  const customer = queue[idx];
+
+  const onDone = ({ score }) => {
+    const t = total + score;
+    setTotal(t);
+    setLastScore(score);
+    if (idx + 1 >= queue.length) {
+      setNewBest(saveBest(level, t));
+      setPhase('over');
+      blip(1040, 0.15, 'sine', muted);
+    } else {
+      setPhase('result');
+      setTimeout(() => { setIdx(i => i + 1); setPhase('design'); }, 900);
+    }
+  };
+
+  if (phase === 'over') {
+    return (
+      <div className="overlay">
+        {total >= 200 && <Confetti count={36} />}
+        <div className="card">
+          <div className="menu-hero">{newBest ? '\uD83C\uDFC6' : '\uD83D\uDC87'}</div>
+          <div className="title">Shift done!</div>
+          <div className="result-total">{total}</div>
+          {newBest && <div className="new-best">New Best!</div>}
+          <div className="sub">You styled {queue.length} customers on {cfg.label}</div>
+          <div className="row">
+            <button className="btn" onClick={onBack}>Menu</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'result') {
+    return (
+      <div className="overlay">
+        {lastScore >= 80 && <Confetti count={22} />}
+        <div className="card">
+          <div className="result-emoji">{lastScore >= 80 ? '\uD83D\uDC96' : lastScore >= 50 ? '\uD83D\uDC4D' : '\uD83D\uDE0A'}</div>
+          <div className="result-score">+{lastScore}</div>
+          <div className="sub">Total {total} \u00B7 Next customer\u2026</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <DesignScreen
+      customer={customer}
+      difficulty={level}
+      free={false}
+      muted={muted}
+      onDone={onDone}
+      onBack={onBack}
+      progressLabel={'Customer ' + (idx + 1) + '/' + queue.length}
+      key={customer.id + '-' + idx}
+    />
+  );
+}
+
+function FreeStyle({ muted, onBack }) {
+  const [cust, setCust] = useState(CUSTOMERS[0]);
+  const [picking, setPicking] = useState(true);
+  const [savedToast, setSavedToast] = useState(false);
+
+  if (picking) {
+    return (
+      <div className="overlay">
+        <div className="card">
+          <div className="title" style={{ fontSize: 28 }}>Pick a face</div>
+          <div className="sub">Who gets a free makeover?</div>
+          <div className="row" style={{ marginTop: 6 }}>
+            {CUSTOMERS.map(c => (
+              <button
+                key={c.id}
+                className="btn btn-ghost face-pick"
+                style={{ fontSize: 13, padding: '10px 12px', minWidth: 76 }}
+                onClick={() => { setCust(c); setPicking(false); blip(660, 0.07, 'sine', muted); }}
+              >
+                <div className="skin-dot" style={{
+                  background: SKINS[c.skin] || SKINS.light,
+                  boxShadow: 'inset 0 -8px 0 ' + ((SHIRTS[c.shirt] || SHIRTS.coral)[0]),
+                }} />
+                {c.name}
+              </button>
+            ))}
+          </div>
+          <button className="btn btn-ghost" style={{ marginTop: 12 }} onClick={onBack}>Back</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <DesignScreen
+        customer={cust}
+        free
+        muted={muted}
+        onBack={onBack}
+        onDone={({ look }) => {
+          const g = loadGallery();
+          g.push({
+            t: Date.now(), look, face: cust.id, skin: cust.skin, name: cust.name,
+            shirt: cust.shirt, eyes: cust.eyes,
+          });
+          saveGallery(g);
+          blip(880, 0.1, 'sine', muted);
+          setSavedToast(true);
+          setTimeout(() => setSavedToast(false), 1200);
+        }}
+      />
+      {savedToast && <div className="toast">Saved to gallery!</div>}
+    </>
+  );
+}
+
+function Gallery({ onBack }) {
+  const [items, setItems] = useState(loadGallery);
+
+  const remove = (i) => {
+    const next = items.filter((_, idx) => idx !== i);
+    setItems(next);
+    saveGallery(next);
+  };
+
+  return (
+    <div className="overlay">
+      <div className="card" style={{ width: 'min(440px, 96vw)' }}>
+        <div className="title" style={{ fontSize: 28 }}>Gallery</div>
+        <div className="sub">{items.length ? 'Your saved looks' : 'No saved looks yet \u2014 try Free Style!'}</div>
+        <div className="gallery-grid">
+          {items.slice().reverse().map((it, revIdx) => {
+            const i = items.length - 1 - revIdx;
+            return (
+              <div key={it.t + '-' + i} className="gallery-item">
+                <button className="del" onClick={() => remove(i)} aria-label="Delete">\u00D7</button>
+                <div className="mini">
+                  <FacePreview
+                    look={it.look || {}}
+                    skinId={it.skin}
+                    shirtId={it.shirt}
+                    eyeColor={it.eyes}
+                  />
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 700, marginTop: 4 }}>{it.name || 'Look'}</div>
+              </div>
+            );
+          })}
+        </div>
+        <button className="btn btn-ghost" onClick={onBack}>Back</button>
+      </div>
+    </div>
+  );
+}
+
+function Tutorial({ onClose }) {
+  return (
+    <div className="overlay" style={{ zIndex: 30, background: 'rgba(0,0,0,0.55)' }}>
+      <div className="card">
+        <div className="title" style={{ fontSize: 26 }}>How to play</div>
+        <div className="sub" style={{ textAlign: 'left' }}>
+          <p style={{ marginBottom: 8 }}>1. Read the pink chips \u2014 that is what the customer wants.</p>
+          <p style={{ marginBottom: 8 }}>2. Pick Hair, Makeup, Nails, and Extra. Match the chips!</p>
+          <p style={{ marginBottom: 8 }}>3. Chips turn green when you match. Tap Done when ready.</p>
+          <p>Easy needs fewer matches. Hard wants a full look.</p>
+        </div>
+        <button className="btn" onClick={onClose}>Let's go!</button>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [screen, setScreen] = useState('menu');
+  const [level, setLevel] = useState('easy');
+  const [muted, setMuted] = useState(() => localStorage.getItem('salon_muted') === '1');
+  const [showTut, setShowTut] = useState(() => !localStorage.getItem('salon_tutorial'));
+  const [tick, setTick] = useState(0);
+  const bests = {
+    easy: loadBest('easy'),
+    med: loadBest('med'),
+    hard: loadBest('hard'),
+  };
+  const galleryCount = loadGallery().length;
+
+  const toggleMute = () => {
+    const m = !muted;
+    setMuted(m);
+    try { localStorage.setItem('salon_muted', m ? '1' : '0'); } catch (e) {}
+  };
+
+  const goMenu = () => { setScreen('menu'); setTick(t => t + 1); };
+
+  if (screen === 'salon') {
+    return <OpenSalon level={level} muted={muted} onBack={goMenu} key={'s-' + level + '-' + tick} />;
+  }
+  if (screen === 'free') {
+    return <FreeStyle muted={muted} onBack={goMenu} />;
+  }
+  if (screen === 'gallery') {
+    return <Gallery onBack={goMenu} />;
+  }
+
+  return (
+    <>
+      <BgOrbs />
+      <div className="overlay">
+        {showTut && (
+          <Tutorial onClose={() => {
+            try { localStorage.setItem('salon_tutorial', '1'); } catch (e) {}
+            setShowTut(false);
+          }} />
+        )}
+        <div className="card">
+          <div className="menu-hero">{'\uD83D\uDC87'}</div>
+          <div className="title">Beauty Salon</div>
+          <div className="sub">Amber styles hair, makeup & nails for happy customers!</div>
+          <div className="section-label">Open Salon</div>
+          <div className="row">
+            {Object.keys(LEVELS).map(k => (
+              <button
+                key={k}
+                className="btn level-btn"
+                onClick={() => { setLevel(k); setScreen('salon'); blip(720, 0.08, 'sine', muted); }}
+              >
+                {LEVELS[k].label}
+                <div className="bests">Best {bests[k] || '\u2014'}</div>
+              </button>
+            ))}
+          </div>
+          <div className="row" style={{ marginTop: 14 }}>
+            <button className="btn btn-sec" onClick={() => { setScreen('free'); blip(600, 0.07, 'sine', muted); }}>Free Style</button>
+            <button className="btn btn-ghost" onClick={() => setScreen('gallery')}>
+              Gallery{galleryCount ? ' (' + galleryCount + ')' : ''}
+            </button>
+          </div>
+          <div className="row" style={{ marginTop: 8 }}>
+            <button className="btn btn-ghost" onClick={toggleMute}>{muted ? '\uD83D\uDD07' : '\uD83D\uDD0A'}</button>
+            <button className="btn btn-ghost" onClick={() => setShowTut(true)}>?</button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('app'));
+root.render(<App />);
+</script>
+<script src="playtime.js?v=2"></script>
+</body>
+</html>
