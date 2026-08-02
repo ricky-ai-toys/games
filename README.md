@@ -32,6 +32,7 @@ Any way you like:
 | Amber's Style Studio | `dressup.html` | Design outfits and save favorite looks |
 | Amber's Beauty Salon | `salon.html` | Style hair, makeup, and nails for customers |
 | Amber's Farm | `farm/index.html` | Cozy Stardew-style farm: plant, fish, raise animals, cook |
+| Amber's Odyssey | `odyssey/index.html` | Sail 12 Greek-vase adventures home: voyage, boons, mementos, quiz, loom, hexameter |
 | Amber's 算籌大冒險 | `suanchou.html` | Learn ancient Chinese counting rods |
 | Amber's Binary Quest | `binary.html` | Crack the secret code of computers |
 

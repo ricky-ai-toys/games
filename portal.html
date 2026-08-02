@@ -801,6 +801,16 @@
       accent: "linear-gradient(135deg, rgba(232,148,26,0.36), rgba(124,179,66,0.3))"
     },
     {
+      title: "Amber's Odyssey",
+      file: "odyssey/index.html",
+      icon: "\uD83C\uDF0A",
+      tag: "Adventure",
+      group: "play",
+      stat: "Best glory",
+      desc: "Sail the wine-dark sea as Amber the wanderer \u2014 12 Greek-vase adventures, boons, and a museum of mementos on the long way home.",
+      accent: "linear-gradient(135deg, rgba(190,120,60,0.42), rgba(70,130,180,0.32))"
+    },
+    {
       title: "Amber\u7684\u7B97\u7C4C\u5927\u5192\u96AA",
       file: "suanchou.html",
       icon: "\uD83C\uDF8B",
@@ -975,6 +985,17 @@
         const v = parseInt(localStorage.getItem('salon_best_' + l) || '0', 10);
         if (v > best) best = v;
       }
+      return best;
+    },
+    'odyssey/index.html': () => {
+      let best = 0;
+      try {
+        const raw = localStorage.getItem('ambers_odyssey_save_v1');
+        if (raw) {
+          const s = JSON.parse(raw);
+          if (s && typeof s.glory === 'number' && s.glory > best) best = s.glory;
+        }
+      } catch (e) {}
       return best;
     },
     'farm/index.html': () => {
