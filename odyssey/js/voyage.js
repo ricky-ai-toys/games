@@ -140,7 +140,7 @@ const Voyage = (() => {
       ctx.fillStyle = done ? C.green : C.black;
       ctx.font = 'bold 12px Georgia, serif';
       ctx.textAlign = 'center';
-      ctx.fillText((done ? '✓ ' : '') + n.name, n.x, n.y + 34);
+      ctx.fillText((done ? '✓ ' : '') + n.name, n.x, n.y > 415 ? n.y - 38 : n.y + 34);
       ctx.textAlign = 'left';
     });
     if (s.current < nodes.length) {
@@ -185,9 +185,9 @@ const Voyage = (() => {
     ctx.fillStyle = C.black;
     ctx.font = 'bold 13px Georgia, serif';
     ctx.textAlign = 'center';
-    ctx.fillText('🏛 Troy — the war is over. The long way home begins here.', 480, 85);
+    ctx.fillText('🏛 Troy — the war is over. The long way home begins here.', 480, 62);
     ctx.font = '12px Georgia, serif';
-    ctx.fillText('Gold line: islands already visited. Sailing costs food; watch the weather!', 480, 105);
+    ctx.fillText('Gold line: islands already visited. Sailing costs food; watch the weather!', 480, 80);
     ctx.textAlign = 'left';
   }
 

@@ -73,7 +73,8 @@ const UI = (() => {
       case 'event': return { x: 150, y: 130, w: 660, h: 260 };
       case 'howto': return { x: 150, y: 60, w: 660, h: 380 };
       case 'quiz': return { x: 150, y: 60, w: 660, h: 420 };
-      case 'hexameter': case 'mapgame': case 'loom': return { x: 100, y: 55, w: 760, h: 430 };
+      case 'hexameter': case 'mapgame': return { x: 100, y: 55, w: 760, h: 430 };
+      case 'loom': return { x: 60, y: 60, w: 840, h: 440 };
       default: return { x: 60, y: 60, w: 840, h: 420 };
     }
   }
@@ -127,8 +128,8 @@ const UI = (() => {
       return;
     }
     if (kind === 'howto') {
-      const y0 = 330;
-      if (Game.tapAt(370, y0, 220, 48)) { if (page < 2) page++; else close(); }
+      const y0 = 440;
+      if (Game.tapAt(370, y0, 220, 40)) { if (page < 2) page++; else close(); }
       return;
     }
     if (kind === 'codex') {
@@ -145,7 +146,7 @@ const UI = (() => {
       }
       if (sel) {
         for (let t = 0; t < 4; t++) {
-          if (Game.tapAt(150 + t * 160, 166, 140, 36)) { tab = t; page = 0; OdysseyAudio.click(); }
+          if (Game.tapAt(150 + t * 160, 206, 140, 36)) { tab = t; page = 0; OdysseyAudio.click(); }
         }
         const entry = CODEX[sel];
         const paras = entry ? entry[['myth', 'history', 'culture', 'fun'][tab]] : null;
@@ -323,7 +324,7 @@ const UI = (() => {
   function loomUpdate(dt) {
     const d = data;
     if (d.done) {
-      if (Game.tapAt(370, 420, 220, 48)) close();
+      if (Game.tapAt(370, 456, 220, 42)) close();
       return;
     }
     if (d.phase === 0) {
@@ -332,9 +333,9 @@ const UI = (() => {
       return;
     }
     for (let c = 0; c < 16; c++) {
-      const cx = 325 + (c % 4) * 80;
-      const cy = 170 + Math.floor(c / 4) * 80;
-      if (Game.tapAt(cx, cy, 70, 70)) {
+      const cx = 336 + (c % 4) * 64;
+      const cy = 114 + Math.floor(c / 4) * 64;
+      if (Game.tapAt(cx, cy, 64, 64)) {
         const expected = d.pattern[d.input.length];
         if (c === expected) {
           d.input.push(c);
@@ -387,12 +388,12 @@ const UI = (() => {
       ctx.fillStyle = C.terracotta;
       ctx.font = '14px Georgia, serif';
       ctx.textAlign = 'center';
-      ctx.fillText('Tap to continue ▸', 480, 490);
+      ctx.fillText('Tap to continue ▸', 480, 505);
       ctx.textAlign = 'left';
       ctx.fillStyle = C.gold;
       for (let i = 0; i < d.lines.length; i++) {
         ctx.beginPath();
-        ctx.arc(120 + i * 16, 496, i === page ? 6 : 4, 0, Math.PI * 2);
+        ctx.arc(120 + i * 16, 517, i === page ? 6 : 4, 0, Math.PI * 2);
         ctx.fill();
       }
       return;
@@ -408,7 +409,7 @@ const UI = (() => {
       return;
     }
     if (kind === 'howto') {
-      header(ctx, 'How to Play', 150, 60, 660, 380);
+      header(ctx, 'How to Play', 150, 60, 660, 420);
       const pages = [
         ['Sail from island to island, like the hero Odysseus.',
           'Each island is a mini-game from the Odyssey: build a raft, dodge boulders, resist the Sirens…',
@@ -422,9 +423,9 @@ const UI = (() => {
       ];
       pages[page].forEach((t, i) => {
         ctx.fillStyle = C.black;
-        const yy = wrap(ctx, t, 200, 130 + i * 120, 560, 24, 15);
+        wrap(ctx, t, 200, 130 + i * 115, 560, 24, 15);
       });
-      Render.btn(ctx, 370, 330, 220, 48, page < 2 ? 'Next ▶' : 'Let\'s Sail!', { size: 16, hot: true });
+      Render.btn(ctx, 370, 440, 220, 40, page < 2 ? 'Next ▶' : 'Let\'s Sail!', { size: 16, hot: true });
       return;
     }
     if (kind === 'codex') {
@@ -451,23 +452,23 @@ const UI = (() => {
         const tabs = ['Myth', 'History', 'Culture', 'Fun'];
         tabs.forEach((t, i) => {
           ctx.fillStyle = tab === i ? C.gold : C.terracottaDark;
-          ctx.fillRect(150 + i * 160, 166, 140, 36);
+          ctx.fillRect(150 + i * 160, 206, 140, 36);
           ctx.strokeStyle = C.black;
           ctx.lineWidth = 2;
-          ctx.strokeRect(150 + i * 160, 166, 140, 36);
+          ctx.strokeRect(150 + i * 160, 206, 140, 36);
           ctx.fillStyle = C.white;
           ctx.font = 'bold 14px Georgia, serif';
           ctx.textAlign = 'center';
-          ctx.fillText(t, 220 + i * 160, 188);
+          ctx.fillText(t, 220 + i * 160, 228);
           ctx.textAlign = 'left';
         });
         ctx.fillStyle = C.black;
         ctx.font = 'bold 16px Georgia, serif';
-        ctx.fillText(ep.name + ' — ' + ep.island + ' (' + ep.book + ')', 130, 232);
+        ctx.fillText(ep.name + ' — ' + ep.island + ' (' + ep.book + ')', 130, 268);
         const paras = CODEX[sel][['myth', 'history', 'culture', 'fun'][tab]];
         ctx.fillStyle = '#4A3826';
         ctx.font = '15px Georgia, serif';
-        wrap(ctx, paras[page], 130, 260, 700, 22, 15);
+        wrap(ctx, paras[page], 130, 288, 700, 22, 15);
         ctx.fillStyle = C.terracotta;
         ctx.font = 'bold 14px Georgia, serif';
         ctx.textAlign = 'center';
@@ -632,7 +633,7 @@ const UI = (() => {
         ctx.font = 'italic 15px Georgia, serif';
         ctx.fillStyle = C.terracottaDark;
         wrap(ctx, q.fact, 240, 300, 480, 22, 15);
-        if (ok) ctx.fillText('🌟 Scholar +' + (s.boon === 'athena' ? 2 : 1) + ' · ⭐ Glory +' + GLORY_QUIZ, 480, 380);
+        if (ok) ctx.fillText('🌟 Scholar +' + (s.boon === 'athena' ? 2 : 1) + ' · ⭐ Glory +' + GLORY_QUIZ, 480, 398);
         Render.btn(ctx, 370, 420, 220, 48, 'Continue', { size: 16, hot: true });
       }
       ctx.textAlign = 'left';
@@ -775,48 +776,48 @@ const UI = (() => {
 
   function loomRender(ctx) {
     const d = data;
-    header(ctx, '🧵 Penelope\'s Loom', 100, 55, 760, 430);
+    header(ctx, '🧵 Penelope\'s Loom', 60, 60, 840, 440);
     ctx.fillStyle = C.cream;
-    ctx.fillRect(120, 110, 720, 300);
+    ctx.fillRect(120, 105, 720, 280);
     ctx.strokeStyle = C.black;
     ctx.lineWidth = 3;
-    ctx.strokeRect(120, 110, 720, 300);
-    Atlas.loom(ctx, 160, 260, 2);
+    ctx.strokeRect(120, 105, 720, 280);
+    Atlas.loom(ctx, 160, 230, 2);
     for (let c = 0; c < 16; c++) {
-      const cx = 325 + (c % 4) * 80;
-      const cy = 170 + Math.floor(c / 4) * 80;
+      const cx = 336 + (c % 4) * 64;
+      const cy = 114 + Math.floor(c / 4) * 64;
       ctx.fillStyle = C.creamDark;
-      ctx.fillRect(cx, cy, 70, 70);
+      ctx.fillRect(cx, cy, 64, 64);
       ctx.strokeStyle = C.black;
       ctx.lineWidth = 2;
-      ctx.strokeRect(cx, cy, 70, 70);
+      ctx.strokeRect(cx, cy, 64, 64);
       const inPattern = d.phase === 0 && d.pattern.includes(c);
       const inInput = d.phase === 1 && d.input.includes(c);
       if (inPattern || inInput) {
         ctx.fillStyle = inInput ? C.green : C.terracotta;
-        ctx.fillRect(cx + 4, cy + 4, 62, 62);
+        ctx.fillRect(cx + 4, cy + 4, 56, 56);
       }
-      ctx.font = '20px Georgia, serif';
+      ctx.font = '18px Georgia, serif';
       ctx.textAlign = 'center';
       ctx.fillStyle = C.black;
-      ctx.fillText((c + 1), cx + 35, cy + 42);
+      ctx.fillText((c + 1), cx + 32, cy + 41);
       ctx.textAlign = 'left';
     }
     ctx.fillStyle = C.black;
     ctx.font = 'bold 16px Georgia, serif';
     ctx.textAlign = 'center';
     if (d.done) {
-      ctx.fillText(d.failed ? 'The thread tangles — Penelope smiles. "Patience, weaver."' : 'The web is complete! The shroud will never finish — and the suitors will wait! 👏', 480, 380);
-      if (!d.failed) ctx.fillText('+2 ⭐ Glory · +1 🌟 Scholar · +2 💚 Morale', 480, 405);
-      Render.btn(ctx, 370, 420, 220, 48, 'Close', { size: 16, hot: true });
+      ctx.fillText(d.failed ? 'The thread tangles — Penelope smiles. "Patience, weaver."' : 'The web is complete! The suitors will wait forever! 👏', 480, 415);
+      if (!d.failed) ctx.fillText('+2 ⭐ Glory · +1 🌟 Scholar · +2 💚 Morale', 480, 438);
+      Render.btn(ctx, 370, 456, 220, 42, 'Close', { size: 16, hot: true });
     } else if (d.phase === 0) {
-      ctx.fillText('Watch the pattern… (' + Math.ceil(d.showT) + ')', 480, 380);
+      ctx.fillText('Watch the pattern… (' + Math.ceil(d.showT) + ')', 480, 415);
       ctx.font = '14px Georgia, serif';
-      ctx.fillText('Round ' + (d.round + 1) + '/3', 480, 402);
+      ctx.fillText('Round ' + (d.round + 1) + '/3', 480, 438);
     } else {
-      ctx.fillText('Repeat the pattern! (' + d.input.length + '/' + d.pattern.length + ')', 480, 380);
+      ctx.fillText('Repeat the pattern! (' + d.input.length + '/' + d.pattern.length + ')', 480, 415);
       ctx.font = '14px Georgia, serif';
-      ctx.fillText('Mistakes: ' + d.mistakes + '/2', 480, 402);
+      ctx.fillText('Mistakes: ' + d.mistakes + '/2', 480, 438);
     }
     ctx.textAlign = 'left';
   }

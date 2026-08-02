@@ -125,12 +125,12 @@ const Ship = (() => {
         size: 13, fill: hot ? C.terracotta : C.terracottaDark, hot: hot,
       });
     }
-    ctx.fillStyle = C.black;
-    ctx.font = 'bold 15px Georgia, serif';
+    ctx.fillStyle = C.white;
+    ctx.font = 'bold 14px Georgia, serif';
     ctx.textAlign = 'center';
     if (s.current < EPISODES.length) {
       const next = EPISODES[s.current];
-      ctx.fillText('Next: ' + next.icon + ' ' + next.name + ' — ' + next.island + '  (' + next.book + ')', VIEW_W / 2, 452);
+      ctx.fillText('Next: ' + next.icon + ' ' + next.name + ' — ' + next.island + '  (' + next.book + ')', VIEW_W / 2, 453);
     }
     ctx.textAlign = 'left';
   }

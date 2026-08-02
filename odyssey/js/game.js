@@ -150,9 +150,9 @@ const Game = (() => {
     const s = api.state;
     const hasSave = !!Save.load();
     if (api.scene === 'title') {
-      if (Game.tapAt(330, 230, 300, 50)) { newGame(); }
-      else if (hasSave && Game.tapAt(330, 290, 300, 50)) { continueGame(); }
-      else if (Game.tapAt(330, 350, 300, 46)) { UI.open('howto'); }
+      if (Game.tapAt(330, 225, 300, 50)) { newGame(); }
+      else if (hasSave && Game.tapAt(330, 283, 300, 50)) { continueGame(); }
+      else if (Game.tapAt(330, 341, 300, 46)) { UI.open('howto'); }
     } else if (api.scene === 'ship') {
       if (UI.isOpen()) UI.update(dt);
       else Ship.update(dt);

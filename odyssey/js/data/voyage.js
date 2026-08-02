@@ -11,8 +11,8 @@ const VOYAGE_DATA = {
     { id: 'underworld', x: 250, y: 450, name: 'The House of the Dead', note: 'Beyond the edge of the world, where the rivers of Hades run.' },
     { id: 'sirens', x: 500, y: 240, name: 'The Sirens\' Rocks', note: 'A rocky isle of sweet, deadly song.' },
     { id: 'scylla', x: 820, y: 340, name: 'The Strait', note: 'Scylla\'s cliff and Charybdis\'s whirlpool — the Strait of Messina.' },
-    { id: 'helios', x: 600, y: 470, name: 'Thrinacia', note: 'Three-cornered Sicily — home of the sun god\'s cattle.' },
-    { id: 'phaeacia', x: 380, y: 120, name: 'Scheria', note: 'The gracious Phaeacians — perhaps Corfu, the Emerald Isle.' },
+    { id: 'helios', x: 600, y: 435, name: 'Thrinacia', note: 'Three-cornered Sicily — home of the sun god\'s cattle.' },
+    { id: 'phaeacia', x: 365, y: 160, name: 'Scheria', note: 'The gracious Phaeacians — perhaps Corfu, the Emerald Isle.' },
     { id: 'ithaca', x: 150, y: 220, name: 'Ithaca', note: 'Home. Rocky, small, and the best island in the world.' },
   ],
   detours: [

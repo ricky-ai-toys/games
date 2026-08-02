@@ -669,8 +669,8 @@ const MINIGAMES = (() => {
       ctx.fillStyle = C.white;
       ctx.font = 'bold 15px Georgia, serif';
       ctx.fillText('You are in the ' + (mg.lane === 0 ? 'TOP lane' : 'BOTTOM lane'), VIEW_W / 2, 40);
-      ctx.fillText('When it flashes, switch lanes! ⬆⬇ or tap left/right half', VIEW_W / 2, 520);
-      ctx.fillText('Dodged: ' + mg.resolves + '/6   ·   Mistakes: ' + mg.mistakes + '/3', VIEW_W / 2, 540);
+      ctx.fillText('When it flashes, switch lanes! ⬆⬇ or tap left/right half', VIEW_W / 2, 505);
+      ctx.fillText('Dodged: ' + mg.resolves + '/6   ·   Mistakes: ' + mg.mistakes + '/3', VIEW_W / 2, 528);
     },
   };
 

@@ -87,22 +87,24 @@ const Render = (() => {
     ctx.fillStyle = C.terracotta;
     ctx.font = 'bold 44px Georgia, serif';
     ctx.textAlign = 'center';
-    ctx.fillText("AMBER'S", 480, 125);
+    ctx.fillText("AMBER'S", 480, 118);
     ctx.fillStyle = C.black;
     ctx.font = 'bold 44px Georgia, serif';
-    ctx.fillText('ODYSSEY', 480, 175);
+    ctx.fillText('ODYSSEY', 480, 152);
     ctx.fillStyle = C.terracottaDark;
     ctx.font = 'italic 20px Georgia, serif';
-    ctx.fillText('The Long Way Home', 480, 205);
-    Atlas.ship(ctx, 480, 425, 1.5);
-    btn(ctx, 330, 230, 300, 50, '⚓ New Voyage', { size: 19, hot: true });
-    if (hasSave) btn(ctx, 330, 290, 300, 50, '📜 Continue', { size: 19, fill: C.terracottaDark });
-    btn(ctx, 330, 350, 300, 46, '🎓 How to Play', { size: 15, fill: '#6E5434' });
+    ctx.fillText('The Long Way Home', 480, 180);
+    Atlas.ship(ctx, 480, 448, 1);
+    btn(ctx, 330, 225, 300, 50, '⚓ New Voyage', { size: 19, hot: true });
+    if (hasSave) btn(ctx, 330, 283, 300, 50, '📜 Continue', { size: 19, fill: C.terracottaDark });
+    btn(ctx, 330, 341, 300, 44, '🎓 How to Play', { size: 15, fill: '#6E5434' });
     ctx.fillStyle = C.black;
     ctx.font = '12px Georgia, serif';
     ctx.textAlign = 'center';
-    ctx.fillText('A tale of Troy, monsters, gods, and one very clever man — tap to sail.', 480, 465);
-    if (hasSave) ctx.fillText('Voyage so far: ' + state.completed.length + '/12 islands · Day ' + state.day, 480, 488);
+    ctx.fillText('A tale of Troy, monsters, gods, and one very clever man — tap to sail.', 480, 498);
+    if (hasSave) ctx.fillText('Voyage so far: ' + state.completed.length + '/12 islands · Day ' + state.day, 480, 518);
+    ctx.fillStyle = C.terracottaDark;
+    ctx.fillRect(0, 526, VIEW_W, 14);
     ctx.textAlign = 'left';
   }
 
@@ -146,7 +148,7 @@ const Render = (() => {
   function epilogue(ctx, state, page) {
     ctx.fillStyle = C.cream;
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
-    Atlas.island(ctx, 480, 300, 120);
+    if (page < 2) Atlas.island(ctx, 480, 340, 100);
     ctx.fillStyle = C.black;
     ctx.font = 'bold 34px Georgia, serif';
     ctx.textAlign = 'center';
