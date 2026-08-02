@@ -1,5 +1,8 @@
 # Amber's Games
 
+[![Pages](https://img.shields.io/github/deployments/ricky-ai-toys/games/github-pages?label=pages&logo=github)](https://ricky-ai-toys.github.io/games/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A cozy collection of browser games for kids — no installs, no accounts. Open `index.html` and play.
 
 ## Play it
