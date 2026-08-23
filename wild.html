@@ -6,7 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Amber's Wild Arcade">
-<meta name="theme-color" content="#061526">
+wild.html
+<link rel="manifest" href="manifest.webmanifest">
 <title>Amber's Wild Arcade</title>
 <style>
   html, body, #app {
@@ -122,12 +123,13 @@
 <body>
 <div id="app"></div>
 <script>
+window.addEventListener('error', function(e){ if(window.AmberHardening && AmberHardening.__amberErrorInstalled) return; try{ var d=document.createElement('div'); d.setAttribute('role','alert'); d.style.cssText='position:fixed;inset:0;z-index:9999;background:#1a1a2e;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;padding:24px;text-align:center;'; d.innerHTML='<div style="font-size:48px;margin-bottom:16px">🦊</div><div style="font-size:18px;margin-bottom:24px">Oops! Reload and try again.</div><button onclick="location.reload()" style="font-size:16px;padding:12px 24px;border:none;border-radius:8px;background:#f5a623;color:#1a1a2e;cursor:pointer;font-weight:bold;">Reload</button>'; document.body.appendChild(d); }catch(_){} });
 (function () {
   const A = document.getElementById('app');
   const C = { a: '#ff8a65', d: '#ff6e6e', g: '#4caf50', b: '#42a5f5', y: '#ffd700', q: '#5ffbf1' };
-  let game = localStorage.wild_pick || 'shark';
-  let lvl = localStorage.wild_lvl || 'med';
-  let muted = localStorage.wild_muted === '1';
+  let game = (() => { try { return localStorage.getItem('wild_pick'); } catch(e){} return null; })() || 'shark';
+  let lvl = (() => { try { return localStorage.getItem('wild_lvl'); } catch(e){} return null; })() || 'med';
+  let muted = false; try { muted = localStorage.getItem('wild_muted') === '1'; } catch(e){}
   let stop = () => {};
   let audio = null;
 
@@ -231,6 +233,7 @@
     screen(`<div class="overlay"><div class="panel">
       <div class="title">Amber's Wild Arcade</div>
       <div class="sub">Featured: <b>Shark Hunt</b> — grow, combo, and hold the apex zone!</div>
+      <div style="font-size:13px;opacity:.7;margin-bottom:12px;">选择一个小游戏开始！鲨鱼、狐狸、动物知识问答 — 用方向键或触屏操作。</div>
       <div class="grid">${cards}</div>
       <div>${ds}</div>
       <button class="btn" id="start">Start Game</button>
@@ -611,6 +614,7 @@
     };
     last = performance.now();
     raf = requestAnimationFrame(loop);
+    document.addEventListener('visibilitychange',function(){if(document.hidden){if(raf)cancelAnimationFrame(raf);}else{raf=requestAnimationFrame(loop);}});
   }
 
   /* ===================== FOX RUN (light) ===================== */
@@ -730,6 +734,7 @@
     document.addEventListener('keydown', key);
     stop = () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); document.removeEventListener('keydown', key); };
     last = performance.now(); raf = requestAnimationFrame(loop);
+    document.addEventListener('visibilitychange',function(){if(document.hidden){if(raf)cancelAnimationFrame(raf);}else{raf=requestAnimationFrame(loop);}});
   }
 
   /* ===================== TRIVIA (light) ===================== */
@@ -790,6 +795,8 @@
   menu();
 })();
 </script>
+<script src="hardening.js?v=2"></script>
 <script src="playtime.js?v=2"></script>
+<script src="pwa.js"></script>
 </body>
 </html>

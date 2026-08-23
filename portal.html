@@ -761,6 +761,16 @@
       accent: "linear-gradient(135deg, rgba(124,77,255,0.34), rgba(24,255,255,0.22))"
     },
     {
+      title: "Solar Tour",
+      file: "solartour_v2.html",
+      icon: "\uD83D\uDE80",
+      tag: "Science",
+      group: "learn",
+      stat: "Stars",
+      desc: "Fly a rocket to every planet — read fact cards, play planet games, earn stars!",
+      accent: "linear-gradient(135deg, rgba(28,110,80,0.4), rgba(255,209,102,0.26))"
+    },
+    {
       title: "Amber's Pet Clinic",
       file: "petclinic.html",
       icon: "\uD83D\uDC3E",
@@ -829,6 +839,26 @@
       stat: "Best stars",
       desc: "Crack the secret code of computers — flip binary switches, read patterns, decode secret messages, and race the lightning clock!",
       accent: "linear-gradient(135deg, rgba(91,200,255,0.35), rgba(185,108,255,0.25))"
+    },
+    {
+      title: "Amber's Big Drop",
+      file: "next100.html",
+      icon: "\u2B07\uFE0F",
+      tag: "Play",
+      group: "play",
+      stat: "Best floor",
+      desc: "Drop 100 floors fast — dodge obstacles, set a high score, and challenge yourself to go lower!",
+      accent: "linear-gradient(135deg, rgba(245,166,35,0.4), rgba(255,114,98,0.3))"
+    },
+    {
+      title: "Amber's Wild Arcade",
+      file: "wild.html",
+      icon: "\uD83C\uDFB2",
+      tag: "Play",
+      group: "play",
+      stat: "Best score",
+      desc: "A mini arcade of mini-games — jump, dodge, and score big across Amber's wildest challenges!",
+      accent: "linear-gradient(135deg, rgba(102,209,122,0.4), rgba(91,200,255,0.3))"
     }
   ];
 
@@ -851,6 +881,15 @@
   ];
 
   const BEST_BY_FILE = {
+    'solartour_v2.html': () => {
+      const lvls = ['easy','med','hard'];
+      let best = 0;
+      for (const l of lvls) {
+        const v = parseInt(localStorage.getItem('solartour_best_'+l) || '0', 10);
+        if (v > best) best = v;
+      }
+      return best;
+    },
     'shark.html': () => {
       const lvls = ['easy','med','hard'];
       let best = 0;
@@ -1033,6 +1072,21 @@
         return total;
       } catch (e) { return 0; }
     },
+    'next100.html': () => {
+      try { return parseInt(localStorage.getItem('highest100') || '0', 10) || 0; } catch (e) { return 0; }
+    },
+    'wild.html': () => {
+      try {
+        let best = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.indexOf('wild_best_') === 0) {
+            best = Math.max(best, parseInt(localStorage.getItem(k) || '0', 10) || 0);
+          }
+        }
+        return best;
+      } catch (e) { return 0; }
+    }
   };
 
   function getBest(file) {

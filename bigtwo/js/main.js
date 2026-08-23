@@ -2,6 +2,8 @@
    Amber's Big Two — Entry point
    ======================================== */
 
+if(window.AmberHardening) AmberHardening.installErrorOverlay('Big Two hit a snag. Reload to continue!');
+
 window.addEventListener('load', () => {
   Game.init();
   UI.init();

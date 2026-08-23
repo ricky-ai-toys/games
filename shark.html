@@ -6,7 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Amber's Shark Hunt">
-<meta name="theme-color" content="#062a3a">
+shark.html
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="description" content="Eat, grow, dash, and hold the apex as Amber's shark!">
 <title>Amber's Shark Hunt</title>
 <style>
@@ -244,6 +245,7 @@
 <body>
 <div id="app"></div>
 <script>
+window.addEventListener('error', function(e){ if(window.AmberHardening && AmberHardening.__amberErrorInstalled) return; try{ var d=document.createElement('div'); d.setAttribute('role','alert'); d.style.cssText='position:fixed;inset:0;z-index:9999;background:#1a1a2e;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;padding:24px;text-align:center;'; d.innerHTML='<div style="font-size:48px;margin-bottom:16px">🦊</div><div style="font-size:18px;margin-bottom:24px">Oops! Reload and try again.</div><button onclick="location.reload()" style="font-size:16px;padding:12px 24px;border:none;border-radius:8px;background:#f5a623;color:#1a1a2e;cursor:pointer;font-weight:bold;">Reload</button>'; document.body.appendChild(d); }catch(_){} });
 (function () {
   const A = document.getElementById('app');
   const C = { a: '#ff8a65', d: '#ff6e6e', g: '#4caf50', b: '#42a5f5', y: '#ffd700', q: '#5ffbf1' };
@@ -261,7 +263,7 @@
     '\uD83D\uDC8E': 'Pearl!',
   };
 
-  let muted = localStorage.getItem('shark_muted') === '1';
+  let muted = false; try { muted = localStorage.getItem('shark_muted') === '1'; } catch(e){}
   let audio = null;
   let stopGame = () => {};
 
@@ -1023,11 +1025,14 @@
     bootSchool();
     last = performance.now();
     raf = requestAnimationFrame(loop);
+    document.addEventListener('visibilitychange',function(){if(document.hidden){if(raf)cancelAnimationFrame(raf);}else{raf=requestAnimationFrame(loop);if(typeof audio!=='undefined'&&audio&&audio.resume)audio.resume().catch(function(){});}});
   }
 
   showMenu();
 })();
 </script>
+<script src="hardening.js?v=2"></script>
 <script src="playtime.js?v=2"></script>
+<script src="pwa.js"></script>
 </body>
 </html>

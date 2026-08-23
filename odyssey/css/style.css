@@ -31,3 +31,6 @@ html, body {
   .wrap { padding: 4px; }
   #game { border-width: 3px; border-radius: 4px; }
 }
+@media (max-width: 500px) {
+  #game { width: 100vw !important; height: auto !important; }
+}

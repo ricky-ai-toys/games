@@ -1,4 +1,6 @@
 'use strict';
+if(window.AmberHardening) AmberHardening.installErrorOverlay('Odyssey hit a snag. Reload to continue!');
+
 (function () {
   function boot() {
     const canvas = document.getElementById('game');

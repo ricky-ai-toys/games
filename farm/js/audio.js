@@ -44,7 +44,7 @@ const FarmAudio = (() => {
   }
 
   function resume() {
-    if (ctx && ctx.state === 'suspended') ctx.resume();
+    if (ctx && ctx.state === 'suspended') ctx.resume().catch(function(){});
   }
 
   function setMuted(v) { muted = v; persist(); if (v) stopMusic(); else if (musicEnabled) startMusic(); }

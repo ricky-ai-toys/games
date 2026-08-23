@@ -6,7 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Amber's Star Catcher">
-<meta name="theme-color" content="#0d1b3a">
+starcatcher.html
+<link rel="manifest" href="manifest.webmanifest">
 <title>Amber's Star Catcher</title>
 <style>
   :root {
@@ -101,6 +102,7 @@
 </div>
 
 <script>
+window.addEventListener('error', function(e){ if(window.AmberHardening && AmberHardening.__amberErrorInstalled) return; try{ var d=document.createElement('div'); d.setAttribute('role','alert'); d.style.cssText='position:fixed;inset:0;z-index:9999;background:#1a1a2e;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;padding:24px;text-align:center;'; d.innerHTML='<div style="font-size:48px;margin-bottom:16px">🦊</div><div style="font-size:18px;margin-bottom:24px">Oops! Reload and try again.</div><button onclick="location.reload()" style="font-size:16px;padding:12px 24px;border:none;border-radius:8px;background:#f5a623;color:#1a1a2e;cursor:pointer;font-weight:bold;">Reload</button>'; document.body.appendChild(d); }catch(_){} });
 const canvas = document.getElementById('cv');
 const ctx = canvas.getContext('2d', { alpha: true });
 
@@ -135,17 +137,17 @@ const GOOD_POOL = [
   { kind: 'bomb',   w: 0.04 },
 ];
 
-let bests = {
+let bests = (() => { try { return {
   easy: parseInt(localStorage.getItem('starcatcher_best_easy')||'0',10),
   med:  parseInt(localStorage.getItem('starcatcher_best_med')||'0',10),
   hard: parseInt(localStorage.getItem('starcatcher_best_hard')||'0',10),
-};
-let bestWaves = {
+}; } catch(e){ return {easy:0,med:0,hard:0}; } })();
+let bestWaves = (() => { try { return {
   easy: parseInt(localStorage.getItem('starcatcher_bestwave_easy')||'0',10),
   med:  parseInt(localStorage.getItem('starcatcher_bestwave_med')||'0',10),
   hard: parseInt(localStorage.getItem('starcatcher_bestwave_hard')||'0',10),
-};
-let muted = localStorage.getItem('starcatcher_muted') === '1';
+}; } catch(e){ return {easy:0,med:0,hard:0}; } })();
+let muted = false; try { muted = localStorage.getItem('starcatcher_muted') === '1'; } catch(e){}
 let audioCtx = null;
 
 const G = {
@@ -602,6 +604,7 @@ function updateLoop(ts) {
   requestAnimationFrame(updateLoop);
 }
 requestAnimationFrame(updateLoop);
+(function(){document.addEventListener('visibilitychange',function(){if(document.hidden){if(typeof audioCtx!=='undefined'&&audioCtx&&audioCtx.suspend)audioCtx.suspend();}else{if(typeof audioCtx!=='undefined'&&audioCtx&&audioCtx.resume)audioCtx.resume().catch(function(){});}});})();
 
 let dragging = false;
 canvas.addEventListener('pointerdown', (e) => {
@@ -634,6 +637,8 @@ window.__tick = (dt) => { if (G.phase === 'playing') update(dt); };
 window.__G = () => G;
 window.__endTest = () => endGame();
 </script>
+<script src="hardening.js?v=2"></script>
 <script src="playtime.js?v=2"></script>
+<script src="pwa.js"></script>
 </body>
 </html>

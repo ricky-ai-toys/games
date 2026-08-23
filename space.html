@@ -6,7 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Amber's Space Math">
-<meta name="theme-color" content="#0a0a2e">
+space.html
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="description" content="Defend the rocket, race the clock, and fill a bingo board — three fun ways to practice arithmetic.">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a2e'/%3E%3Ctext y='.9em' x='.1em' font-size='80'%3E%F0%9F%9A%80%3C/text%3E%3C/svg%3E">
 <title>Amber's Space Math</title>
@@ -581,6 +582,7 @@
 </div>
 
 <script>
+window.addEventListener('error', function(e){ if(window.AmberHardening && AmberHardening.__amberErrorInstalled) return; try{ var d=document.createElement('div'); d.setAttribute('role','alert'); d.style.cssText='position:fixed;inset:0;z-index:9999;background:#1a1a2e;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;padding:24px;text-align:center;'; d.innerHTML='<div style="font-size:48px;margin-bottom:16px">🦊</div><div style="font-size:18px;margin-bottom:24px">Oops! Reload and try again.</div><button onclick="location.reload()" style="font-size:16px;padding:12px 24px;border:none;border-radius:8px;background:#f5a623;color:#1a1a2e;cursor:pointer;font-weight:bold;">Reload</button>'; document.body.appendChild(d); }catch(_){} });
 (function () {
   "use strict";
 
@@ -595,7 +597,7 @@
   let state = loadState();
   let current = null;
   let paused = false;
-  let muted = localStorage.getItem("space_muted") === "1";
+  let muted = false; try { muted = localStorage.getItem("space_muted") === "1"; } catch(e){}
   let audioCtx = null;
 
   const $ = (id) => document.getElementById(id);
@@ -690,7 +692,7 @@
       try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
       catch (e) { audioCtx = null; }
     }
-    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(function(){});
     return audioCtx;
   }
   function blip(freq, dur, type) {
@@ -1655,8 +1657,11 @@
   });
 
   showHub();
+  document.addEventListener('visibilitychange',function(){if(document.hidden){if(typeof pauseGame==='function')pauseGame();if(typeof audioCtx!=='undefined'&&audioCtx&&audioCtx.suspend)audioCtx.suspend();}else{if(typeof resumeGame==='function')resumeGame();if(typeof audioCtx!=='undefined'&&audioCtx&&audioCtx.resume)audioCtx.resume().catch(function(){});}});
 })();
 </script>
+<script src="hardening.js?v=2"></script>
 <script src="playtime.js?v=2"></script>
+<script src="pwa.js"></script>
 </body>
 </html>

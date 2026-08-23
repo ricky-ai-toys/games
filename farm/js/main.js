@@ -2,6 +2,8 @@
    Amber's Farm — Entry / Input Wiring
    ======================================== */
 
+if(window.AmberHardening) AmberHardening.installErrorOverlay('Farm hit a snag. Reload to continue!');
+
 window.addEventListener('load', () => {
   const canvas = document.getElementById('gameCanvas');
   Game.init(canvas);
@@ -228,6 +230,13 @@ window.addEventListener('load', () => {
 
   // Auto-save on leave
   window.addEventListener('beforeunload', () => {
+    if (Game.state && Game.state.scene !== 'title') {
+      Save.write(Game.state);
+    }
+  });
+
+  // iOS pagehide autosave (iOS Safari often skips beforeunload)
+  window.addEventListener('pagehide', () => {
     if (Game.state && Game.state.scene !== 'title') {
       Save.write(Game.state);
     }

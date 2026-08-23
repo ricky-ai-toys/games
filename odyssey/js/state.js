@@ -60,6 +60,7 @@ const Save = (() => {
       if (!data || data.version == null) return null;
       return migrate(data);
     } catch (e) {
+      try { localStorage.removeItem(SAVE_KEY); } catch(e2){}
       return null;
     }
   }

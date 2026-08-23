@@ -14,7 +14,7 @@ const OdysseyAudio = (() => {
         master.connect(actx.destination);
       } catch (e) { actx = null; }
     }
-    if (actx && actx.state === 'suspended') actx.resume();
+    if (actx && actx.state === 'suspended') actx.resume().catch(function(){});
     return actx;
   }
 

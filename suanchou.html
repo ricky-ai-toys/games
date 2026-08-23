@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#14213d">
+suanchou.html
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="description" content="A fun ancient Chinese counting-rod (算籌) game made especially for Amber.">
 <title>算籌大冒險 · Amber's Counting Rods</title>
-<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="vendor/vue/vue.global.prod.js"></script>
 <style>
 :root{--navy:#14213d;--ink:#101828;--cream:#fff8e8;--coral:#ff7262;--yellow:#ffd85a;--sky:#5bc8ff;--green:#66d17a;--jade:#3fae86;--jade2:#8be6c4;--red:#f04452;--panel:rgba(14,25,54,.82);--glass:rgba(13,26,58,.72);--glass-line:rgba(255,255,255,.24)}
 *{box-sizing:border-box}html,body,#app{margin:0;width:100%;height:100%}body{font-family:ui-rounded,"PingFang TC","Microsoft JhengHei","SF Pro Rounded","Segoe UI",sans-serif;background:var(--navy);color:#fff;user-select:none;-webkit-user-select:none}
@@ -286,7 +287,7 @@ function unitsOf(d){return d>=6?d-5:d}
 function cellsFor(value,places){const arr=[];for(let p=places-1;p>=0;p--){const d=Math.floor(value/Math.pow(10,p))%10;arr.push({digit:d,form:(p%2===0)?'zong':'heng',pos:p})}return arr}
 // ---- audio ----
 let audio=null;
-function initAudio(){if(!save.sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();audio.resume()}catch(e){}}
+function initAudio(){if(!save.sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();audio.resume().catch(function(){})}catch(e){}}
 function sfx(type){if(!save.sound||!audio)return;const map={gem:[700,1100,.12],win:[520,1040,.4],wrong:[220,110,.2],tick:[900,600,.05],land:[150,95,.07],step:[500,760,.06]};let[a,b,d]=map[type]||map.land,o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime;o.type=type==='wrong'?'sawtooth':'sine';o.frequency.setValueAtTime(a,t);o.frequency.exponentialRampToValueAtTime(b,t+d);g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(audio.destination);o.start();o.stop(t+d)}
 function confettiBurst(){if(save.reduced)return;const colors=['#ffd85a','#ff7262','#5bc8ff','#66d17a','#3fae86'];for(let i=0;i<36;i++){const el=document.createElement('div');el.className='confetti-piece';el.style.cssText=`left:${Math.random()*100}vw;top:-12px;background:${colors[i%5]};animation-duration:${1.2+Math.random()*1.4}s;animation-delay:${Math.random()*.4}s;border-radius:${Math.random()<.5?'50%':'2px'}`;document.body.appendChild(el);setTimeout(()=>el.remove(),3200)}}
 function checkBadges(){for(const b of BADGES){if(!save.badges.includes(b.id)&&b.check()){save.badges.push(b.id);persist();showToast('🏅 '+b.name+'!');sfx('win');confettiBurst()}}}
@@ -342,5 +343,7 @@ openWorld,startLevel,stepDigit,pad,quitLevel,checkRead,checkBuild,nextFromResult
 lessonPage,lessonCards,lessonNext,lessonDone,replayLesson};
 }}).mount('#app');})();
 </script>
+<script src="hardening.js?v=2"></script>
 <script src="playtime.js?v=2"></script>
+<script src="pwa.js"></script>
 </body></html>

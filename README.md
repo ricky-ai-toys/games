@@ -25,6 +25,8 @@ Any way you like:
 | Amber's Starlight Pinball | `pinball.html` | Flip for moon gems, spell AMBER for a bonus |
 | Amber's Kite Runner | `kite.html` | Soar through clouds, grab stars, dodge birds |
 | Amber's Big Two | `bigtwo/index.html` | Hong Kong Big Two (鋤大D) with Maple, Finn & Pip |
+| Amber's Big Drop | `next100.html` | Fast mobile platformer — drop 100 floors, dodge, set a high score |
+| Amber's Wild Arcade | `wild.html` | A mini arcade of mini-games — jump, dodge, and score big |
 | Amber's Typing Adventure | `typing.html` | Falling words, bubble spell, word race, sentences |
 | Shop with Amber | `shop.html` | Make change, fill the cart, spot the best deal |
 | Amber's Space Math | `space.html` | Defend the rocket, race the clock, fill a bingo board |
@@ -50,9 +52,11 @@ Docs live in `farm/MASTERPLAN.md` (roadmap + changelog) and `farm/README.md`.
 
 ## Tech notes
 
-- Vanilla HTML/CSS/JS — no frameworks, no build step, no dependencies
-- All games run offline from the folder
+- Vanilla HTML/CSS/JS — no build step
+- Libraries (React, Vue, Babel) are vendored locally under `vendor/` — **no CDN, no network** at runtime
+- All games run offline once loaded (PWA service worker caches the shell + libs)
 - Kids-first design: big touch targets, keyboard + touch controls, no ads, no tracking
+- New games (`next100.html`, `wild.html`) and duplicate (`suanchou-quest.html` now redirects to `suanchou.html`) added to the arcade
 
 ## Development
 

@@ -20,6 +20,7 @@ const Save = (() => {
       return migrate(data);
     } catch (e) {
       console.warn('Save load failed', e);
+      try { localStorage.removeItem(CONST.SAVE_KEY); } catch(e2){}
       return null;
     }
   }

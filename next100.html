@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+next100.html
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>是男人就下一百层</title>
@@ -75,6 +77,7 @@ h1 { font-size: 42px; margin: 10px; text-shadow: 0 0 15px #ffcc00; }
   <div id="overlay">
     <h1>🏔️ 是男人就下一百层</h1>
     <p id="info">鼠标左右移动 / 手指滑动 / 键盘 ← → 控制</p>
+    <p style="font-size:14px;color:#ffcc00;margin:8px 0;padding:0 20px;">← → 或点击屏幕左右两侧移动，躲避障碍物，到达更低楼层！</p>
     <button id="btn" onclick="startGame()">开始挑战</button>
   </div>
   <div id="controls">
@@ -86,6 +89,7 @@ h1 { font-size: 42px; margin: 10px; text-shadow: 0 0 15px #ffcc00; }
 </div>
 
 <script>
+window.addEventListener('error', function(e){ if(window.AmberHardening && AmberHardening.__amberErrorInstalled) return; try{ var d=document.createElement('div'); d.setAttribute('role','alert'); d.style.cssText='position:fixed;inset:0;z-index:9999;background:#1a1a2e;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;padding:24px;text-align:center;'; d.innerHTML='<div style="font-size:48px;margin-bottom:16px">🦊</div><div style="font-size:18px;margin-bottom:24px">Oops! Reload and try again.</div><button onclick="location.reload()" style="font-size:16px;padding:12px 24px;border:none;border-radius:8px;background:#f5a623;color:#1a1a2e;cursor:pointer;font-weight:bold;">Reload</button>'; document.body.appendChild(d); }catch(_){} });
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const W = 400, H = 600;
@@ -95,7 +99,7 @@ let obstacles = [];
 let floors = [];
 let gameSpeed = 3.2;
 let currentFloor = 0;
-let highestFloor = parseInt(localStorage.getItem('highest100') || '0');
+let highestFloor = 0; try { highestFloor = parseInt(localStorage.getItem('highest100') || '0'); } catch(e){}
 let isPlaying = false;
 let isOver = false;
 let isWin = false;
@@ -333,10 +337,13 @@ function gameLoop(timestamp = 0) {
     document.getElementById('info').innerHTML = '最高纪录：<b>' + highestFloor + '</b> 层';
   }
 
-  if (isPlaying) requestAnimationFrame(gameLoop);
+  if (isPlaying && !window.__amberPaused) requestAnimationFrame(gameLoop);
 }
+document.addEventListener('visibilitychange',function(){window.__amberPaused=document.hidden;});
 
 document.getElementById('info').innerHTML += '<br>最高纪录：' + highestFloor + ' 层';
 </script>
+<script src="hardening.js?v=2"></script>
+<script src="pwa.js"></script>
 </body>
 </html>

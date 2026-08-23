@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Burson Floor — FinComms HK</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div class="hud-left">
+        <div class="hud-time" id="hud-time">09:00</div>
+        <div class="hud-phase" id="hud-phase">Morning rush</div>
+      </div>
+      <div class="hud-center">
+        <div class="hud-you" id="hud-you">You</div>
+        <div class="focus-wrap">
+          <span class="focus-label">Focus</span>
+          <div class="focus-bar"><div class="focus-fill" id="focus-fill"></div></div>
+        </div>
+      </div>
+      <div class="hud-right">
+        <button class="hud-btn" id="btn-tasks" title="Tasks">📋</button>
+        <button class="hud-btn" id="btn-mute" title="Mute">🔊</button>
+        <button class="hud-btn" id="btn-density" title="Chat density">💬</button>
+      </div>
+    </div>
+
+    <!-- Task panel -->
+    <div id="task-panel" class="panel hidden">
+      <h3>Today’s board</h3>
+      <ul id="task-list"></ul>
+      <p class="hint">Walk · click people · E to talk · sit at your desk</p>
+    </div>
+
+    <!-- Dialogue -->
+    <div id="dialogue" class="hidden">
+      <div class="dlg-name" id="dlg-name"></div>
+      <div class="dlg-text" id="dlg-text"></div>
+      <div class="dlg-choices" id="dlg-choices"></div>
+      <button class="dlg-close" id="dlg-close">…</button>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="hidden"></div>
+
+    <!-- End of day -->
+    <div id="eod-screen" class="screen-overlay hidden">
+      <div class="panel eod-panel">
+        <h2>Day closed ✨</h2>
+        <p id="eod-summary"></p>
+        <ul id="eod-list"></ul>
+        <button class="primary-btn" id="btn-again">Another day</button>
+        <button class="ghost-btn" id="btn-title">Back to lobby</button>
+      </div>
+    </div>
+
+    <!-- Title -->
+    <div id="title-screen" class="screen-overlay">
+      <div class="title-card">
+        <p class="eyebrow">Burson · Hong Kong</p>
+        <h1>FinComms Floor</h1>
+        <p class="tagline">Pixel office life · people talk a lot</p>
+        <button class="primary-btn" id="btn-start">Join the floor</button>
+        <p class="fineprint">Fictional warm comedy · not real client work</p>
+      </div>
+    </div>
+
+    <!-- Seat picker -->
+    <div id="seat-screen" class="screen-overlay hidden">
+      <div class="seat-header">
+        <h2>Pick your seat</h2>
+        <p>Become anyone on the FinComms map for the day</p>
+      </div>
+      <div id="seat-grid"></div>
+      <button class="ghost-btn" id="btn-back-title">← Back</button>
+    </div>
+
+    <!-- Prompt -->
+    <div id="prompt" class="hidden">Press <kbd>E</kbd> / click</div>
+
+    <!-- Mobile touch controls (touch / coarse-pointer only) -->
+    <div id="touch-ui" class="hidden">
+      <div id="dpad">
+        <button class="dbtn" data-dir="up" aria-label="Up">▲</button>
+        <button class="dbtn" data-dir="left" aria-label="Left">◀</button>
+        <button class="dbtn" data-dir="right" aria-label="Right">▶</button>
+        <button class="dbtn" data-dir="down" aria-label="Down">▼</button>
+      </div>
+      <button id="act-btn" aria-label="Talk or interact">💬 Talk</button>
+    </div>
+  </div>
+
+  <script src="js/constants.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/data/roster.js"></script>
+  <script src="js/data/map.js"></script>
+  <script src="js/data/lines.js"></script>
+  <script src="js/data/banter.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/time.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/ambient.js"></script>
+  <script src="js/dialogue.js"></script>
+  <script src="js/npc.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/touch.js"></script>
+</body>
+</html>

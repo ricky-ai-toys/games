@@ -109,13 +109,13 @@ const Game = (() => {
   function applySave(data) {
     const st = createNewState(data.farmName);
     Object.assign(st, {
-      day: data.day,
+      day: (data.day == null ? 1 : data.day),
       seasonIndex: data.seasonIndex,
       year: data.year || 1,
       period: data.period || 'morning',
       periodTimer: data.periodTimer || 0,
       weather: data.weather || 'sun',
-      coins: data.coins,
+      coins: (data.coins == null ? CONST.START_COINS : data.coins),
       energy: data.energy != null ? data.energy : CONST.ENERGY_MAX,
       inventory: normalizeInventory(data.inventory),
       selectedSlot: data.selectedSlot || 0,

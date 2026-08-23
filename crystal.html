@@ -6,7 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Amber's Crystal Match">
-<meta name="theme-color" content="#1a2744">
+crystal.html
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="description" content="Swap crystals, chain combos, and clear every wave to win!">
 <title>Amber's Crystal Match</title>
 <style>
@@ -922,6 +923,7 @@
 </div>
 
 <script>
+window.addEventListener('error', function(e){ if(window.AmberHardening && AmberHardening.__amberErrorInstalled) return; try{ var d=document.createElement('div'); d.setAttribute('role','alert'); d.style.cssText='position:fixed;inset:0;z-index:9999;background:#1a1a2e;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;padding:24px;text-align:center;'; d.innerHTML='<div style="font-size:48px;margin-bottom:16px">🦊</div><div style="font-size:18px;margin-bottom:24px">Oops! Reload and try again.</div><button onclick="location.reload()" style="font-size:16px;padding:12px 24px;border:none;border-radius:8px;background:#f5a623;color:#1a1a2e;cursor:pointer;font-weight:bold;">Reload</button>'; document.body.appendChild(d); }catch(_){} });
 const canvas = document.getElementById('cv');
 const ctx = canvas.getContext('2d', { alpha: false }) || {
   setTransform() {}, fillRect() {}, strokeRect() {}, beginPath() {}, arc() {}, fill() {}, stroke() {},
@@ -958,22 +960,22 @@ const WAVE_LINES = [
 let W = 0, H = 0, dpr = 1;
 let boardOriginX = 0, boardOriginY = 0, cell = 48, boardPx = 0;
 
-let bests = {
+let bests = (() => { try { return {
   easy: parseInt(localStorage.getItem('crystal_best_easy') || '0', 10),
   med: parseInt(localStorage.getItem('crystal_best_med') || '0', 10),
   hard: parseInt(localStorage.getItem('crystal_best_hard') || '0', 10),
-};
-let bestWaves = {
+}; } catch(e){ return {easy:0,med:0,hard:0}; } })();
+let bestWaves = (() => { try { return {
   easy: parseInt(localStorage.getItem('crystal_bestwave_easy') || '0', 10),
   med: parseInt(localStorage.getItem('crystal_bestwave_med') || '0', 10),
   hard: parseInt(localStorage.getItem('crystal_bestwave_hard') || '0', 10),
-};
-let wins = {
+}; } catch(e){ return {easy:0,med:0,hard:0}; } })();
+let wins = (() => { try { return {
   easy: parseInt(localStorage.getItem('crystal_wins_easy') || '0', 10),
   med: parseInt(localStorage.getItem('crystal_wins_med') || '0', 10),
   hard: parseInt(localStorage.getItem('crystal_wins_hard') || '0', 10),
-};
-let muted = localStorage.getItem('crystal_muted') === '1';
+}; } catch(e){ return {easy:0,med:0,hard:0}; } })();
+let muted = false; try { muted = localStorage.getItem('crystal_muted') === '1'; } catch(e){}
 let audioCtx = null;
 let gemId = 1;
 let amberTimer = null;
@@ -2335,6 +2337,7 @@ function frame(ts) {
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+(function(){document.addEventListener('visibilitychange',function(){if(document.hidden){if(typeof audioCtx!=='undefined'&&audioCtx&&audioCtx.suspend)audioCtx.suspend();}else{if(typeof audioCtx!=='undefined'&&audioCtx&&audioCtx.resume)audioCtx.resume().catch(function(){});}});})();
 
 let ptr = null;
 canvas.addEventListener('pointerdown', (e) => {
@@ -2409,6 +2412,8 @@ window.__crystal = {
   attemptSwap, useHint, winGame, completeWave, bests, bestWaves, wins,
 };
 </script>
+<script src="hardening.js?v=2"></script>
 <script src="playtime.js?v=2"></script>
+<script src="pwa.js"></script>
 </body>
 </html>

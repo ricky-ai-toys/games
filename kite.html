@@ -5,7 +5,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Kite Runner">
-  <meta name="theme-color" content="#0b1530">
+  kite.html
+<link rel="manifest" href="manifest.webmanifest">
   <meta name="description" content="Hold to soar, let go to glide — collect stars and chase the breeze in Amber's Kite Runner!">
   <title>Amber's Kite Runner</title>
   <style>
@@ -452,7 +453,7 @@
 
     // --- audio ---
     let audioCtx = null;
-    function initAudio() { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } catch (e) {} }
+    function initAudio() { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume().catch(function(){}); } catch (e) {} }
     function blip(freq, dur, type, vol) {
       try {
         initAudio(); if (!audioCtx) return;
@@ -986,7 +987,10 @@
     resize();
     lastTime = 0;
     rafId = requestAnimationFrame(frame);
+    document.addEventListener('visibilitychange',function(){if(document.hidden){if(rafId)cancelAnimationFrame(rafId);}else{rafId=requestAnimationFrame(frame);if(typeof audioCtx!=='undefined'&&audioCtx&&audioCtx.resume)audioCtx.resume().catch(function(){});}});
   })();
   </script>
-  <script src="playtime.js?v=2"></script>
+  <script src="hardening.js?v=2"></script>
+<script src="playtime.js?v=2"></script>
+<script src="pwa.js"></script>
 </body></html>

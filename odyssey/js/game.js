@@ -1,11 +1,21 @@
 'use strict';
 const Game = (() => {
+  var __cachedSave = null;
+  var __cachedSaveTick = 0;
+  function cachedSave() {
+    if (__cachedSaveTick <= 0 || __cachedSaveTick > 30) {
+      __cachedSave = Save.load();
+      __cachedSaveTick = 0;
+    }
+    __cachedSaveTick++;
+    return __cachedSave;
+  }
   const ARTIFACT_FOR = {
     calypso: 'comb', lotus: 'lotus', cyclops: 'jar', aeolus: 'winds',
     laestrygonians: 'oar', circe: 'moly', underworld: 'bough', sirens: 'feather',
     scylla: 'medallion', helios: 'rib', phaeacia: 'discus', ithaca: 'bow',
   };
-  const input = { taps: [], spaceEdge: false, tapHeld: false, left: false, right: false, up: false, down: false };
+  const input = { taps: [], spaceEdge: false, tapHeld: false, left: false, right: false, up: false, down: false, touchZone: 0, touchPointerId: null };
 
   const api = {
     ARTIFACT_FOR,
@@ -23,6 +33,11 @@ const Game = (() => {
     api.hasSave = !!st;
     canvas.addEventListener('pointerdown', (e) => {
       const r = canvas.getBoundingClientRect();
+      const tx = (e.clientX - r.left) / r.width;
+      if (api.scene === 'episode') {
+        if (tx < 0.33) { input.left = true; input.right = false; }
+        else if (tx > 0.66) { input.right = true; input.left = false; }
+      }
       input.taps.push({
         x: (e.clientX - r.left) * (VIEW_W / r.width),
         y: (e.clientY - r.top) * (VIEW_H / r.height),
@@ -32,7 +47,10 @@ const Game = (() => {
       OdysseyAudio.ensure();
       OdysseyAudio.click();
     });
-    window.addEventListener('pointerup', () => { input.tapHeld = false; });
+    window.addEventListener('pointerup', () => {
+      input.tapHeld = false;
+      if (api.scene === 'episode') { input.left = false; input.right = false; }
+    });
     window.addEventListener('keydown', (e) => {
       if (e.key === ' ') { e.preventDefault(); input.spaceEdge = true; input.tapHeld = true; }
       if (e.key === 'ArrowLeft') input.left = true;
@@ -123,6 +141,7 @@ const Game = (() => {
       api.scene = 'result';
       api.sceneData = { ep, win: false };
     }
+    try { delete s.mg; } catch(e){}
     Save.write(s);
   }
 
@@ -148,7 +167,7 @@ const Game = (() => {
   function update(dt) {
     api.time += dt;
     const s = api.state;
-    const hasSave = !!Save.load();
+    const hasSave = !!cachedSave();
     if (api.scene === 'title') {
       if (Game.tapAt(330, 225, 300, 50)) { newGame(); }
       else if (hasSave && Game.tapAt(330, 283, 300, 50)) { continueGame(); }
@@ -195,7 +214,7 @@ const Game = (() => {
 
   function render(ctx) {
     const s = api.state;
-    if (api.scene === 'title') Render.title(ctx, s, !!Save.load());
+    if (api.scene === 'title') Render.title(ctx, s, !!cachedSave());
     else if (api.scene === 'ship') Ship.render(ctx);
     else if (api.scene === 'map') Voyage.render(ctx);
     else if (api.scene === 'episode') {
