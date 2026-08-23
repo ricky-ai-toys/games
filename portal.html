@@ -205,6 +205,14 @@
     box-shadow: 0 14px 36px -22px rgba(255,138,101,0.55), inset 0 1px 0 rgba(255,255,255,0.1);
     transition: transform .22s var(--ease), border-color .22s var(--ease), box-shadow .22s var(--ease);
   }
+
+  /* Featured (favorites) row */
+  .featured { margin: 14px 0 6px; }
+  .featured[hidden] { display: none; }
+  .featured .section-head h2 { font-size: 17px; }
+  .featured-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .featured-grid .card { border-width: 2px; border-color: rgba(255,209,128,0.35); }
+  .featured-grid .card .idx { background: linear-gradient(135deg,#b8860b,#ffd166); color:#20180a; font-size: 13px; }
   .continue.show { display: flex; }
   .continue:hover, .continue:focus-visible {
     border-color: rgba(255,209,128,0.5);
@@ -614,6 +622,11 @@
     </header>
 
     <a class="continue" id="continue" href="#" hidden></a>
+
+    <section class="featured" id="featured" aria-label="Amber's favorites" hidden>
+      <div class="section-head"><h2>⭐ Amber's Favorites</h2><div class="blurb">Your most-played adventures</div></div>
+      <div class="grid featured-grid" id="featured-grid"></div>
+    </section>
 
     <nav class="filters" id="filters" aria-label="Game categories"></nav>
 
@@ -1151,6 +1164,30 @@
       '<span class="go">Play</span>';
     elContinue.addEventListener('click', () => setLast(lastGame.file));
   }
+
+  /* Featured row: 4 most-played games (by playtime, then best score), only if she has any history */
+  function renderFeatured() {
+    const el = document.getElementById('featured');
+    const grid = document.getElementById('featured-grid');
+    if (!el || !grid) return;
+    const ranked = GAMES
+      .map(g => ({ g, ms: getPlayMs(g.file), best: getBest(g.file) }))
+      .filter(x => x.ms > 0 || x.best > 0)
+      .sort((a, b) => (b.ms - a.ms) || (b.best - a.best))
+      .slice(0, 4);
+    if (!ranked.length) { el.hidden = true; return; }
+    el.hidden = false;
+    grid.innerHTML = ranked.map((x, i) => {
+      const card = cardHtml(x.g, i);
+      // add a rank medal for top 3
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+      return medal ? card.replace('<div class="badges">', '<div class="badges"><span class="idx">' + medal + '</span>') : card;
+    }).join('');
+    grid.querySelectorAll('a.card').forEach(a => {
+      a.addEventListener('click', () => setLast(a.getAttribute('data-file')));
+    });
+  }
+  renderFeatured();
 
   function countGroup(id) {
     if (id === 'all') return GAMES.length;
