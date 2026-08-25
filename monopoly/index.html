@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Boardwalk">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta name="description" content="Amber's Boardwalk — a cozy kid-friendly mini Monopoly. Buy spots, add stars, and out-charm your buddies!">
+  <title>Amber's Boardwalk</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<a class="portal-home" href="../portal.html">← Games</a>
+
+<!-- ============ SETUP ============ -->
+<div class="screen" id="setup-screen">
+  <div class="setup-wrap">
+    <div class="big-emoji">🎡</div>
+    <h1 class="title">Amber's Boardwalk</h1>
+    <p class="subtitle">A cozy mini monopoly</p>
+
+    <div class="setup-card">
+      <p class="pick-label">Pick your boardwalk buddies</p>
+      <div class="buddy-row" id="buddy-row"></div>
+      <div class="btn-row">
+        <button class="btn secondary small" id="btn-howto" type="button">How to Play 📖</button>
+        <button class="btn" id="btn-start" type="button">Let's Go! ✨</button>
+      </div>
+    </div>
+    <p class="stat-line" id="stat-line">Wins: 0 · Games: 0</p>
+  </div>
+</div>
+
+<!-- ============ HOW TO ============ -->
+<div class="overlay hidden" id="howto-overlay">
+  <div class="modal">
+    <div class="m-emoji">📖</div>
+    <h2>How to Play</h2>
+    <ul class="rules-list">
+      <li><b>Roll &amp; hop!</b> Move around the boardwalk collecting $2 every lap.</li>
+      <li><b>Buy spots</b> when you land on them — other kids pay you rent!</li>
+      <li><b>Own a whole color?</b> Rent doubles. Add ⭐ stars to raise it more (max 3).</li>
+      <li><b>🎁 Surprise cards</b> are mostly treats… watch for the Time-out one!</li>
+      <li><b>⏰ Time-out:</b> sit out a turn, or pay $1 to hop right back in.</li>
+      <li><b>Win</b> by being the last kid with pocket money — or the richest after round 30!</li>
+    </ul>
+    <div class="btn-row">
+      <button class="btn" id="btn-close-howto" type="button">Got it! 👍</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ GAME ============ -->
+<div class="screen hidden" id="game-screen">
+  <div class="topbar">
+    <span class="pill">Round <span id="round-num">1</span><span class="mini">/30</span></span>
+    <span style="display:flex;gap:8px;">
+      <button class="icon-btn" id="btn-sound" type="button" title="Sound on/off">🔊</button>
+      <button class="icon-btn" id="btn-home" type="button" title="Back to menu">🏠</button>
+    </span>
+  </div>
+
+  <div class="table">
+    <div class="board-zone">
+      <div class="board" id="board">
+        <div class="center">
+          <div class="brand">Amber's<small>BOARDWALK</small></div>
+          <div class="dice-row">
+            <div class="die" id="die-a">🎲</div>
+            <div class="die" id="die-b">🎲</div>
+          </div>
+          <div class="status" id="status">Roll to start!</div>
+          <div class="turn-chip" id="turn-chip"></div>
+        </div>
+        <div class="tokens" id="tokens"></div>
+      </div>
+    </div>
+
+    <aside class="panel">
+      <div class="card-box">
+        <h3>Players</h3>
+        <div id="players"></div>
+      </div>
+      <div class="roll-zone">
+        <button class="btn" id="btn-roll" type="button" disabled>Roll the Dice 🎲</button>
+        <p class="hint" id="hint"></p>
+      </div>
+      <div class="card-box">
+        <h3>Adventure Log</h3>
+        <div class="logbox" id="log"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ============ MODALS ============ -->
+<div class="overlay hidden" id="buy-overlay">
+  <div class="modal">
+    <div class="m-emoji" id="buy-emoji">🍦</div>
+    <h2 id="buy-name">Ice Cream Stand</h2>
+    <p id="buy-desc">Buy this spot? Friends who land here will pay you rent!</p>
+    <p class="price-tag" id="buy-price">$2</p>
+    <div class="btn-row">
+      <button class="btn secondary" id="btn-skip-buy" type="button">Not now</button>
+      <button class="btn" id="btn-confirm-buy" type="button">Buy it! 🎉</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="star-overlay">
+  <div class="modal">
+    <div class="m-emoji">⭐</div>
+    <h2>Add a star?</h2>
+    <p id="star-desc">Make your spot even better!</p>
+    <p class="price-tag" id="star-price"></p>
+    <div class="btn-row">
+      <button class="btn secondary" id="btn-skip-star" type="button">Keep my money</button>
+      <button class="btn" id="btn-build-star" type="button">Add Star ⭐</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="timeout-overlay">
+  <div class="modal">
+    <div class="m-emoji">⏰</div>
+    <h2>Time-out Corner</h2>
+    <p>Sit this one out… or pay <b>$1</b> to hop back into the fun right now?</p>
+    <div class="btn-row">
+      <button class="btn secondary" id="btn-sit-out" type="button">Sit out 😌</button>
+      <button class="btn" id="btn-pay-out" type="button">Pay $1 &amp; play! 🤸</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="card-overlay">
+  <div class="modal surprise-card"><div class="surprise-inner">
+    <div class="m-emoji" id="card-icon">🎁</div>
+    <h2>Surprise!</h2>
+    <p id="card-text">…</p>
+    <div class="btn-row">
+      <button class="btn" id="btn-card-ok" type="button">OK! 😊</button>
+    </div>
+  </div></div>
+</div>
+
+<div class="overlay hidden" id="over-overlay">
+  <div class="modal">
+    <div class="gameover-winner" id="over-emoji">🏆</div>
+    <h2 id="over-title">You win!</h2>
+    <p id="over-msg">Great boardwalking!</p>
+    <p class="price-tag" id="over-stat"></p>
+    <div class="btn-row">
+      <button class="btn secondary" id="btn-over-menu" type="button">Menu</button>
+      <button class="btn" id="btn-again" type="button">Play Again 🔁</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-layer" aria-live="polite"></div>
+
+<script src="../hardening.js?v=2"></script>
+<script src="js/data.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/bots.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+<script src="../playtime.js?v=2" defer></script>
+<script src="../pwa.js" defer></script>
+</body>
+</html>
