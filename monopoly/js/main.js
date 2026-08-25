@@ -318,8 +318,9 @@
   }
 
   function boot() {
+    if (H && H.installErrorOverlay) H.installErrorOverlay();
     UI.init();
-    UI.buildBoard(); // decorative board behind setup? keep hidden screen simple
+    UI.buildBoard();
     buildSetup();
     wire();
   }

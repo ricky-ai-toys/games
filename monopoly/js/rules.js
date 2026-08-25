@@ -229,7 +229,10 @@
         break;
       case 'moveTo':
         teleportForward(state, pid, card.target, !!card.collect, events);
-        if (p.alive) resolveLanding(state, pid, p.pos, events, true);
+        if (p.alive) {
+          resolveLanding(state, pid, p.pos, events, true);
+          maybeOfferStar(state);
+        }
         break;
       case 'skip':
         p.skipTurns += card.turns;
