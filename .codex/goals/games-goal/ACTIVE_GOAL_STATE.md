@@ -2,7 +2,7 @@
 status: active
 owner_mode: goal
 objective: "implement all, step by step, until done"
-updated_at: 2026-08-07T00:17:57+08:00
+updated_at: 2026-08-26T00:30:57+08:00
 adapter_id: games-goal
 ---
 
@@ -61,6 +61,18 @@ implement all, step by step, until done
   <!-- loopx:todo todo_id=todo_e85e385df401 status=open task_class=advancement_task action_kind=qa_gate updated_at=2026-08-07T00:14:43%2B08:00 -->
 - [ ] [P0-done] H0 Foundation complete: vendor/{react,babel,vue}/ populated (React 18.3.1, Babel 7.26.10, Vue 3); hardening.js created with getJSON/setJSON/getString/getInt/installErrorOverlay/safeResume/installAudioGestureUnlock/onVisible/onHidden/clearScope; loaded in all 22 entry files (21 games + portal, symlink index.html skipped, odyssey also gained missing playtime.js)
   <!-- loopx:todo todo_id=todo_bde17f23062a status=open task_class=advancement_task action_kind=scaffold_shared updated_at=2026-08-07T00:17:57%2B08:00 -->
+- [x] [P0] Boundary: untrack private .loopx/ registry from public repo (contract fix) — DONE in working tree, commit with first delivery
+  <!-- loopx:todo todo_id=todo_58db56955413 status=done task_class=advancement_task action_kind=code_change evidence=.gitignore%20now%20excludes%20.loopx%2F%3B%20git%20rm%20-r%20--cached%20.loopx%20done%3B%20loopx%20check%20ok%3DTrue%20errors%3D0 completed_at=2026-08-26T00:17:09%2B08:00 updated_at=2026-08-26T00:17:09%2B08:00 -->
+- [x] [P0] monopoly/js/data.js + rules.js + js/rules.test.js: 7x7 board data (24 spaces), pure game-logic state machine (roll/move/buy/rent/stars/jail/surprise/oops/bankruptcy/round-limit win) + node smoke harness driving 1000 random games (no crashes, no negative cash, termination)
+  <!-- loopx:todo todo_id=todo_24372d5d43b7 status=done task_class=advancement_task action_kind=code_change evidence=monopoly%2Fjs%2F%7Bdata%2Crules%2Cbots%7D.js%20%2B%20rules.test.js%3B%20node%20harness%201000%2B5000%20games%20green:%200%20crashes%2C%200%20negative%20cash%2C%20termination%20guaranteed%3B%20avg%2015.8%20rounds%3B%20fixed%20mid-turn%20elimination%20deadlock%20%28awaitingExtraRoll%20leak%29 completed_at=2026-08-26T00:17:10%2B08:00 updated_at=2026-08-26T00:17:10%2B08:00 -->
+- [x] [P0] monopoly/index.html + css/style.css + ui.js + main.js + bots.js: playable end-to-end human vs Maple/Finn/Pip bots, buy prompts, player panel, event log, file:// compatible plain script tags
+  <!-- loopx:todo todo_id=todo_1cab308d6b45 status=done task_class=advancement_task action_kind=code_change evidence=monopoly%2F%7Bindex.html%2Ccss%2Fstyle.css%2Cjs%2Fui.js%2Cjs%2Fmain.js%7D%20playable%20vs%20Maple%2FFinn%2FPip%3B%20plain%20script%20tags%20%28file:%2F%2F%20safe%29%3B%20driver%20contract%20matches%20rules.test.js%20harness completed_at=2026-08-26T00:27:04%2B08:00 updated_at=2026-08-26T00:27:04%2B08:00 -->
+- [x] [P1] Juice: CSS dice-shake + face flip, token hop animation tile-by-tile, WebAudio synthesized sfx (rattle/coin/sad/fanfare) behind safeResume gesture helper
+  <!-- loopx:todo todo_id=todo_b449dc2b96da status=done task_class=advancement_task action_kind=code_change evidence=dice-shake%20CSS%20keyframes%2C%20per-tile%20token%20hops%2C%20WebAudio%20oscillator%20SFX%20behind%20AmberHardening%20gesture%20unlock%20%2B%20persisted%20mute completed_at=2026-08-26T00:27:05%2B08:00 updated_at=2026-08-26T00:27:29%2B08:00 -->
+- [x] [P1] Integration: portal card in index.html grid, README table row, sw.js cache entries for monopoly files
+  <!-- loopx:todo todo_id=todo_0446696cda05 status=done task_class=advancement_task action_kind=code_change evidence=portal%20GAMES%20card%20%2B%20README%20row%3B%20sw.js%20unchanged%20by%20design%20%28runtime%20caching%20covers%20new%20files%29 completed_at=2026-08-26T00:27:06%2B08:00 updated_at=2026-08-26T00:27:30%2B08:00 -->
+- [x] [P1] Verify: node --check all monopoly JS, run 1000-game smoke harness green, serve site and manually pass buy/rent/star/jail/surprise/win flows + console clean; LoopX writeback evidence
+  <!-- loopx:todo todo_id=todo_db85875f105a status=done task_class=advancement_task action_kind=verification evidence=node%20--check%20all%207%20monopoly%20JS%20files%20clean%3B%20rules.test.js%203000%2B5000%2B2000%2B1000%20games%20green%20%280%20crashes%2Fdebt%2Fhangs%2C%20avg%2015.8%20rounds%2C%20both%20win%20reasons%20fire%29%3B%20DOM%20id%20%2B%20UI%2Fengine%20API%20cross-checks%20clean%3B%20portal%20inline%20JS%20node%20--check%20OK%3B%20HTTP%20smoke%20serves%20game%2Bportal%3B%20fixed:%20mid-turn%20elimination%20deadlock%2C%20driver%20re-roll%20loop%2C%20card-move%20star%20offers completed_at=2026-08-26T00:30:57%2B08:00 updated_at=2026-08-26T00:30:57%2B08:00 -->
 
 ## Next Action
 
