@@ -63,6 +63,7 @@
     ['maple', 'finn', 'pip'].forEach(function (k) {
       if (pickedBuddies[k]) seats.push({ key: k, isBot: true });
     });
+    console.log('[newGame] creating game with seats:', seats.map(function(s){return s.key}));
     state = R.createGame(seats, Date.now() % 2147483647);
     UI.setState(state);
     UI.buildBoard();
@@ -110,15 +111,18 @@
   async function drive() {
     if (busy || !state) return;
     busy = true;
+    console.log('[drive] starting, phase=', state.phase, 'ptr=', state.ptr, 'extraRollsUsed=', state.extraRollsUsed, 'awaitingExtraRoll=', state.awaitingExtraRoll);
     try {
       while (state && state.phase !== 'over') {
         var need = R.needsChoice(state);
         var cur = R.currentPlayer(state);
+        console.log('[drive] loop: need=', need, 'cur=', cur ? cur.name : 'none', 'alive=', cur ? cur.alive : 'n/a', 'isBot=', cur ? cur.isBot : 'n/a');
 
         if (need === 'timeout') {
           UI.renderTop(state);
           if (cur.isBot) {
             await sleep(800);
+            console.log('[drive] bot timeout decision:', B.decideTimeout(state, cur.id));
             if (B.decideTimeout(state, cur.id) === 'leave') {
               await UI.playEvents(R.leaveTimeout(state), { fast: true });
               if (cur.skipTurns > 0) { // couldn't afford after all
@@ -141,6 +145,7 @@
         if (need === 'buy') {
           if (cur.isBot) {
             await sleep(900);
+            console.log('[drive] bot buy decision:', B.wantsBuy(state, cur.id));
             if (B.wantsBuy(state, cur.id)) await UI.playEvents(R.buy(state));
             else await UI.playEvents(R.pass(state));
           } else {
@@ -153,6 +158,7 @@
         if (need === 'star') {
           if (cur.isBot) {
             await sleep(700);
+            console.log('[drive] bot star decision:', B.wantsStar(state, cur.id));
             if (B.wantsStar(state, cur.id)) await UI.playEvents(R.buildStar(state));
             else R.skipStar(state);
           } else {
@@ -164,6 +170,7 @@
 
         // No pending choice. First roll of the turn, or an earned bonus roll?
         var freshTurn = state.extraRollsUsed === 0;
+        console.log('[drive] freshTurn=', freshTurn, 'awaitingExtraRoll=', state.awaitingExtraRoll);
         if (freshTurn || state.awaitingExtraRoll) {
           if (!cur.isBot) {
             UI.renderTop(state);
@@ -173,6 +180,7 @@
           }
           await sleep(650);
           UI.setRollEnabled(false);
+          console.log('[drive] bot rolling...');
           var evs = R.roll(state);
           await UI.playEvents(evs);
           UI.renderAll(state);
@@ -180,6 +188,7 @@
         }
 
         // Rolls done and resolved — pass the dice.
+        console.log('[drive] calling endTurn');
         R.endTurn(state);
         UI.renderAll(state);
       }
@@ -229,12 +238,14 @@
 
   async function resolveHumanChoice(fnApply) {
     busy = true;
+    console.log('[resolveHumanChoice] applying choice...');
     try {
       await UI.playEvents(fnApply());
     } finally {
       busy = false;
     }
     UI.renderAll(state);
+    console.log('[resolveHumanChoice] calling drive()');
     drive();
   }
 
@@ -248,6 +259,7 @@
     $('btn-roll').addEventListener('click', async function () {
       if (!state || busy) return;
       busy = true;
+      console.log('[roll btn] human rolling...');
       try {
         UI.setRollEnabled(false);
         UI.setHint('');
@@ -257,6 +269,7 @@
       } finally {
         busy = false;
       }
+      console.log('[roll btn] calling drive()');
       drive(); // handles pending choices / extra rolls / next players
     });
 
@@ -319,6 +332,13 @@
 
   function boot() {
     if (H && H.installErrorOverlay) H.installErrorOverlay();
+    // Catch unhandled promise rejections for debugging
+    window.addEventListener('unhandledrejection', function(e) {
+      console.error('[UNHANDLED REJECTION]', e.reason);
+    });
+    window.addEventListener('error', function(e) {
+      console.error('[UNHANDLED ERROR]', e.error || e.message);
+    });
     UI.init();
     UI.buildBoard();
     buildSetup();
