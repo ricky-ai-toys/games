@@ -117,6 +117,13 @@
         var need = R.needsChoice(state);
         var cur = R.currentPlayer(state);
         console.log('[drive] loop: need=', need, 'cur=', cur ? cur.name : 'none', 'alive=', cur ? cur.alive : 'n/a', 'isBot=', cur ? cur.isBot : 'n/a');
+        // Safety: if current player is dead, force endTurn to skip them
+        if (cur && !cur.alive) {
+          console.log('[drive] current player dead, forcing endTurn');
+          R.endTurn(state);
+          UI.renderAll(state);
+          continue;
+        }
 
         if (need === 'timeout') {
           UI.renderTop(state);
@@ -160,7 +167,7 @@
             await sleep(700);
             console.log('[drive] bot star decision:', B.wantsStar(state, cur.id));
             if (B.wantsStar(state, cur.id)) await UI.playEvents(R.buildStar(state));
-            else R.skipStar(state);
+            else await UI.playEvents(R.skipStar(state));
           } else {
             showStarModal();
             return;
@@ -177,6 +184,13 @@
             UI.setStatus(freshTurn ? 'Your turn \u2014 roll the dice!' : 'Doubles! Roll again!');
             UI.setRollEnabled(true, freshTurn ? 'Roll the Dice 🎲' : 'Roll Again! 🎲');
             return; // wait for tap
+          }
+          // Safety: don't roll for dead bots
+          if (!cur.alive) {
+            console.log('[drive] bot dead, forcing endTurn');
+            R.endTurn(state);
+            UI.renderAll(state);
+            continue;
           }
           await sleep(650);
           UI.setRollEnabled(false);
