@@ -84,8 +84,10 @@
       o.x += o.vx * dt;
       o.y += o.vy * dt;
 
-      /* Vertical containment: fish stay in the swim band, no matter the viewport. */
-      var top = 62 + o.r * 0.4, bot = state.h - o.r * 0.7;
+      /* Vertical containment: fish stay in the swim band, no matter the viewport.
+       * The top of the band clears the HUD's progress row, so fish do not swim
+       * through the bar. */
+      var top = 104 + o.r * 0.3, bot = state.h - o.r * 0.7;
       if (bot < top) bot = top;
       if (o.y < top) { o.y = top; o.vy = Math.abs(o.vy) * 0.5; }
       if (o.y > bot) { o.y = bot; o.vy = -Math.abs(o.vy) * 0.5; }
@@ -152,6 +154,17 @@
       var tangentX = -uy * a.orbit, tangentY = ux * a.orbit;
       var ax = ux * radial + tangentX * A.spd * 0.55;
       var ay = uy * radial + tangentY * A.spd * 0.55;
+
+      /* Keep the fight on screen. A 300px orbit in a 390px-wide viewport spends
+       * most of its time outside the playfield, and a predator the player cannot
+       * see is not a fair fight — the telegraph is unreadable and it looks like
+       * the game is cheating. Steer it back whenever it strays out. */
+      var padX = a.r * 1.15, padY = a.r * 1.0 + 34;
+      if (a.x < padX) ax += (padX - a.x) * 5;
+      else if (a.x > state.w - padX) ax -= (a.x - (state.w - padX)) * 5;
+      if (a.y < padY) ay += (padY - a.y) * 5;
+      else if (a.y > state.h - padY) ay -= (a.y - (state.h - padY)) * 5;
+
       a.vx = R.approach(a.vx, ax, 160, dt);
       a.vy = R.approach(a.vy, ay, 160, dt);
       a.x += a.vx * dt;
@@ -161,7 +174,11 @@
       /* Menace now scales only the commit rate, so a patient predator is easier
        * to survive but never out-damages a brash one. */
       var dur = (PHASES.stalk.min + state.rand() * (PHASES.stalk.max - PHASES.stalk.min)) / state.cfg.menace;
-      if (a.phaseT >= dur || d < ring * 0.75) enterPhase(state, a, 'telegraph');
+      /* Never telegraph from off-screen: the player gets a growl and a "DASH
+       * NOW" prompt, and if the predator is outside the viewport there is
+       * nothing to see and nothing to dodge. Any part of it visible counts. */
+      var visible = a.x > 0 && a.x < state.w && a.y > 0 && a.y < state.h;
+      if (visible && (a.phaseT >= dur || d < ring * 0.75)) enterPhase(state, a, 'telegraph');
 
     } else if (a.phase === 'telegraph') {
       /* Halt, rear back, and hold the aim line. The player reads the growl,

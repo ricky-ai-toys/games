@@ -56,6 +56,10 @@ shark/js/rules.test.js    node smoke harness
 Each module is a plain IIFE exposing one `SH*` global, with a `module.exports` tail so the
 pure ones (`data`, `rules`, `ai`) run under bare `node` for testing.
 
+`save.js` was not in the original sketch. Storage ended up being a distinct concern with a
+distinct hardening requirement (every read guarded, scoped keys, one-way migration), and
+folding it into `ui.js` would have mixed persistence into the DOM layer.
+
 ### Boundaries
 
 - `rules.js` and `ai.js` touch **no DOM and no canvas**. They are the whole game.
@@ -257,6 +261,47 @@ input policy that steers toward prey and away from threats. Asserts on every fra
 core loop plays, mute persists, best score survives reload, private mode boots, offline loads,
 375x667 has no horizontal scroll and no HUD overlap, tab-switch auto-pauses, an injected error
 shows the friendly overlay.
+
+## Tuning notes
+
+The `rules.test.js` harness plays full games with a scripted pilot, and the numbers it produced
+drove several design decisions that were not obvious up front. Final figures over 3,000 games:
+
+| Preset | Win rate | Reaches APEX | Dies in the finale |
+|---|---|---|---|
+| Easy | 88% | 90% | 25 |
+| Medium | 69% | 76% | 71 |
+| Hard | 62% | 71% | 87 |
+
+A second "beginner" pilot — reacts late, rarely dashes — scores 93% / 82% / 72%. Easy has a
+deliberately high floor so the controls can be learned; the finale tightens sharply from
+Medium up.
+
+Findings that changed the design:
+
+- **The lunge could not reach its own telegraph distance.** A fixed 0.55s lunge covers 93px on
+  Easy, but the Easy stalk ring put the telegraph 570px away, so lunges never connected and
+  "Easy" out-damaged Hard through incidental body contact. The lunge is now distance-based and
+  always reaches.
+- **Forced-danger spawns picked uniformly across every bigger tier**, so a size-1 player met
+  whales in the first minute. They now prefer the smallest tier that outranks the player.
+- **Spawn weights are biased by player size**, so the ocean leans friendly while small.
+- **Nothing gated the opening seconds.** A run could end at zero points — dead before finding
+  the controls. There is now a 3s grace with no damage and no chasing.
+- **The predator could telegraph from off-screen**, giving the player a growl and a "DASH NOW"
+  prompt for something they could not see. It is now kept inside the playfield and only
+  telegraphs with its centre on screen. The containment was necessary in its own right: a 300px
+  orbit in a 390px-wide viewport spends most of its time outside the water.
+- **The tail-strike window was geometrically unreachable**, so the offensive half of the
+  finale never fired.
+
+Two bugs the harness caught that manual play would not have:
+
+- Removing a shared `margin` variable in `spawnFish` left the spread branch reading `undefined`,
+  producing `NaN` fish positions on the very first frame.
+- `teardown()` cleared the same listener pool as boot-time registration, so `resize` and
+  `visibilitychange` stopped working after the player's first game. Session-lifetime and
+  per-run listeners now use separate pools.
 
 ## Risks
 

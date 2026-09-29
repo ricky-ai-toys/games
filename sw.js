@@ -2,7 +2,7 @@
  * Caches the shell + vendored libs for offline play.
  * Version bump (v2) forces update when assets change.
  */
-const CACHE = 'amber-games-v2';
+const CACHE = 'amber-games-v3';
 
 const SHELL = [
   './',

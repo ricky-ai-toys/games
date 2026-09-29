@@ -1,0 +1,387 @@
+/* Amber's Shark Hunt — shell UI.
+ * Tokens match the portal palette. The canvas draws the ocean; everything here
+ * is chrome, overlays, and the HUD.
+ *
+ * HUD layout is a five-zone grid rather than absolutely-positioned clusters.
+ * The old file had the progress bar and the combo chip overlapping on a 375px
+ * phone, and fish swimming underneath the bar.
+ */
+
+:root {
+  --bg: #061526;
+  --ink: #f4f6ff;
+  --cyan: #5ffbf1;
+  --blue: #42a5f5;
+  --coral: #ff8a65;
+  --gold: #ffd700;
+  --gold-soft: #ffd180;
+  --danger: #ff6e6e;
+  --mint: #7fe7c4;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%; height: 100dvh; overflow: hidden;
+  background: var(--bg); color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+  touch-action: none;
+  user-select: none; -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+#app { position: relative; width: 100%; height: 100%; overflow: hidden; }
+
+canvas {
+  position: absolute; inset: 0;
+  display: block; width: 100%; height: 100%;
+  touch-action: none;
+}
+
+/* ---------------------------------------------------------------- overlay */
+
+.overlay {
+  position: absolute; inset: 0; z-index: 30;
+  display: flex; align-items: center; justify-content: center;
+  padding: calc(16px + var(--safe-t)) calc(16px + var(--safe-r))
+           calc(16px + var(--safe-b)) calc(16px + var(--safe-l));
+  background: rgba(2, 12, 24, 0.62);
+  backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.overlay[hidden] { display: none; }
+
+.panel {
+  width: min(430px, 100%);
+  max-height: 100%;
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: 24px 20px;
+  text-align: center;
+  background: linear-gradient(165deg, rgba(10, 60, 80, .96), rgba(6, 21, 38, .98));
+  border: 1px solid rgba(95, 251, 241, .25);
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .5), 0 0 40px rgba(95, 251, 241, .08);
+}
+.panel--sm { width: min(320px, 100%); }
+.panel--menu { width: min(400px, 100%); }
+
+.brand {
+  font-size: 11px; font-weight: 800; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--cyan); opacity: .85;
+}
+
+.title {
+  font-size: clamp(30px, 8vw, 48px); font-weight: 900; line-height: 1.05;
+  background: linear-gradient(135deg, #5ffbf1, #42a5f5, #ff8a65);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: var(--cyan);
+  margin: 6px 0 10px;
+}
+.title--sm { font-size: clamp(24px, 6vw, 34px); }
+.title.is-win { background: linear-gradient(135deg, #ffd700, #ffd180, #5ffbf1); -webkit-background-clip: text; background-clip: text; }
+.title.is-lose { -webkit-text-fill-color: var(--coral); color: var(--coral); }
+
+.sub { font-size: 14px; line-height: 1.55; opacity: .9; font-weight: 600; margin-bottom: 14px; }
+
+.legend {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px;
+  font-size: 11px; font-weight: 700; opacity: .85; margin-bottom: 16px;
+}
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dot--safe { border: 2px solid var(--cyan); }
+.dot--danger { border: 2px solid var(--danger); }
+.dot--gold { background: var(--gold); }
+
+/* ------------------------------------------------------------ level cards */
+
+.levels { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+
+.lvl {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  grid-template-areas: "ico body" "ico tip";
+  gap: 2px 12px; align-items: center; text-align: left;
+  min-height: 72px; padding: 12px 14px;
+  font: inherit; color: inherit; cursor: pointer;
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-left: 4px solid var(--cyan);
+  border-radius: 16px;
+  touch-action: manipulation;
+  transition: transform .12s var(--ease), background .15s var(--ease);
+}
+.lvl:active { transform: scale(.98); background: rgba(255, 255, 255, .1); }
+.lvl--med { border-left-color: var(--gold-soft); }
+.lvl--hard { border-left-color: var(--danger); }
+.lvl-ico { grid-area: ico; font-size: 26px; text-align: center; }
+.lvl-body { grid-area: body; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.lvl-name { font-size: 17px; font-weight: 800; }
+.lvl-blurb { font-size: 12px; opacity: .72; }
+.lvl-stats { display: flex; gap: 10px; font-size: 11px; font-weight: 700; opacity: .9; width: 100%; }
+.lvl-tip { grid-area: tip; font-size: 11px; opacity: .6; }
+
+.how { text-align: left; font-size: 13px; line-height: 1.6; list-style: none; margin-bottom: 16px; }
+.how li { padding: 5px 0 5px 16px; position: relative; opacity: .92; }
+.how li::before { content: "▸"; position: absolute; left: 0; color: var(--cyan); }
+.c-safe { color: var(--cyan); }
+.c-danger { color: var(--danger); }
+
+/* --------------------------------------------------------------- buttons */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 46px; padding: 0 20px;
+  font: inherit; font-size: 15px; font-weight: 800; text-decoration: none;
+  color: var(--ink); cursor: pointer;
+  background: rgba(255, 255, 255, .07);
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 14px;
+  touch-action: manipulation;
+  transition: transform .12s var(--ease), background .15s var(--ease);
+}
+.btn:active { transform: scale(.97); }
+.btn--primary {
+  background: linear-gradient(135deg, var(--cyan), var(--blue));
+  color: #05202e; border-color: transparent;
+  box-shadow: 0 8px 24px rgba(95, 251, 241, .25);
+}
+.btn--ghost { background: rgba(255, 255, 255, .05); }
+.btn:focus-visible, .icon:focus-visible, .fab:focus-visible, .lvl:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.menu-actions, .stack { display: flex; flex-direction: column; gap: 9px; }
+.stack { margin-top: 4px; }
+.menu-actions { flex-direction: row; justify-content: center; }
+.menu-actions .btn { flex: 1; }
+
+/* --------------------------------------------------------------- results */
+
+.over-ico { font-size: 54px; line-height: 1; margin-bottom: 4px; }
+.badge {
+  display: inline-block; margin-bottom: 12px; padding: 4px 14px;
+  font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  color: #05202e; background: var(--gold);
+  border-radius: 999px;
+}
+.stats { display: flex; flex-direction: column; gap: 1px; margin-bottom: 16px; }
+.stat {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 9px 12px; font-size: 13px;
+  background: rgba(255, 255, 255, .04); border-radius: 10px;
+}
+.stat-k { opacity: .7; font-weight: 600; }
+.stat-v { font-weight: 800; font-size: 15px; }
+
+/* ------------------------------------------------------------------- HUD */
+
+#hud {
+  position: absolute; inset: 0; z-index: 10;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
+  /* The progress bar gets its own full-width row. Squeezing it between the
+     score and the hearts on a 390px phone wrapped "GROW TO APEX" over three
+     lines and squashed the bar. */
+  grid-template-areas:
+    "tl .  tr"
+    "tc tc tc"
+    ".  .  ."
+    "bl .  br";
+  padding: calc(10px + var(--safe-t)) calc(12px + var(--safe-r))
+           calc(12px + var(--safe-b)) calc(12px + var(--safe-l));
+  gap: 8px 10px;
+  align-content: start;
+}
+#hud[hidden] { display: none; }
+.hud-zone { min-width: 0; }
+.hud-zone--tl { grid-area: tl; justify-self: start; }
+.hud-zone--tc { grid-area: tc; justify-self: center; width: 100%; max-width: 420px; }
+.hud-zone--tr { grid-area: tr; justify-self: end; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.hud-zone--bl { grid-area: bl; justify-self: start; align-self: end; max-width: 46%; }
+.hud-zone--br { grid-area: br; justify-self: end; align-self: end; display: flex; gap: 10px; align-items: flex-end; }
+
+.score {
+  font-size: 30px; font-weight: 900; line-height: 1;
+  color: var(--cyan); text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
+  font-variant-numeric: tabular-nums;
+}
+.combo {
+  display: inline-flex; align-items: baseline; gap: 5px; margin-top: 3px;
+  padding: 2px 9px; font-size: 12px; font-weight: 800;
+  color: var(--bg); background: var(--mint);
+  border-radius: 999px;
+}
+.combo-lbl { opacity: .65; font-weight: 700; }
+.combo.is-hot { background: var(--gold); }
+.combo[hidden] { display: none; }
+
+.hearts { font-size: 15px; letter-spacing: 1px; text-shadow: 0 1px 6px rgba(0, 0, 0, .7); }
+.hearts .ghost { opacity: .35; }
+.hearts-extra {
+  margin-left: 3px; padding: 1px 6px; font-size: 11px; font-weight: 800;
+  color: var(--bg); background: var(--gold); border-radius: 999px;
+}
+
+.hud-btns { display: flex; gap: 6px; }
+.icon {
+  width: 42px; height: 42px; display: grid; place-items: center;
+  font-size: 17px; color: var(--ink); cursor: pointer;
+  background: rgba(11, 21, 48, .55);
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 12px;
+  pointer-events: auto; touch-action: manipulation;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+.icon:active { transform: scale(.94); }
+
+.bar-label {
+  font-size: 10px; font-weight: 800; letter-spacing: .14em;
+  text-align: center; opacity: .85; margin-bottom: 4px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .8);
+  white-space: nowrap;
+}
+.bar {
+  height: 10px; overflow: hidden;
+  /* A translucent track, not near-black: at 0% a dark full-width bar reads as
+     a black slab across the screen. */
+  background: rgba(255, 255, 255, .10);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 999px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .3);
+}
+.bar-fill {
+  height: 100%; width: 0;
+  background: linear-gradient(90deg, var(--cyan), var(--blue));
+  border-radius: 999px;
+  transition: width .18s linear;
+}
+.bar-fill.is-apex {
+  background: linear-gradient(90deg, var(--gold), #ff9d5c);
+  box-shadow: 0 0 12px rgba(255, 215, 0, .6);
+}
+.bar-sub {
+  margin-top: 4px; font-size: 10px; font-weight: 700;
+  text-align: center; opacity: .75;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .8);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.pills { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 5px; }
+.pill {
+  padding: 2px 8px; font-size: 10px; font-weight: 800;
+  color: var(--bg); background: var(--gold-soft); border-radius: 999px;
+}
+.pill--drift { background: #c8a2ff; }
+.pill--gills { background: var(--mint); }
+.pill--frenzy { background: var(--coral); color: #2b0d05; }
+
+.hint {
+  font-size: 11px; font-weight: 700; line-height: 1.35; opacity: .9;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, .9);
+}
+.hint:empty { display: none; }
+.hint b { color: var(--danger); font-size: 13px; }
+
+/* ------------------------------------------------------------ action FABs */
+
+.fab {
+  --ready: 1;
+  position: relative; width: 68px; height: 68px;
+  display: grid; place-items: center;
+  cursor: pointer; pointer-events: auto; touch-action: manipulation;
+  background: rgba(11, 21, 48, .6);
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 50%;
+  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  transition: transform .1s var(--ease);
+}
+.fab:active { transform: scale(.93); }
+.fab-ico { font-size: 26px; filter: grayscale(1) brightness(1.6); opacity: .45; transition: opacity .15s; }
+.fab.is-ready { border-color: rgba(95, 251, 241, .5); }
+.fab.is-ready .fab-ico { filter: none; opacity: 1; }
+
+/* Cooldown ring, driven by a CSS custom property. No per-frame JS text. */
+.fab-ring {
+  position: absolute; inset: -3px; border-radius: 50%;
+  background: conic-gradient(var(--cyan) calc(var(--ready) * 360deg), rgba(255, 255, 255, .1) 0);
+  -webkit-mask: radial-gradient(circle, transparent 0 calc(50% - 4px), #000 calc(50% - 4px));
+  mask: radial-gradient(circle, transparent 0 calc(50% - 4px), #000 calc(50% - 4px));
+  opacity: .85;
+}
+
+/* -------------------------------------------------------------- joystick */
+
+.joystick { position: absolute; inset: 0; pointer-events: none; z-index: 12; }
+.joystick[hidden] { display: none; }
+.joy-base, .joy-stick {
+  position: absolute; top: 0; left: 0;
+  border-radius: 50%; will-change: transform;
+}
+.joy-base {
+  width: 108px; height: 108px; margin: -54px 0 0 -54px;
+  border: 2px solid rgba(95, 251, 241, .3);
+  background: rgba(6, 21, 38, .3);
+}
+.joy-stick {
+  width: 52px; height: 52px; margin: -26px 0 0 -26px;
+  background: rgba(95, 251, 241, .35);
+  border: 2px solid rgba(95, 251, 241, .6);
+}
+
+/* --------------------------------------------------------------- toasts */
+
+/* Bottom centre, between the hint and the action buttons. The top strip is
+   already occupied by the score and the progress bar, and a toast there covered
+   the "Grow x/y" readout. */
+#toasts {
+  position: absolute; bottom: calc(92px + var(--safe-b)); left: 0; right: 0;
+  z-index: 15; display: flex; flex-direction: column; align-items: center; gap: 5px;
+  pointer-events: none;
+}
+.toast {
+  padding: 5px 14px; font-size: 13px; font-weight: 800;
+  color: var(--bg); background: var(--cyan);
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .4);
+  animation: pop .28s var(--ease);
+}
+@keyframes pop {
+  from { opacity: 0; transform: translateY(8px) scale(.9); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ------------------------------------------------------------- responsive */
+
+@media (min-width: 768px) {
+  .fab { width: 80px; height: 80px; }
+  .lvl { min-height: 82px; }
+  .icon { width: 46px; height: 46px; }
+}
+
+/* Narrow phones: the combo chip would otherwise crowd the progress bar, since
+   both live along the top edge. */
+@media (max-width: 380px) {
+  .score { font-size: 26px; }
+  .bar-sub { font-size: 9px; }
+  .hud-zone--bl { max-width: 40%; }
+}
+
+/* ------------------------------------------------------------ a11y motion */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+  .bar-fill { transition: none; }
+}

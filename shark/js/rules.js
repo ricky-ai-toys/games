@@ -202,16 +202,18 @@
     if (state.objs.length >= fishCap(state)) return null;
     var ti = pickTier(state, forceDanger);
     var spec = D.TIERS[ti];
-    var margin = 70;
+    var inset = 70;      // keeps spread fish clear of the screen edges
+    var entry = 34;      // how far outside a swimming fish starts
     var x, y;
     if (spread) {
-      x = margin + state.rand() * Math.max(1, state.w - margin * 2);
+      x = inset + state.rand() * Math.max(1, state.w - inset * 2);
       y = 70 + state.rand() * Math.max(1, state.h - 150);
     } else {
       /* Enter from whichever side has more room, so short viewports cannot
-       * produce an inverted range. */
+       * produce an inverted range. The entry margin is small so fish populate
+       * the water promptly instead of queueing up off-screen. */
       var side = state.rand() < 0.5 ? -1 : 1;
-      x = side < 0 ? -margin : state.w + margin;
+      x = side < 0 ? -entry : state.w + entry;
       var lo = Math.min(95, state.h - 80);
       var hi = Math.max(95, state.h - 80);
       y = lo + state.rand() * Math.max(1, hi - lo);
@@ -241,7 +243,10 @@
   }
 
   function bootSchool(state) {
-    for (var i = 0; i < T.startSchool; i++) spawnFish(state, false, true);
+    /* Scaled by area: a fixed count left a 375px phone looking empty next to a
+     * desktop window. */
+    var n = Math.round(T.startSchool * densityScale(state));
+    for (var i = 0; i < n; i++) spawnFish(state, false, true);
   }
 
   function spawnRelic(state) {
@@ -630,12 +635,19 @@
     /* Soft walls: keep the whole player on screen rather than a hard clamp, so
      * the shark never gets stuck grinding a wall at speed. */
     var pr = playerRadius(state);
-    var m = pr * 0.6;
-    if (state.x < m) { state.x = m; state.vx = Math.max(0, state.vx); }
-    if (state.x > state.w - m) { state.x = state.w - m; state.vx = Math.min(0, state.vx); }
-    var topM = 46 + m * 0.4;
+    /* Soft walls, but inset by how far the shark is actually *drawn* on each
+     * side. The snout reaches ~1.06r ahead but the tail trails ~1.8r behind, so a
+     * symmetric radius-based inset either clipped the tail off-screen or walled
+     * the shark off the water it was swimming into. Inset by facing instead. */
+    var facingRight = Math.cos(state.face) >= 0;
+    var ahead = pr * 1.2, behind = pr * 1.5;
+    var minX = facingRight ? behind : ahead;
+    var maxX = facingRight ? state.w - ahead : state.w - behind;
+    if (state.x < minX) { state.x = minX; state.vx = Math.max(0, state.vx); }
+    if (state.x > maxX) { state.x = maxX; state.vx = Math.min(0, state.vx); }
+    var topM = 56 + pr * 0.6;
     if (state.y < topM) { state.y = topM; state.vy = Math.max(0, state.vy); }
-    if (state.y > state.h - m) { state.y = state.h - m; state.vy = Math.min(0, state.vy); }
+    if (state.y > state.h - pr * 0.7) { state.y = state.h - pr * 0.7; state.vy = Math.min(0, state.vy); }
 
     if (Math.abs(state.vx) > 4 || Math.abs(state.vy) > 4) {
       state.face = Math.atan2(state.vy, state.vx);

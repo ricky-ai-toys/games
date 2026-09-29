@@ -17,7 +17,7 @@ Any way you like:
 
 | Game | File | What it is |
 |---|---|---|
-| Amber's Shark Hunt | `shark.html` | Eat, grow, and become the ocean's top shark |
+| Amber's Shark Hunt | `shark/index.html` | Eat, grow, and dash — then survive the great white that hunts the apex |
 | Amber's Big Drop | `down100.html` | Fast mobile platformer through 100 floors |
 | Amber's Star Catcher | `starcatcher.html` | Catch stars, finish wave missions, ride the fever combo |
 | Amber's Crystal Match | `crystal.html` | Swap crystals, chain combos, clear each wave |

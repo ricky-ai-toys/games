@@ -665,12 +665,12 @@
   const GAMES = [
     {
       title: "Amber's Shark Hunt",
-      file: "shark.html",
+      file: "shark/index.html",
       icon: "\uD83E\uDD88",
       tag: "Arcade",
       group: "play",
       stat: "Best score",
-      desc: "Eat, grow, dash, and hold the apex \u2014 become the ocean's top shark!",
+      desc: "Eat, grow, and dash \u2014 then survive the great white that hunts the apex!",
       accent: "linear-gradient(135deg, rgba(6,47,90,0.5), rgba(95,251,241,0.24))"
     },
     {
@@ -913,13 +913,17 @@
       }
       return best;
     },
-    'shark.html': () => {
+    'shark/index.html': () => {
       const lvls = ['easy','med','hard'];
       let best = 0;
       for (const l of lvls) {
-        const n = parseInt(localStorage.getItem('shark_best_'+l) || '0', 10);
-        const legacy = parseInt(localStorage.getItem('wild_best_shark_'+l) || '0', 10);
-        const v = Math.max(n || 0, legacy || 0);
+        /* Storage can throw in private mode, and this runs during portal boot. */
+        let n = 0, legacy = 0;
+        try {
+          n = parseInt(localStorage.getItem('shark_best_'+l) || '0', 10) || 0;
+          legacy = parseInt(localStorage.getItem('wild_best_shark_'+l) || '0', 10) || 0;
+        } catch (e) { /* storage unavailable */ }
+        const v = Math.max(n, legacy);
         if (v > best) best = v;
       }
       return best;

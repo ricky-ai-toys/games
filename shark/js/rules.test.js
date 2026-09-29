@@ -26,12 +26,19 @@ const MAX_SECONDS = 240;   // a run that outlasts this has failed to terminate
  * takes the tail window during `recover` — i.e. it plays roughly the way a
  * competent 8-12 year old would.
  *
+ * `care` controls how competently it plays:
+ *   'sharp'  — dodges threats early, dashes reliably. Proxies a practised player.
+ *   'sloppy' — notices threats late and bumps into things. Proxies a beginner,
+ *              and is the floor the Easy preset has to stay winnable at.
+ *
  * `mem` persists across frames to give the pilot target hysteresis. Without it the
  * pilot re-targets every time a magnet-pulled fish drifts closer, thrashes in
  * place, and starves to death while edible fish swim past — which measures the
  * bot, not the game. */
-function pilot(state, mem) {
+function pilot(state, mem, care) {
   if (!mem) mem = {};
+  care = care || 'sharp';
+  const sloppy = care === 'sloppy';
   const inp = state.input;
   inp.dash = false;
   inp.bite = false;
@@ -79,21 +86,24 @@ function pilot(state, mem) {
     const m = Math.hypot(lx, ly) || 1;
     ax = state.x + (-ly / m) * 300;
     ay = state.y + (lx / m) * 300;
-    if (a.phase === 'telegraph' && ad < pr * 6) inp.dash = true;
+    /* A sharp player dashes on any telegraph within reach. A beginner only
+     * reacts when the predator is already on top of them, which is roughly what
+     * "didn't see the growl" looks like in practice. */
+    if (a.phase === 'telegraph' && ad < pr * (sloppy ? 1.5 : 6)) inp.dash = true;
   }
 
   // Take the offensive window: close in on the exposed tail during `recover`.
   // A pilot that only ever flees never exercises this path, and the mechanic
   // would silently rot.
   let wantTail = false;
-  if (a && a.phase === 'recover' && ad < pr * 5.5) {
+  if (a && a.phase === 'recover' && ad < pr * (sloppy ? 2.5 : 5.5)) {
     ax = a.x; ay = a.y;
     if (ad < pr + a.r * 1.05) wantTail = true;
   }
 
   let tx, ty;
   if (ax !== null) { tx = ax; ty = ay; }
-  else if (threat && threatD < pr * 4.5) {
+  else if (threat && threatD < pr * (sloppy ? 1.8 : 4.5)) {
     tx = state.x + (state.x - threat.x) * 2;
     ty = state.y + (state.y - threat.y) * 2;
   } else if (relic && relicD < pr * 5) { tx = relic.x; ty = relic.y; }
@@ -153,7 +163,7 @@ function checkInvariants(s, game) {
   return true;
 }
 
-function playGame(i, diff, seed) {
+function playGame(i, diff, seed, care) {
   const s = R.createState(diff, seed, WORLD_W, WORLD_H);
   const g = {
     i, diff, seed, frames: 0, apexSpawned: 0, phases: {},
@@ -163,7 +173,7 @@ function playGame(i, diff, seed) {
   const maxSteps = Math.ceil(MAX_SECONDS / DT);
 
   while (!s.over && steps < maxSteps) {
-    pilot(s, g.mem);
+    pilot(s, g.mem, care);
     const lifeBefore = s.life;
     R.step(s, DT);
     steps++;
@@ -265,7 +275,7 @@ const byDiff = {};
 for (let i = 0; i < games; i++) {
   const diff = diffs[i % diffs.length];
   const seed = (0x9e3779b9 * (i + 1)) >>> 0;
-  const g = playGame(i, diff, seed);
+  const g = playGame(i, diff, seed, 'sharp');
   results.push(g);
   const b = byDiff[diff] || (byDiff[diff] = { n: 0, win: 0, lose: 0, apex: 0, apexWin: 0, apexLose: 0, early: 0, sizeSum: 0, livesLost: 0 });
   b.n++;
@@ -304,6 +314,25 @@ const maxFrames = Math.max(...results.map(g => g.frames));
 
 console.log(`\nwins ${wins}  losses ${losses}  never reached APEX ${unreached}`);
 console.log(`score  median ${median}  min ${scores[0]}  max ${scores[scores.length - 1]}`);
+/* Easy has to stay winnable for someone who is still learning the controls, so
+ * measure it against a pilot that reacts late and bumps into things. The sharp
+ * pilot is the ceiling; the sloppy one is the floor. */
+function beginnerPass(games, diffs) {
+  const per = Math.max(30, Math.floor(games / 3));
+  const out = [];
+  for (const d of diffs) {
+    let win = 0, apex = 0, done = 0;
+    for (let i = 0; i < per; i++) {
+      const g = playGame(-1, d, (0x85ebca6b * (i + 7)) >>> 0, 'sloppy');
+      if (g.ended === 'win' || g.ended === 'lose') done++;
+      if (g.ended === 'win') win++;
+      if (g.reachedApex) apex++;
+    }
+    out.push({ diff: d, winRate: done ? win / done : 0, apexRate: done ? apex / done : 0, n: done });
+  }
+  return out;
+}
+
 console.log(`\nper difficulty:`);
 for (const d of diffs) {
   const b = byDiff[d];
@@ -314,6 +343,11 @@ for (const d of diffs) {
 }
 console.log(`apex phase counts: ${Object.entries(phaseTotals).map(([k, v]) => `${k}=${v}`).join('  ')}`);
 console.log(`longest run ${(maxFrames * DT).toFixed(1)}s   total ${elapsed}ms   (${(elapsed / games).toFixed(2)}ms/game)`);
+
+console.log(`\nbeginner pilot (reacts late, rarely dodges):`);
+for (const b of beginnerPass(games, diffs)) {
+  console.log(`  ${b.diff.padEnd(5)} n=${String(b.n).padStart(4)}  win ${(b.winRate * 100).toFixed(0).padStart(3)}%  reached APEX ${(b.apexRate * 100).toFixed(0).padStart(3)}%`);
+}
 
 const apexGames = results.filter(g => g.reachedApex);
 if (apexGames.length) {

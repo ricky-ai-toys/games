@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Shark Hunt">
+<meta name="theme-color" content="#0b1530">
+<meta name="description" content="Eat, grow, dash, and hold the apex as Amber's shark. One predator hunts you at the top.">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="../manifest.webmanifest">
+<title>Amber's Shark Hunt</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="cv" aria-label="Ocean play area. Steer with the mouse or WASD, or drag on touch." role="img"></canvas>
+  <div id="hud" hidden></div>
+  <div id="toasts" aria-live="polite"></div>
+  <div id="overlay" class="overlay is-open" hidden></div>
+</div>
+<noscript>
+  <p style="color:#f4f6ff;padding:24px;font:16px/1.5 system-ui,sans-serif">
+    Amber's Shark Hunt needs JavaScript to run. Please enable it and reload.
+  </p>
+</noscript>
+<script src="../hardening.js?v=2"></script>
+<script src="js/data.js"></script>
+<script src="js/save.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/render.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+<script src="../playtime.js?v=2"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>
