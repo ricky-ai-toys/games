@@ -45,15 +45,42 @@ Because walls are ~10x cheaper than towers, mazing hard is a real sacrifice: the
 pays 200 in walls to triple the route length arrives at wave 1 unable to afford the arrows
 that kill things. That is the game.
 
-## The anti-cheese rule
+## The anti-cheese rule — and how it changed
 
-Enemies walk the **shortest** open route from gate to castle, so the only lever on survival
-time is making that route longer. Every level declares a `minPath`. Any placement that would
-leave the route shorter than `minPath` is **refused with a stated reason** ("the road is too
-short") rather than silently ignored — a silent no-op reads as a bug to a child, and it makes
-the rule undiscoverable.
+As originally specced, each level shipped with a pre-built serpentine road that already cleared
+a per-level `minPath`, and any placement shortening the route below that floor was refused with
+a stated reason. The refusal behaviour and the reason strings survived. **The pre-built road did
+not**, and building one turned out to be most of the problem:
 
-The gate can never be sealed. There is no "enrage" clause and no wave that breaks through.
+- A road long enough to clear a meaningful floor has to be a **1-wide induced path** — otherwise
+  BFS shortcuts straight across it. Three shapes were built and measured before this was
+  accepted: hand-authored wall patterns (measured 8 cells regardless of how many walls were
+  added, because they left the direct gate-to-castle line open), a straight-biased random walk
+  (dead-ended before the target length, so levels silently started *below* their own floor and
+  became unwinnable), and a boustrophedon permutation (opened a solid multi-column block that
+  BFS cut across).
+- A 1-wide induced path leaves roughly **nine legal cells on the entire 117-cell board**, so there
+  was nowhere to put a tower.
+- Worst of all, with no open space beside the road there was **nowhere to put a wall that made
+  the route longer** — which quietly destroyed the entire "walls reshape the road" premise. The
+  central mechanic was unbuildable.
+
+So levels now **start as an open board**. The board is mostly empty water, which restores the
+design intent: every wall the player buys lengthens the route, and the split between road and
+firepower is a real decision. Two numbers replace the one:
+
+- `minPath` (6, all levels) — the hard floor. Small, and only there so the road can never be
+  sealed. Enforced on every tap, refused with a reason.
+- `targetPath` (18-26, rising per level) — the per-level road goal the HUD shows and the star
+  rating rewards. Not a floor; a thing to build toward.
+
+Measured costs, which the economy is set against: an open road is 8-12 cells; one deliberate
+barrier line costs ~12 walls (180g) and reaches 18-21; two lines reach 23-24; three reach ~46 for
+540g. Scattered walls barely help — 55 greedily-placed walls moved the road from 8 to 8. The
+player has to draw *lines*, which is the actual skill of the genre.
+
+Pathing is 4-way orthogonal. The 8-way version was tried first and every serpentine collapsed,
+because a diagonal step cuts the corner a wall exists to force you around.
 
 ### Why this is cheap enough to enforce on every tap
 
@@ -167,7 +194,56 @@ mirroring the shark harness. Assert: no NaN, gold never negative, lives within r
 level terminates, difficulty is ordered across stages, and the economy actually bites — a
 maze-heavy pilot must measurably run out of gold, otherwise the central trade does not exist.
 
-**Determinism.** Same seed, same result, twice.
+**Determinism.** Same seed, same result, twice. This assertion earned its keep immediately: it
+was false, because spawn offsets used `Math.random()`. Every "repetition" was a different game,
+so the harness could not compare runs at all, and a level the trace won was being reported as
+unwinnable.
+
+## A sentinel bug worth recording
+
+The unreachable-rail sentinel in the distance field was `1e9`, and `isFinite(1e9) === true`. So
+every connectivity check in the engine *and* the harness silently reported "reachable" for a
+severed board: `legal()` approved placements that cut the road in half, and the harness's
+disconnected-level assertions all passed. It was found only because a report read `route
+1000000000` and that number was obviously not a route length. The sentinel is now `Infinity`.
+
+## Measured balance
+
+Over 108 simulated level plays (6 seeds x 2 cohorts x 9 levels):
+
+| Level | sharp | sloppy | road built |
+|---|---|---|---|
+| gate-1 | 100% | 100% | 20 |
+| gate-2 | 100% | 100% | 23 |
+| gate-3 | 100% | 100% | 23 |
+| bazaar-1 | 100% | 100% | 23 |
+| bazaar-2 | 100% | 100% | 24 |
+| bazaar-3 | 100% | 100% | 35 |
+| garden-1 | **83%** | **33%** | 36 |
+| garden-2 | 100% | 100% | 47 |
+| garden-3 | 100% | 100% | 48 |
+
+Stage means: 100% / 100% / 94%.
+
+**This is flatter than intended, and it is a known gap rather than a finished result.** The
+pilot plays near-optimally — it draws correct barrier lines and buys strictly by DPS — so these
+numbers are a ceiling, not an expectation. The one level that discriminates (garden-1, 83% vs
+33%) shows skill matters and the design is not a solved puzzle, but eight of nine levels do not
+yet punish sloppy play. Tuning them down against a bot this strong would make the game too easy
+for a child, so this needs real playtest data rather than another round of simulation.
+
+Balance was set by measurement, not taste. Findings that changed the design:
+
+- Enemy speed was initially 34 cells/sec, which crossed the whole board in 0.2s — no tower could
+  ever land a shot. Correct order of magnitude is ~2 cells/sec.
+- Bosses at 4200 base HP scaling to ~10,000 were **unkillable**: a boss is only in range of the
+  towers nearest it, so one pass over a 40-cell road buys a few thousand damage. Every level ended
+  on a boss that simply walked in. Boss HP is now 380/760/1250.
+- Flat armour of 5 against Arrow's 11 damage was a 45% cut to the cheapest tower, so an armoured
+  wave out-damaged the entire field.
+- 20 hearts against waves that leak 6-13 meant one bad wave ended the run outright.
+- garden-1 opened with 8 honeybugs and 14 armoured and measured 20% while every other level sat
+  at 100%. Healers before the player has a defence are a wall mazing cannot get through.
 
 ## Risks
 
@@ -180,6 +256,8 @@ maze-heavy pilot must measurably run out of gold, otherwise the central trade do
 - **Scope.** Nine content levels, five towers at three tiers, six enemies is a lot of authored
   data. Mitigation: stages ship in order and the endless mode is data-driven off the same
   tables, so a late stage failing does not block the first.
+- **The difficulty gradient is too flat.** See the measured table above. Known, and deliberately
+  not papered over by tuning against an over-strong bot.
 - **Appetite vs the existing arcade.** Castle defence is the most generic genre in the design
   doc. Mitigation: the cast, the cozy register, and vector art are deliberate. The genre shape
   is familiar on purpose — the target player should not have to learn the genre *and* the game.
