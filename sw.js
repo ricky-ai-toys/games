@@ -2,7 +2,7 @@
  * Caches the shell + vendored libs for offline play.
  * Version bump (v2) forces update when assets change.
  */
-const CACHE = 'amber-games-v3';
+const CACHE = 'amber-games-v4';
 
 const SHELL = [
   './',
@@ -16,6 +16,8 @@ const SHELL = [
   './vendor/babel/babel.min.js',
   './vendor/vue/vue.global.prod.js',
   './404.html'
+  // Game files (shark/, castle/, farm/, ...) are NOT listed: they are picked up by
+  // the runtime cache below on first visit, by design.
 ];
 
 self.addEventListener('install', (e) => {

@@ -20,6 +20,12 @@
     var grid = G.fromLevel(level);
     var seed = (opts.seed == null ? ((Math.random() * 0xffffffff) >>> 0) : (opts.seed >>> 0));
     var rand = G.mulberry32(seed);
+    /* The viewport must be part of the state. Without it every cell in the
+     * renderer computed NaN, which surfaced as a per-frame
+     * createLinearGradient throw and made the board untappable. The node harness
+     * could not have caught this: it never rendered anything. */
+    var vw = (opts.w > 0 ? opts.w : 390);
+    var vh = (opts.h > 0 ? opts.h : 780);
 
     var s = {
       level: level,
@@ -27,6 +33,8 @@
       endless: !!opts.endless,
       seed: seed,
       rand: rand,
+      w: vw,
+      h: vh,
 
       t: 0,
       gold: level.gold,
@@ -58,11 +66,12 @@
       hint: level.teach || ''
     };
 
-    if (s.endless) {
-      s.waveIdx = -1;
-      s.wavePhase = 'prep';
-      s.waveT = T.prepTime;
-    }
+    /* Every level opens with build time, endless or not. Without it stepWaves()
+     * saw waveT === 0 and started wave 1 on the first frame, so the player never
+     * got to build anything at all. */
+    s.waveIdx = -1;
+    s.wavePhase = 'prep';
+    s.waveT = T.prepTime;
     return s;
   }
 

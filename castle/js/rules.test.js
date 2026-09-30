@@ -151,6 +151,21 @@ function proveNoCornerCut() {
 
 /* ------------------------------------------------------------- 2. data validity */
 
+/* The engine is pure and the renderer is not exercised here, so this is a
+ * cheap guard on the seam: state must carry a usable viewport, because a state
+ * without one made every rendered cell NaN (a createLinearGradient throw every
+ * frame, and an untappable board). */
+function proveStateIsRenderable() {
+  for (const lv of D.LEVELS) {
+    const s = R.createState(lv.id);
+    if (!finite(s.w) || !finite(s.h) || s.w <= 0 || s.h <= 0) {
+      fail(`${lv.id} state has no usable viewport (w=${s.w} h=${s.h})`, 'renderable');
+    }
+    if (s.wavePhase !== 'prep') fail(`${lv.id} does not open in a build phase`, lv.id);
+    if (!(s.waveT > 0)) fail(`${lv.id} opens with no build time before wave 1`, lv.id);
+  }
+}
+
 function proveData() {
   const seen = new Set();
   for (const lv of D.LEVELS) {
@@ -372,6 +387,7 @@ console.log(`${D.LEVELS.length} levels, ${D.COLS}x${D.ROWS} grid (${D.COLS * D.R
 
 console.log('— data validity —');
 proveData();
+proveStateIsRenderable();
 proveNoCornerCut();
 console.log('  data + corner-cut: ok');
 

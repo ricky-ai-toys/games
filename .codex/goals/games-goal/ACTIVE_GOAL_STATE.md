@@ -2,7 +2,7 @@
 status: active
 owner_mode: goal
 objective: "implement all, step by step, until done"
-updated_at: 2026-08-26T00:30:57+08:00
+updated_at: 2026-09-30T20:58:09+08:00
 adapter_id: games-goal
 ---
 
@@ -73,6 +73,20 @@ implement all, step by step, until done
   <!-- loopx:todo todo_id=todo_0446696cda05 status=done task_class=advancement_task action_kind=code_change evidence=portal%20GAMES%20card%20%2B%20README%20row%3B%20sw.js%20unchanged%20by%20design%20%28runtime%20caching%20covers%20new%20files%29 completed_at=2026-08-26T00:27:06%2B08:00 updated_at=2026-08-26T00:27:30%2B08:00 -->
 - [x] [P1] Verify: node --check all monopoly JS, run 1000-game smoke harness green, serve site and manually pass buy/rent/star/jail/surprise/win flows + console clean; LoopX writeback evidence
   <!-- loopx:todo todo_id=todo_db85875f105a status=done task_class=advancement_task action_kind=verification evidence=node%20--check%20all%207%20monopoly%20JS%20files%20clean%3B%20rules.test.js%203000%2B5000%2B2000%2B1000%20games%20green%20%280%20crashes%2Fdebt%2Fhangs%2C%20avg%2015.8%20rounds%2C%20both%20win%20reasons%20fire%29%3B%20DOM%20id%20%2B%20UI%2Fengine%20API%20cross-checks%20clean%3B%20portal%20inline%20JS%20node%20--check%20OK%3B%20HTTP%20smoke%20serves%20game%2Bportal%3B%20fixed:%20mid-turn%20elimination%20deadlock%2C%20driver%20re-roll%20loop%2C%20card-move%20star%20offers completed_at=2026-08-26T00:30:57%2B08:00 updated_at=2026-08-26T00:30:57%2B08:00 -->
+- [ ] [P0] Candy Castle: write design spec to docs/superpowers/specs/2026-09-30-candy-castle-design.md and commit. Maze-building tower defense: 8x11 grid, cheap walls reshape the route, expensive towers kill, per-level minimum path length enforced via BFS distance field recomputed on placement only. Castle/candy setting, 3 stages then endless, 5 towers x3 tiers, 6 enemy types, characters Amber/Maple/Finn/Pip. No build step, no ES modules, no CDN, no asset files.
+  <!-- loopx:todo todo_id=todo_55d7dd64d683 status=open task_class=advancement_task action_kind=implementation updated_at=2026-09-30T20:57:55%2B08:00 -->
+- [ ] [P0] Candy Castle engine: build castle/js/data.js (levels, towers, enemies, waves, tuning), castle/js/grid.js (8-way BFS distance field, min-path legality, flow direction), castle/js/rules.js (economy, waves, combat, lives, stars) as pure functions with no DOM/canvas, plus castle/js/rules.test.js. Gate: 3000-game node harness green, and every illegal placement provably rejected with the grid unchanged.
+  <!-- loopx:todo todo_id=todo_af7b2b8b92e6 status=open task_class=advancement_task action_kind=implementation updated_at=2026-09-30T20:58:04%2B08:00 -->
+- [ ] [P1] Candy Castle presentation: castle/js/sprites.js (vector castle, 5 towers x3 tiers, 6 enemies, wall tiles), render.js, audio.js (procedural synth, gesture-gated), save.js (stars, unlocks, endless high score via AmberHardening), ui.js (stage/level select, in-level HUD, wave bar, results), main.js (boot, grid input, rAF, separate boot-level vs per-run listener pools), css/style.css, index.html. Vector art only, no emoji dependence, no asset files.
+  <!-- loopx:todo todo_id=todo_fb2e03ea16a2 status=open task_class=advancement_task action_kind=implementation updated_at=2026-09-30T20:58:05%2B08:00 -->
+- [ ] [P1] Candy Castle portal wiring: GAMES entry with file=castle/index.html, BEST_BY_FILE entry reading stars + endless best, README table row, sw.js CACHE bump so existing clients re-fetch. Add castle files to the SW shell list. Verify portal boots with no console errors and the card shows a real stat.
+  <!-- loopx:todo todo_id=todo_d8f913c4b6e4 status=open task_class=advancement_task action_kind=implementation updated_at=2026-09-30T20:58:06%2B08:00 -->
+- [ ] [P2] Candy Castle iteration 1: browser QA sweep in headless Chrome across 375x667, 390x780 and desktop. Check menu -> level select -> in-level -> results -> unlock flow, zero console errors, no HUD collisions, no horizontal scroll, all tap targets >=44px. Fix every defect found before moving on.
+  <!-- loopx:todo todo_id=todo_d8535e47c2fb status=open task_class=advancement_task action_kind=implementation updated_at=2026-09-30T20:58:07%2B08:00 -->
+- [ ] [P2] Candy Castle iteration 2: balance and UX pass driven by measured harness numbers rather than guesswork. Verify the wall-versus-tower economy actually creates tension (a maze-heavy player is broke when waves arrive), difficulty is ordered across stages, and no level is unwinnable. Add a slower/sloppy pilot cohort like the shark harness so the first level has a measured beginner floor.
+  <!-- loopx:todo todo_id=todo_ab498dbe7425 status=open task_class=advancement_task action_kind=implementation updated_at=2026-09-30T20:58:08%2B08:00 -->
+- [ ] [P2] Candy Castle iteration 3: hardening verification. Booting with localStorage disabled, corrupt save recovery, friendly error overlay, tab-hidden auto-pause, canvas resize across a second run, service worker scope, offline load. Fix anything that fails and re-run the full gate set.
+  <!-- loopx:todo todo_id=todo_8c856218b513 status=open task_class=advancement_task action_kind=implementation updated_at=2026-09-30T20:58:09%2B08:00 -->
 
 ## Next Action
 

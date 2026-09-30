@@ -744,6 +744,16 @@
       accent: "linear-gradient(135deg, rgba(45,27,78,0.45), rgba(255,138,101,0.3))"
     },
     {
+      title: "Amber's Candy Castle",
+      file: "castle/index.html",
+      icon: "\uD83C\uDFE0",
+      tag: "Defense",
+      group: "play",
+      stat: "Stars",
+      desc: "Build the road, place the towers, and hold the gate \u2014 walls bend the path, towers pay for it!",
+      accent: "linear-gradient(135deg, rgba(78,40,20,0.5), rgba(255,209,128,0.26))"
+    },
+    {
       title: "Amber's Boardwalk",
       file: "monopoly/index.html",
       icon: "\uD83C\uDFA1",
@@ -927,6 +937,17 @@
         if (v > best) best = v;
       }
       return best;
+    },
+    'castle/index.html': () => {
+      /* Stars are the headline, with the endless best as the tiebreak. */
+      try {
+        const save = JSON.parse(localStorage.getItem('ambers_castle_v1') || '{}');
+        if (!save || typeof save !== 'object') return 0;
+        const stars = save.stars || {};
+        let total = 0;
+        for (const k in stars) total += stars[k] || 0;
+        return total + (save.endless || 0) / 1000;
+      } catch (e) { return 0; }
     },
     'down100.html': () => {
       const lvls = ['easy','normal','hard'];

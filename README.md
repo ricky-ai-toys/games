@@ -25,6 +25,7 @@ Any way you like:
 | Amber's Starlight Pinball | `pinball.html` | Flip for moon gems, spell AMBER for a bonus |
 | Amber's Kite Runner | `kite.html` | Soar through clouds, grab stars, dodge birds |
 | Amber's Big Two | `bigtwo/index.html` | Hong Kong Big Two (鋤大D) with Maple, Finn & Pip |
+| Amber's Candy Castle | `castle/index.html` | Build the road, place the towers, and hold the gate for every wave |
 | Amber's Boardwalk | `monopoly/index.html` | Cozy kid Monopoly: buy spots, add stars, beat the bots |
 | Amber's Big Drop | `next100.html` | Fast mobile platformer — drop 100 floors, dodge, set a high score |
 | Amber's Wild Arcade | `wild.html` | A mini arcade of mini-games — jump, dodge, and score big |
