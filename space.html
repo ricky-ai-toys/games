@@ -798,7 +798,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
     els.hubScreen.classList.remove("hidden");
     renderHub();
     els.muteBtn.textContent = muted ? "\u{1F507}" : "\u{1F50A}";
-    const tutorialSeen = localStorage.getItem("space_tutorial") === "1";
+    const tutorialSeen = (() => { try { return localStorage.getItem("space_tutorial") === "1"; } catch (e) { return false; } })();
     if (!tutorialSeen) els.tutorialScreen.classList.remove("hidden");
   }
   function renderHub() {
@@ -1624,7 +1624,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
   els.muteBtn.addEventListener("click", () => {
     muted = !muted;
     els.muteBtn.textContent = muted ? "\u{1F507}" : "\u{1F50A}";
-    localStorage.setItem("space_muted", muted ? "1" : "0");
+    try { localStorage.setItem("space_muted", muted ? "1" : "0"); } catch (e) {}
     if (!muted) sndTap();
   });
   els.helpBtn.addEventListener("click", () => {
@@ -1634,7 +1634,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
   els.tutorialOkBtn.addEventListener("click", () => {
     els.tutorialScreen.classList.add("hidden");
     if (paused && current) resumeGame();
-    localStorage.setItem("space_tutorial", "1");
+    try { localStorage.setItem("space_tutorial", "1"); } catch (e) {}
   });
 
   els.backPortal.addEventListener("click", () => { window.location.href = "portal.html"; });

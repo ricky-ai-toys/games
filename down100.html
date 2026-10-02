@@ -146,9 +146,13 @@ down100.html
 
   .diff-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 15px; }
   .diff-btn {
-    padding: 6px 16px; border: 1px solid rgba(255,255,255,0.25); border-radius: 8px;
+    /* min-height keeps the chip a comfortable tap target on touch screens
+     * without changing the desktop layout: 6px padding + a 14px line is only
+     * ~30px tall, which is under the 44px a thumb needs. */
+    padding: 6px 16px; min-height: 44px; border: 1px solid rgba(255,255,255,0.25); border-radius: 8px;
     background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7); cursor: pointer;
     font-size: 14px; font-weight: 600; transition: all 0.15s; font-family: inherit;
+    display: inline-flex; align-items: center; justify-content: center;
   }
   .diff-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
   .diff-btn.active {

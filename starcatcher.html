@@ -53,6 +53,8 @@ starcatcher.html
     background: rgba(255,255,255,0.1);
     border: 1px solid rgba(255,255,255,0.2);
   }
+  /* Comfortable thumb target; the inline padding above is too small on its own. */
+  .tap-target { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; }
   .level-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
   .level-btn { padding: 8px 14px; font-size: 13px; min-width: 92px; }
   .legend {
@@ -84,7 +86,7 @@ starcatcher.html
       ⏱ +time &nbsp; 🛡 shield &nbsp; 🧲 magnet &nbsp; 🐌 slow &nbsp; 2× power
     </div>
     <div style="margin-top:8px; font-size:11px; opacity:0.6;">Build combos • fill the fever meter for STAR FRENZY</div>
-    <button class="btn btn-secondary" style="margin-top:10px;padding:6px 14px;font-size:13px;" onclick="toggleMute()">🔊 / 🔇</button>
+    <button class="btn btn-secondary tap-target" style="margin-top:10px;padding:6px 14px;font-size:13px;" onclick="toggleMute()">🔊 / 🔇</button>
   </div>
 </div>
 
@@ -197,7 +199,7 @@ function updateBestDisplay() {
     if (w) w.textContent = bestWaves[k] || '—';
   }
 }
-function toggleMute() { muted = !muted; localStorage.setItem('starcatcher_muted', muted ? '1' : '0'); }
+function toggleMute() { muted = !muted; try { localStorage.setItem('starcatcher_muted', muted ? '1' : '0'); } catch (e) {} }
 
 function startLevel(lvl) {
   G.level = lvl;

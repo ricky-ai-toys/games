@@ -372,7 +372,18 @@
     .legend b { color: var(--gold); }
 
     #overlay.in-game .menu-card { width: min(420px, 92vw); }
-  </style>
+  
+  /* This link used all:unset, which strips the box model and left it ~17px
+     tall — far too small to hit on a phone. Reproduce the reset here and then
+     rebuild the box: a real 44px target. */
+  button.back-link {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 44px; min-width: 44px; padding: 0 12px;
+    cursor: pointer; color: #65d8ff;
+  }
+</style>
 </head>
 <body>
   <div id="game-shell">
@@ -410,7 +421,7 @@
         </div>
         <p class="best-row">🏆 Best: <span id="menu-best">0</span></p>
         <p style="margin-top:8px; font-size:12px; opacity:.6">
-          <button style="all:unset; cursor:pointer; color:#65d8ff" onclick="location.href='portal.html'">← Games</button>
+          <button class="back-link" onclick="location.href='portal.html'">← Games</button>
         </p>
       </div>
     </div>

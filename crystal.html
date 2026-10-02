@@ -1104,7 +1104,7 @@ function updateBestDisplay() {
 }
 function setMuted(v) {
   muted = v;
-  localStorage.setItem('crystal_muted', muted ? '1' : '0');
+  try { localStorage.setItem('crystal_muted', muted ? '1' : '0'); } catch (e) {}
   updateBestDisplay();
 }
 function toggleMute() { setMuted(!muted); }
@@ -1514,7 +1514,8 @@ function startLevel(lvl) {
   startWave(true);
   setPhase('playing');
   updateHud();
-  if (localStorage.getItem('crystal_tutorial') !== '1') {
+  let tutorialSeen = false; try { tutorialSeen = localStorage.getItem('crystal_tutorial') === '1'; } catch (e) {}
+  if (!tutorialSeen) {
     document.getElementById('tutorial').style.display = '';
   } else {
     amberSay("Let's match some crystals!", 2800, {
@@ -1560,12 +1561,12 @@ function saveScoreAndBest() {
   let isBest = false;
   if (G.score > (bests[lvl] || 0)) {
     bests[lvl] = G.score;
-    localStorage.setItem('crystal_best_' + lvl, String(G.score));
+    try { localStorage.setItem('crystal_best_' + lvl, String(G.score)); } catch (e) {}
     isBest = true;
   }
   if (G.wave > (bestWaves[lvl] || 0)) {
     bestWaves[lvl] = G.wave;
-    localStorage.setItem('crystal_bestwave_' + lvl, String(G.wave));
+    try { localStorage.setItem('crystal_bestwave_' + lvl, String(G.wave)); } catch (e) {}
   }
   return isBest;
 }
@@ -1589,7 +1590,7 @@ function winGame() {
   const isBest = saveScoreAndBest();
   const lvl = G.level;
   wins[lvl] = (wins[lvl] || 0) + 1;
-  localStorage.setItem('crystal_wins_' + lvl, String(wins[lvl]));
+  try { localStorage.setItem('crystal_wins_' + lvl, String(wins[lvl])); } catch (e) {}
   document.getElementById('winScore').textContent = String(G.score);
   document.getElementById('winStats').textContent =
     G.winWaves + ' waves cleared · Max combo ×' + Math.max(1, G.maxCombo);
@@ -2392,7 +2393,7 @@ document.getElementById('overMenuBtn').addEventListener('click', goMenu);
 document.getElementById('winReplayBtn').addEventListener('click', restart);
 document.getElementById('winMenuBtn').addEventListener('click', goMenu);
 document.getElementById('tutOk').addEventListener('click', () => {
-  localStorage.setItem('crystal_tutorial', '1');
+  try { localStorage.setItem('crystal_tutorial', '1'); } catch (e) {}
   document.getElementById('tutorial').style.display = 'none';
   amberSay("Let's match some crystals!", 2800, {
     block: true,

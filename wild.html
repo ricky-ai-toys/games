@@ -127,9 +127,15 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
 (function () {
   const A = document.getElementById('app');
   const C = { a: '#ff8a65', d: '#ff6e6e', g: '#4caf50', b: '#42a5f5', y: '#ffd700', q: '#5ffbf1' };
-  let game = (() => { try { return localStorage.getItem('wild_pick'); } catch(e){} return null; })() || 'shark';
-  let lvl = (() => { try { return localStorage.getItem('wild_lvl'); } catch(e){} return null; })() || 'med';
-  let muted = false; try { muted = localStorage.getItem('wild_muted') === '1'; } catch(e){}
+  /* Storage can be unavailable (private browsing, blocked third-party storage),
+   * and merely TOUCHING localStorage throws in that case — including property
+   * reads like `localStorage.wild_muted`. Everything in this file goes through
+   * these two helpers so the game stays fully playable with storage off. */
+  const sGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const sSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  let game = sGet('wild_pick') || 'shark';
+  let lvl = sGet('wild_lvl') || 'med';
+  let muted = sGet('wild_muted') === '1';
   let stop = () => {};
   let audio = null;
 
@@ -165,8 +171,8 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
   const S = (arr) => arr.slice().sort(() => Math.random() - 0.5);
   const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  function best(g = game, l = lvl) { return +(localStorage['wild_best_' + g + '_' + l] || 0); }
-  function save(g, l, s) { localStorage['wild_best_' + g + '_' + l] = Math.max(best(g, l), s | 0); }
+  function best(g = game, l = lvl) { return +(sGet('wild_best_' + g + '_' + l) || 0); }
+  function save(g, l, s) { sSet('wild_best_' + g + '_' + l, Math.max(best(g, l), s | 0)); }
   function heart(n, m) { return '\u2665'.repeat(Math.max(0, n)) + '<span style="opacity:.25">' + '\u2665'.repeat(Math.max(0, m - n)) + '</span>'; }
 
   function snd() { if (!audio) try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
@@ -200,7 +206,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
   }
   function bind(onPause) {
     const mu = $('mu'), pa = $('pa'), hl = $('hl');
-    if (mu) mu.onclick = () => { muted = !muted; localStorage.wild_muted = muted ? '1' : '0'; if (mu) mu.textContent = muted ? '\uD83D\uDD07' : '\uD83D\uDD0A'; };
+    if (mu) mu.onclick = () => { muted = !muted; sSet('wild_muted', muted ? '1' : '0'); if (mu) mu.textContent = muted ? '\uD83D\uDD07' : '\uD83D\uDD0A'; };
     if (pa) pa.onclick = onPause;
     if (hl) hl.onclick = () => toast('Pause for tips anytime!', C.q);
   }
@@ -240,10 +246,10 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
       <button class="btn ghost" id="mute">${muted ? '\uD83D\uDD07 Muted' : '\uD83D\uDD0A Sound'}</button>
       <div class="small">Best for selected mode: <b>${best(game, lvl)}</b></div>
     </div></div>`);
-    A.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { game = b.dataset.g; localStorage.wild_pick = game; menu(); });
-    A.querySelectorAll('[data-l]').forEach(b => b.onclick = () => { lvl = b.dataset.l; localStorage.wild_lvl = lvl; menu(); });
+    A.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { game = b.dataset.g; sSet('wild_pick', game); menu(); });
+    A.querySelectorAll('[data-l]').forEach(b => b.onclick = () => { lvl = b.dataset.l; sSet('wild_lvl', lvl); menu(); });
     $('start').onclick = () => { snd(); start(game, lvl); };
-    $('mute').onclick = () => { muted = !muted; localStorage.wild_muted = muted ? '1' : '0'; menu(); };
+    $('mute').onclick = () => { muted = !muted; sSet('wild_muted', muted ? '1' : '0'); menu(); };
   }
 
   function start(g, l) {
@@ -260,7 +266,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
       <p class="small">Chain bites within 1.8s for combo multipliers. Reach size 5 and hold APEX for 8s to win!</p>
       <button class="btn" id="ok">Got it!</button></div>`;
     A.appendChild(o);
-    o.querySelector('#ok').onclick = () => { localStorage.wild_shark_tutorial = '1'; o.remove(); };
+    o.querySelector('#ok').onclick = () => { sSet('wild_shark_tutorial', '1'); o.remove(); };
   }
 
   /* ===================== SHARK HUNT (featured) ===================== */
@@ -273,7 +279,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
       '<button class="btn fab dash" id="dash">\u26A1 Dash</button>' +
       '<div class="hint"><b>DRAG</b> swim \u00b7 <b>BITE</b> smaller prey \u00b7 <b>DASH</b> threats \u00b7 size 5 = APEX hold 8s</div>'
     );
-    if (localStorage.wild_shark_tutorial !== '1') tutorShark();
+    if (sGet('wild_shark_tutorial') !== '1') tutorShark();
 
     const cv = $('cv');
     const x = cv.getContext('2d');
