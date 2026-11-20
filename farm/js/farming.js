@@ -151,6 +151,7 @@ const Farming = (() => {
     if (id === 'melon') Game.tryAchieve('melon_king');
     if (id === 'pumpkin') Game.tryAchieve('fall_harvest');
     state.stats.harvested = (state.stats.harvested || 0) + 1;
+    if (state.stats.harvested >= 25 && window.AmberTrophies) window.AmberTrophies.award('farm_harvest');
     if (typeof Quests !== 'undefined') Quests.progress(state, 'harvest', 1);
 
     const px = tx * CONST.TILE + CONST.TILE / 2;
