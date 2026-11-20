@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
@@ -7,13 +7,13 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>是男人就下一百层</title>
+<title>Amber's Quick Drop</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body {
   width: 100%; height: 100%;
   background: #111;
-  font-family: "Microsoft YaHei", sans-serif;
+  font-family: ui-rounded, "PingFang TC", "Segoe UI", system-ui, sans-serif;
   overflow: hidden; touch-action: none;
   -webkit-user-select: none; user-select: none;
   position: fixed; top: 0; left: 0;
@@ -35,21 +35,27 @@ canvas {
   justify-content: center; align-items: center;
   color: white; text-align: center;
   pointer-events: none;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.72);
+  padding: 16px;
 }
-#overlay button {
+#overlay.hidden { display: none; }
+#overlay h1 { font-size: 34px; margin: 6px 10px; text-shadow: 0 0 15px #ffcc00; }
+#overlay .sub { font-size: 15px; color: #ddd; margin: 4px 10px; line-height: 1.5; }
+#overlay .hint { font-size: 13px; color: #ffcc00; margin: 8px 0 16px; }
+#diffs { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.diff {
   pointer-events: auto;
-  margin-top: 20px; padding: 15px 40px;
-  font-size: 28px;
+  min-width: 96px; min-height: 62px;
+  padding: 10px 16px;
+  font-size: 18px; font-weight: 800;
   background: #ffcc00; color: #222;
-  border: none; border-radius: 12px;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+  border: none; border-radius: 12px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
 }
-#overlay button:active { background: #ffe044; transform: scale(0.97); }
-h1 { font-size: 42px; margin: 10px; text-shadow: 0 0 15px #ffcc00; }
-#info { font-size: 16px; color: #ccc; margin: 10px; padding: 0 20px; line-height: 1.6; }
-/* 移动端虚拟按钮 */
+.diff span { font-size: 11px; font-weight: 600; opacity: .7; }
+.diff:active { background: #ffe044; transform: scale(0.97); }
+#again { pointer-events: auto; margin-top: 16px; padding: 12px 28px; font-size: 18px; font-weight: 800;
+  background: rgba(255,255,255,0.16); color: #fff; border: 2px solid rgba(255,255,255,0.4); border-radius: 12px; cursor: pointer; }
 #controls {
   position: absolute; bottom: 0; left: 0; right: 0; z-index: 5;
   display: none; justify-content: space-between;
@@ -67,7 +73,7 @@ h1 { font-size: 42px; margin: 10px; text-shadow: 0 0 15px #ffcc00; }
 @media (max-width: 768px) {
   canvas { border-width: 4px; }
   #controls { display: flex; }
-  h1 { font-size: 28px; }
+  #overlay h1 { font-size: 26px; }
 }
 </style>
 </head>
@@ -75,10 +81,15 @@ h1 { font-size: 42px; margin: 10px; text-shadow: 0 0 15px #ffcc00; }
 <div id="gameContainer">
   <canvas id="canvas" width="400" height="600"></canvas>
   <div id="overlay">
-    <h1>🏔️ 是男人就下一百层</h1>
-    <p id="info">鼠标左右移动 / 手指滑动 / 键盘 ← → 控制</p>
-    <p style="font-size:14px;color:#ffcc00;margin:8px 0;padding:0 20px;">← → 或点击屏幕左右两侧移动，躲避障碍物，到达更低楼层！</p>
-    <button id="btn" onclick="startGame()">开始挑战</button>
+    <h1>⬇️ Amber's Quick Drop</h1>
+    <p class="sub" id="ov-sub">Dodge the walls and drop as far as you can!</p>
+    <p class="hint">← → or A/D · move the mouse · or slide your finger</p>
+    <div id="diffs">
+      <button class="diff" data-diff="easy">Easy<span id="best-easy">Best 0</span></button>
+      <button class="diff" data-diff="medium">Medium<span id="best-medium">Best 0</span></button>
+      <button class="diff" data-diff="hard">Hard<span id="best-hard">Best 0</span></button>
+    </div>
+    <button id="again" style="display:none">Try again</button>
   </div>
   <div id="controls">
     <div class="dpad">
@@ -89,17 +100,26 @@ h1 { font-size: 42px; margin: 10px; text-shadow: 0 0 15px #ffcc00; }
 </div>
 
 <script>
-window.addEventListener('error', function(e){ if(window.AmberHardening && AmberHardening.__amberErrorInstalled) return; try{ var d=document.createElement('div'); d.setAttribute('role','alert'); d.style.cssText='position:fixed;inset:0;z-index:9999;background:#1a1a2e;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;padding:24px;text-align:center;'; d.innerHTML='<div style="font-size:48px;margin-bottom:16px">🦊</div><div style="font-size:18px;margin-bottom:24px">Oops! Reload and try again.</div><button onclick="location.reload()" style="font-size:16px;padding:12px 24px;border:none;border-radius:8px;background:#f5a623;color:#1a1a2e;cursor:pointer;font-weight:bold;">Reload</button>'; document.body.appendChild(d); }catch(_){} });
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const W = 400, H = 600;
 
+const DIFFS = {
+  easy:   { label: 'Easy',   speed: 2.3, ramp: 0.020, leftChance: 0.55, rightChance: 0.55, goal: 50 },
+  medium: { label: 'Medium', speed: 3.2, ramp: 0.035, leftChance: 0.68, rightChance: 0.68, goal: 100 },
+  hard:   { label: 'Hard',   speed: 4.1, ramp: 0.050, leftChance: 0.80, rightChance: 0.80, goal: 150 },
+};
+
+function lsGet(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+let diff = 'medium';
+let cfg = DIFFS[diff];
 let player = { x: 185, y: 260, w: 30, h: 45 };
 let obstacles = [];
 let floors = [];
-let gameSpeed = 3.2;
+let gameSpeed = cfg.speed;
 let currentFloor = 0;
-let highestFloor = 0; try { highestFloor = parseInt(localStorage.getItem('highest100') || '0'); } catch(e){}
 let isPlaying = false;
 let isOver = false;
 let isWin = false;
@@ -107,14 +127,31 @@ let mouseX = 200;
 let lastTime = 0;
 let keys = {};
 
-document.addEventListener('keydown', e => { keys[e.key] = true; e.preventDefault(); });
+const bestKey = d => 'quickdrop_best_' + d;
+function getBest(d) { return parseInt(lsGet(bestKey(d), '0'), 10) || 0; }
+function setBest(d, v) {
+  if (v > getBest(d)) lsSet(bestKey(d), String(v));
+  const overall = Math.max(getBest('easy'), getBest('medium'), getBest('hard'));
+  lsSet('highest100', String(overall)); // keep the portal card reader working
+}
+function refreshBestLabels() {
+  for (const d of ['easy', 'medium', 'hard']) {
+    const el = document.getElementById('best-' + d);
+    if (el) el.textContent = 'Best ' + getBest(d);
+  }
+}
+
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (e.key === 'r' || e.key === 'R') { if (!isPlaying) startGame(diff); }
+  e.preventDefault();
+});
 document.addEventListener('keyup', e => { keys[e.key] = false; });
 
 canvas.addEventListener('mousemove', e => {
   const rect = canvas.getBoundingClientRect();
   mouseX = (e.clientX - rect.left) * (W / rect.width);
 });
-
 canvas.addEventListener('touchstart', e => {
   e.preventDefault();
   const rect = canvas.getBoundingClientRect();
@@ -126,11 +163,9 @@ canvas.addEventListener('touchmove', e => {
   mouseX = (e.touches[0].clientX - rect.left) * (W / rect.width);
 });
 canvas.addEventListener('touchend', e => { e.preventDefault(); });
-
 document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
 document.addEventListener('gesturestart', e => e.preventDefault());
 
-// Mobile buttons
 function setupBtn(id, key) {
   const btn = document.getElementById(id);
   const on = () => { keys[key] = true; btn.style.background = 'rgba(255,255,255,0.35)'; };
@@ -148,12 +183,12 @@ setupBtn('btnRight', 'ArrowRight');
 function rand(min, max) { return Math.random() * (max - min) + min; }
 
 function generateFloor() {
-  const lastY = floors.length ? floors[floors.length-1].y : H + 80;
+  const lastY = floors.length ? floors[floors.length - 1].y : H + 80;
   const y = lastY + 88;
   floors.push({ y: y, num: currentFloor + floors.length + 1 });
 
-  const hasLeft = Math.random() < 0.68;
-  const hasRight = Math.random() < 0.68;
+  const hasLeft = Math.random() < cfg.leftChance;
+  const hasRight = Math.random() < cfg.rightChance;
   obstacles.push({
     y: y - 8,
     leftW: hasLeft ? rand(72, 155) : 0,
@@ -166,32 +201,31 @@ function resetGame() {
   obstacles = [];
   floors = [];
   currentFloor = 0;
-  gameSpeed = 3.2;
+  cfg = DIFFS[diff];
+  gameSpeed = cfg.speed;
   isOver = false;
   isWin = false;
   lastTime = 0;
   for (let i = 0; i < 7; i++) generateFloor();
 }
 
-function startGame() {
-  document.getElementById('btn').style.display = 'none';
-  document.getElementById('info').innerHTML = '第 <span id="floorNum">0</span> / 100 层';
+function startGame(d) {
+  diff = DIFFS[d] ? d : 'medium';
+  cfg = DIFFS[diff];
+  document.getElementById('overlay').classList.add('hidden');
   resetGame();
   isPlaying = true;
   requestAnimationFrame(gameLoop);
 }
 
 function checkCollision() {
-  // Hit walls
   if (player.x < 58 || player.x + player.w > 342) return true;
-
   for (let o of obstacles) {
     if (o.y > H + 10 || o.y < -50) continue;
     if (o.leftW > 0 &&
         player.x < 50 + o.leftW &&
         player.y + player.h > o.y &&
         player.y < o.y + 38) return true;
-
     if (o.rightX < W &&
         player.x + player.w > o.rightX &&
         player.y + player.h > o.y &&
@@ -203,11 +237,9 @@ function checkCollision() {
 function drawBackground() {
   ctx.fillStyle = '#1a1a2e';
   ctx.fillRect(0, 0, W, H);
-
   ctx.fillStyle = '#16213e';
   ctx.fillRect(40, 0, 20, H);
   ctx.fillRect(340, 0, 20, H);
-
   ctx.strokeStyle = '#ffcc88';
   ctx.lineWidth = 3;
   for (let f of floors) {
@@ -216,14 +248,9 @@ function drawBackground() {
     ctx.moveTo(60, f.y);
     ctx.lineTo(340, f.y);
     ctx.stroke();
-
     ctx.fillStyle = '#ffeeaa';
-    for (let i = 0; i < 3; i++) {
-      ctx.fillRect(68 + i*55, f.y - 18, 20, 11);
-    }
-    for (let i = 0; i < 3; i++) {
-      ctx.fillRect(225 + i*55, f.y - 18, 20, 11);
-    }
+    for (let i = 0; i < 3; i++) ctx.fillRect(68 + i * 55, f.y - 18, 20, 11);
+    for (let i = 0; i < 3; i++) ctx.fillRect(225 + i * 55, f.y - 18, 20, 11);
   }
 }
 
@@ -247,103 +274,87 @@ function drawObstacles() {
   }
 }
 
+function endRun(win) {
+  isOver = !win;
+  isWin = win;
+  isPlaying = false;
+  setBest(diff, currentFloor);
+  refreshBestLabels();
+  const ov = document.getElementById('overlay');
+  ov.classList.remove('hidden');
+  const sub = document.getElementById('ov-sub');
+  const h1 = ov.querySelector('h1');
+  const again = document.getElementById('again');
+  again.style.display = 'block';
+  again.textContent = 'Try again (' + DIFFS[diff].label + ')';
+  again.onclick = () => startGame(diff);
+  if (win) {
+    h1.textContent = '🌟 You reached the bottom!';
+    sub.textContent = 'Amazing! You dropped all ' + cfg.goal + ' floors. Best: ' + getBest(diff);
+  } else {
+    h1.textContent = 'Nice drop!';
+    sub.textContent = 'You reached floor ' + currentFloor + ' of ' + cfg.goal + '. Try again?';
+  }
+}
+
 function gameLoop(timestamp = 0) {
   if (!isPlaying) return;
-
   if (!lastTime) lastTime = timestamp;
   const dt = Math.min(timestamp - lastTime, 32);
   lastTime = timestamp;
   const factor = dt / 16.67;
 
-  // Speed ramp
-  gameSpeed = 3.2 + currentFloor * 0.035;
+  gameSpeed = cfg.speed + currentFloor * cfg.ramp;
 
-  // Controls — FIXED: added || operators
   if (keys['ArrowLeft'] || keys['a'] || keys['A']) player.x -= 7.5 * factor;
   if (keys['ArrowRight'] || keys['d'] || keys['D']) player.x += 7.5 * factor;
-
   player.x += (mouseX - player.x) * 0.28 * factor;
   player.x = Math.max(58, Math.min(W - player.w - 58, player.x));
 
-  // World scroll
   const move = gameSpeed * factor;
   for (let o of obstacles) o.y -= move;
   for (let f of floors) f.y -= move;
-
   obstacles = obstacles.filter(o => o.y > -60);
   floors = floors.filter(f => f.y > -60);
 
-  // Spawn new floor
-  if (floors.length === 0 || floors[floors.length-1].y < H + 20) {
+  if (floors.length === 0 || floors[floors.length - 1].y < H + 20) {
     currentFloor++;
     generateFloor();
   }
-
-  // Track which floor player has passed
   while (floors.length > 0 && floors[0].y < player.y + 20) {
     currentFloor = Math.max(currentFloor, floors[0].num);
     floors.shift();
   }
 
-  // Collision & win
-  if (checkCollision()) {
-    isOver = true; isPlaying = false;
-    if (currentFloor > highestFloor) {
-      highestFloor = currentFloor;
-      localStorage.setItem('highest100', highestFloor);
-    }
-  }
+  if (checkCollision()) { endRun(false); drawAll(); return; }
+  if (currentFloor >= cfg.goal) { endRun(true); drawAll(); return; }
 
-  if (currentFloor >= 100) {
-    isWin = true; isPlaying = false;
-    if (currentFloor > highestFloor) highestFloor = currentFloor;
-    localStorage.setItem('highest100', highestFloor);
-  }
+  drawAll();
+  if (isPlaying && !document.hidden) requestAnimationFrame(gameLoop);
+}
 
-  // Draw
+function drawAll() {
   drawBackground();
   drawObstacles();
   drawPlayer();
-
-  // UI
   ctx.fillStyle = 'white';
-  ctx.font = 'bold 28px Microsoft YaHei';
-  ctx.fillText('第 ' + currentFloor + ' 层', 22, 45);
-  ctx.font = '20px Microsoft YaHei';
-  ctx.fillText('最高 ' + highestFloor, 245, 45);
-
-  // Game over
-  if (isOver || isWin) {
-    ctx.fillStyle = 'rgba(0,0,0,0.8)';
-    ctx.fillRect(0, 0, W, H);
-
-    ctx.font = 'bold 42px Microsoft YaHei';
-    if (isWin) {
-      ctx.fillStyle = '#ffcc00';
-      ctx.fillText('你是真男人！', 38, 230);
-      ctx.font = '28px Microsoft YaHei';
-      ctx.fillStyle = 'white';
-      ctx.fillText('100层全部通过', 72, 290);
-    } else {
-      ctx.fillStyle = '#ff3366';
-      ctx.fillText('你不是男人', 48, 230);
-      ctx.font = '28px Microsoft YaHei';
-      ctx.fillStyle = 'white';
-      ctx.fillText('只下了 ' + currentFloor + ' 层', 85, 290);
-    }
-
-    document.getElementById('btn').textContent = '再来一次';
-    document.getElementById('btn').style.display = 'block';
-    document.getElementById('info').innerHTML = '最高纪录：<b>' + highestFloor + '</b> 层';
-  }
-
-  if (isPlaying && !window.__amberPaused) requestAnimationFrame(gameLoop);
+  ctx.font = 'bold 26px ui-rounded, system-ui, sans-serif';
+  ctx.fillText('Floor ' + currentFloor, 20, 44);
+  ctx.font = '18px ui-rounded, system-ui, sans-serif';
+  ctx.fillText('Best ' + Math.max(getBest(diff), currentFloor), 258, 44);
+  ctx.font = '14px ui-rounded, system-ui, sans-serif';
+  ctx.fillStyle = '#ffcc00';
+  ctx.fillText(DIFFS[diff].label + ' · goal ' + cfg.goal, 20, 66);
 }
-document.addEventListener('visibilitychange',function(){window.__amberPaused=document.hidden;});
 
-document.getElementById('info').innerHTML += '<br>最高纪录：' + highestFloor + ' 层';
+document.querySelectorAll('.diff').forEach(btn => {
+  btn.addEventListener('click', () => startGame(btn.getAttribute('data-diff')));
+});
+refreshBestLabels();
 </script>
 <script src="hardening.js?v=3"></script>
+<script>if (window.AmberHardening) AmberHardening.installErrorOverlay();</script>
+<script src="playtime.js?v=2"></script>
 <script src="pwa.js"></script>
 </body>
 </html>
