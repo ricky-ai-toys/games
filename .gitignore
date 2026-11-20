@@ -4,3 +4,6 @@ node_modules/
 
 # LoopX local state (private paths)
 .loopx/
+
+# Codex agent state (internal, not for the public kids' site)
+.codex/

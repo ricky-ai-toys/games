@@ -168,6 +168,13 @@ const FarmAudio = (() => {
     }
   }
 
+  // audit M-6 fix: pause the music scheduler when the tab is hidden so it
+  // doesn't keep playing (and burning CPU) in a background tab.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopMusic();
+    else if (musicEnabled && !muted) startMusic();
+  });
+
   return {
     init, resume, setMuted, setSfx, setMusic, setSeason,
     click, hoe, water, plant, harvest, coins, sleep, talk, success, pet, error,

@@ -3,7 +3,7 @@
    Offline-first fonts (system stacks). Optional Google Fonts if online.
    ======================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800&display=swap');
+@import url('../../vendor/font/fonts.css');
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 

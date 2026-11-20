@@ -85,7 +85,10 @@
         var div = global.document.createElement('div');
         div.setAttribute('role', 'alert');
         div.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#1a1a2e;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;padding:24px;text-align:center;';
-        var msg = message || "Something went wrong. Let's restart!";
+        var rawMsg = message || "Something went wrong. Let's restart!";
+        // audit L-1 fix: escape e.message before innerHTML (corrupt-save strings
+        // can carry markup; never inject them raw).
+        var msg = String(rawMsg).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         div.innerHTML = '<div style="font-size:48px;margin-bottom:16px">🦊</div>' +
           '<div style="font-size:18px;margin-bottom:24px">' + msg + '</div>' +
           '<button id="__amberReload" style="font-size:16px;padding:12px 24px;border:none;border-radius:8px;background:#f5a623;color:#1a1a2e;cursor:pointer;font-weight:bold;">Reload</button>';
