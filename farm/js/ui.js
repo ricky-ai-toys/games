@@ -238,7 +238,7 @@ const UI = (() => {
       Fishing.cancel();
     }
     ['modal-shop', 'modal-ship', 'modal-sellbox', 'modal-kitchen', 'modal-wardrobe',
-      'modal-dialogue', 'modal-journal', 'modal-quest', 'modal-animals',
+      'modal-dialogue', 'modal-journal', 'modal-quest', 'modal-animals', 'modal-animalcard',
       'modal-letter', 'modal-pause', 'modal-sleep', 'modal-inventory',
       'modal-festival', 'modal-fishing', 'modal-geode', 'modal-postbox', 'modal-stall',
       'modal-story', 'modal-guide'].forEach(hide);
@@ -576,6 +576,53 @@ const UI = (() => {
     body.querySelectorAll('[data-buy-upgrade]').forEach(b => {
       b.onclick = () => Shop.buyUpgrade(s, b.dataset.buyUpgrade);
     });
+  }
+
+  let currentAnimal = null;
+
+  function openAnimalCard(a) {
+    if (!guardGameplayUI()) return;
+    currentAnimal = a;
+    Game.state.paused = true;
+    if (typeof Game.clearInteract === 'function') Game.clearInteract();
+    refreshAnimalCard();
+    show('modal-animalcard');
+    const inp = $('animalcard-input');
+    if (inp) { try { inp.focus(); inp.select(); } catch (e) {} }
+  }
+
+  function refreshAnimalCard() {
+    const a = currentAnimal;
+    if (!a) return;
+    const t = $('animalcard-title');
+    if (t) t.textContent = a.name || 'Animal';
+    const em = $('animalcard-emoji');
+    const def = (typeof ANIMAL_DEFS !== 'undefined') ? ANIMAL_DEFS[a.type] : null;
+    if (em) em.textContent = (def && def.emoji) || '🐾';
+    const h = $('animalcard-hearts');
+    if (h) {
+      const n = Math.max(0, Math.min(5, a.hearts || 0));
+      h.textContent = '♥'.repeat(n) + '♡'.repeat(5 - n);
+    }
+    const inp = $('animalcard-input');
+    if (inp) inp.value = a.name || '';
+    const btn = $('animalcard-save');
+    if (btn) {
+      btn.onclick = () => {
+        const v = ((inp && inp.value) || '').trim().slice(0, 14);
+        if (!v) { toast('Give your animal a name!'); if (inp) inp.focus(); return; }
+        a.name = v;
+        toast(`${v} loves the new name! 💛`);
+        if (typeof FarmAudio !== 'undefined' && FarmAudio.success) FarmAudio.success();
+        if (typeof Save !== 'undefined' && Game.state) Save.write(Game.state);
+        closeModals();
+      };
+    }
+    if (inp) {
+      inp.onkeydown = (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); if (btn) btn.click(); }
+      };
+    }
   }
 
   function openSellBox() {
@@ -979,6 +1026,7 @@ const UI = (() => {
     toast, refreshHUD, updateTutorial, updatePrompt, showTitle, hideTitle, closeModals,
     openShop, refreshShop, openShipping, refreshShipping, openKitchen, refreshKitchen,
     openWardrobe, openStory, refreshStory, openDialogue, openJournal, openQuestBoard, openAnimalShop,
+    openAnimalCard, refreshAnimalCard,
     openSellBox, refreshSellBox,
     openGeodeCracker, refreshGeodeCracker, openPostbox, refreshPostbox,
     openStall, refreshStall,

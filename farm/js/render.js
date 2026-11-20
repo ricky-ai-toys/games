@@ -274,7 +274,7 @@ const Render = (() => {
         if (typeof Sprites !== 'undefined') Sprites.player(ctx, state.player, time);
         else Player.draw(ctx, state.player, time);
       } else if (e.type === 'animal') {
-        Animals.drawOne(ctx, e.ref, time);
+        Animals.drawOne(ctx, e.ref, time, state);
       } else if (e.type === 'npc') {
         NPC.drawOne(ctx, state, e.ref, time);
       }

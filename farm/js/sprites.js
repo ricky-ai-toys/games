@@ -503,6 +503,38 @@ const Sprites = (() => {
     } else if (id === 'winter_root') {
       rect(ctx, cx - 3 + sway, cy + 2, 6, 4, leaf);
       rect(ctx, cx - 2 + sway, cy + 5, 4, 8, col);
+    } else if (id === 'lettuce') {
+      rect(ctx, cx - 8 + sway, cy + 4, 16, 6, leaf);
+      rect(ctx, cx - 6 + sway, cy, 12, 6, col);
+      rect(ctx, cx - 3 + sway, cy - 3, 6, 5, '#9ccc65');
+    } else if (id === 'strawberry') {
+      rect(ctx, cx - 5 + sway, cy + 1, 10, 8, col);
+      px(ctx, cx - 3 + sway, cy + 3, '#ff8a80', 2);
+      px(ctx, cx + 2 + sway, cy + 5, '#ff8a80', 2);
+      rect(ctx, cx - 4 + sway, cy - 3, 8, 4, leaf);
+    } else if (id === 'sunflower') {
+      rect(ctx, cx - 1 + sway, cy - 10, 2, 10, leaf);
+      px(ctx, cx - 6 + sway, cy - 14, col, 4);
+      px(ctx, cx + 2 + sway, cy - 14, col, 4);
+      rect(ctx, cx - 3 + sway, cy - 15, 6, 6, '#8d6e63');
+    } else if (id === 'broccoli') {
+      rect(ctx, cx - 2 + sway, cy, 4, 10, '#6b8e23');
+      px(ctx, cx - 7 + sway, cy - 4, col, 6);
+      px(ctx, cx - 1 + sway, cy - 6, col, 6);
+      px(ctx, cx + 3 + sway, cy - 3, col, 5);
+    } else if (id === 'grapes') {
+      for (let i = 0; i < 6; i++) {
+        px(ctx, cx - 5 + (i % 3) * 4 + sway, cy + 1 + Math.floor(i / 3) * 4, col, 4);
+      }
+      rect(ctx, cx - 1 + sway, cy - 4, 2, 5, leaf);
+    } else if (id === 'onion') {
+      rect(ctx, cx - 4 + sway, cy + 2, 8, 8, col);
+      px(ctx, cx - 2 + sway, cy + 4, '#f0e6d0', 2);
+      rect(ctx, cx - 1 + sway, cy - 3, 2, 5, leaf);
+    } else if (id === 'garlic') {
+      rect(ctx, cx - 4 + sway, cy + 2, 8, 7, col);
+      rect(ctx, cx - 1 + sway, cy - 2, 2, 4, leaf);
+      px(ctx, cx - 2 + sway, cy + 5, '#d8d0b8', 2);
     } else {
       // radish default
       rect(ctx, cx - 4 + sway, cy + 2, 8, 5, leaf);

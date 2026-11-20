@@ -172,8 +172,8 @@ const Animals = (() => {
       return true;
     }
 
-    const h = closest.hearts || 0;
-    UI.toast(`${closest.name} is content. Friendship ♥${h}/5`);
+    // Already fed + petted today — open the animal card so she can rename it / check friendship
+    UI.openAnimalCard(closest);
     return true;
   }
 
@@ -282,7 +282,7 @@ const Animals = (() => {
   }
 
   /** Draw one animal (used by y-sort in Render) */
-  function drawOne(ctx, a, time) {
+  function drawOne(ctx, a, time, state) {
     const bob = Math.sin(time * 3 + a.x) > 0 ? 0 : 1;
     const x = Math.floor(a.x);
     const y = Math.floor(a.y + bob);
@@ -435,11 +435,27 @@ const Animals = (() => {
       ctx.fillStyle = '#6a9a3a';
       ctx.fillRect(x - 12, y - 12, 4, 4);
     }
+    // Show the animal's name when the player is close (cozy: names appear as you walk up)
+    if (state && state.player && a.name) {
+      const d = Utils.dist(state.player.x, state.player.y, a.x, a.y);
+      if (d < CONST.TILE * 2.6) {
+        ctx.save();
+        ctx.font = '9px ui-rounded, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        const tw = ctx.measureText(a.name).width;
+        ctx.fillStyle = 'rgba(20,12,4,0.55)';
+        ctx.fillRect(x - tw / 2 - 3, y - 34, tw + 6, 12);
+        ctx.fillStyle = '#fff3d6';
+        ctx.fillText(a.name, x, y - 23);
+        ctx.restore();
+      }
+    }
   }
 
   function draw(ctx, state, time) {
     for (const a of state.animals) {
-      drawOne(ctx, a, time);
+      drawOne(ctx, a, time, state);
     }
   }
 
