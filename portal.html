@@ -895,6 +895,17 @@
       accent: "linear-gradient(135deg, rgba(233,30,99,0.34), rgba(255,138,101,0.28))"
     },
     {
+      title: "Amber's Beat Lab",
+      file: "beatlab.html",
+      icon: "🥁",
+      tag: "Music",
+      group: "create",
+      stat: "Best score",
+      desc: "Build your own beat on the drum grid, or play follow-the-beat — tap out the rhythm and make some noise!",
+      accent: "linear-gradient(135deg, rgba(124,77,255,0.35), rgba(255,138,176,0.28))",
+      added: 1795160187022
+    },
+    {
       title: "Amber's Farm",
       file: "farm/index.html",
       icon: "\uD83C\uDF3E",
@@ -1017,6 +1028,14 @@
       let best = 0;
       for (const l of ['easy', 'med', 'hard']) {
         const v = parseInt(localStorage.getItem('fractionpizza_best_' + l) || '0', 10) || 0;
+        if (v > best) best = v;
+      }
+      return best;
+    },
+    'beatlab.html': () => {
+      let best = 0;
+      for (const l of ['easy', 'med', 'hard']) {
+        const v = parseInt(localStorage.getItem('beatlab_best_' + l) || '0', 10) || 0;
         if (v > best) best = v;
       }
       return best;
