@@ -83,5 +83,12 @@
     global.AmberHardening.installAudioGestureUnlock();
   }
 
+  // audit M-6 fix: suspend audio when the tab is hidden, resume on return
+  global.document.addEventListener('visibilitychange', function () {
+    if (!ctx) return;
+    if (global.document.hidden) { ctx.suspend().catch(function () {}); }
+    else if (ctx.state === 'suspended') { ctx.resume().catch(function () {}); }
+  });
+
   global.MPAudio = MPAudio;
 })(typeof window !== 'undefined' ? window : globalThis);

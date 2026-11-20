@@ -503,7 +503,11 @@
 
   let audioCtx = null;
   function getAudio() {
-    if (audioCtx) return audioCtx;
+    if (audioCtx) {
+      // audit L-2 fix: iOS creates the context suspended if not resumed from a gesture
+      if (audioCtx.state === 'suspended') { const p = audioCtx.resume(); if (p && p.catch) p.catch(() => {}); }
+      return audioCtx;
+    }
     try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
     return audioCtx;
   }

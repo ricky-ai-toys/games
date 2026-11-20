@@ -745,6 +745,8 @@
       function tone(frequency, duration = .08, type = "sine", volume = .04) {
         try {
           audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+          // audit L-2 fix: resume a gesture-suspended context (iOS)
+          if (audioContext.state === 'suspended') { const p = audioContext.resume(); if (p && p.catch) p.catch(() => {}); }
           const oscillator = audioContext.createOscillator();
           const gain = audioContext.createGain();
           oscillator.type = type;

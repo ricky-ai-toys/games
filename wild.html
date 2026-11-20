@@ -178,6 +178,8 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
   function snd() { if (!audio) try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
   function tone(a, b = a, d = 0.1, type = 'sine') {
     if (muted || !audio) return;
+    // audit L-2 fix: resume a gesture-suspended context (iOS)
+    if (audio.state === 'suspended') { const p = audio.resume(); if (p && p.catch) p.catch(() => {}); }
     const t = audio.currentTime, o = audio.createOscillator(), g = audio.createGain();
     o.type = type; o.frequency.setValueAtTime(a, t);
     if (a !== b) o.frequency.exponentialRampToValueAtTime(Math.max(20, b), t + d);

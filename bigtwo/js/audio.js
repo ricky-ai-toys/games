@@ -98,3 +98,10 @@ const Sfx = {
     setTimeout(() => this._beep(1100, 0.08, 'sine', 0.04), 70);
   },
 };
+
+// audit M-6 fix: suspend audio when the tab is hidden, resume on return
+document.addEventListener('visibilitychange', () => {
+  if (!Sfx.ctx) return;
+  if (document.hidden) { Sfx.ctx.suspend().catch(function () {}); }
+  else { Sfx.resume(); }
+});

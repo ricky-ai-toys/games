@@ -131,6 +131,19 @@ const OdysseyAudio = (() => {
     if (musicTimer) { clearInterval(musicTimer); musicTimer = null; }
   }
 
+  // audit M-6 fix: pause music + suspend audio when the tab is hidden
+  let musicWasPlaying = false;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      musicWasPlaying = !!musicTimer;
+      stopMusic();
+      if (actx) actx.suspend().catch(function () {});
+    } else {
+      if (actx) actx.resume().catch(function () {});
+      if (musicWasPlaying) startMusic(currentScene);
+    }
+  });
+
   return {
     ensure, tone, pluck, seaBed, storm, fanfare, sirenWarbles, error, success, click, coin,
     startMusic, stopMusic,
