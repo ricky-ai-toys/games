@@ -21,6 +21,7 @@
     { id: 'word_10',      icon: '🌸', title: 'Word Sprout',  desc: 'Spell 10 words in Word Garden' },
     { id: 'word_50',      icon: '🌻', title: 'Word Bloom',   desc: 'Spell 50 words in Word Garden' },
     { id: 'fraction_chef', icon: '🍕', title: 'Fraction Chef', desc: 'Serve 20 perfect pizzas' },
+    { id: 'beat_maker',   icon: '🥁', title: 'Beat Maker',   desc: 'Build and play your own beat loop' },
     { id: 'solar_reader', icon: '📚', title: 'Star Reader',  desc: 'Visit every planet on Solar Tour' }
   ];
 
