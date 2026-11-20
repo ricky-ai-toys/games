@@ -602,6 +602,49 @@
     .card { opacity: 1; transform: none; }
     .card:hover, .card:focus-visible { transform: none; }
   }
+
+  /* --- iteration 2: daily pick, trophy shelf, search, favourites --- */
+  .daily { display:none; align-items:center; gap:14px; margin:14px 0; padding:14px 18px;
+    border-radius:18px; text-decoration:none; color:#fff;
+    background:linear-gradient(135deg, rgba(255,209,102,.22), rgba(124,77,255,.22));
+    border:1px solid rgba(255,255,255,.14); }
+  .daily.show { display:flex; }
+  .daily .ico { font-size:34px; }
+  .daily .body { flex:1; min-width:0; }
+  .daily .kicker { font-size:12px; letter-spacing:.08em; text-transform:uppercase; opacity:.8; }
+  .daily .name { font-weight:800; font-size:18px; }
+  .daily .go { font-weight:700; opacity:.9; white-space:nowrap; }
+  .trophies { margin:18px 0; }
+  .trophy-grid { display:flex; flex-wrap:wrap; gap:10px; }
+  .trophy { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:14px;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); min-width:190px; flex:0 1 auto; }
+  .trophy .t-ico { font-size:26px; }
+  .trophy .t-title { font-weight:700; font-size:14px; }
+  .trophy .t-desc { font-size:12px; opacity:.75; }
+  .trophy.locked { opacity:.45; }
+  .trophy.locked .t-ico { filter:grayscale(1); }
+  .searchbar { margin:14px 0 6px; }
+  .searchbar input { width:100%; padding:12px 16px; border-radius:14px; font-size:16px;
+    color:#fff; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); outline:none; }
+  .searchbar input:focus { border-color:rgba(255,209,102,.6); }
+  .searchbar input::placeholder { color:rgba(255,255,255,.5); }
+  .badges .fav { cursor:pointer; font-size:18px; line-height:1; opacity:.55; transition:transform .12s, opacity .12s; }
+  .badges .fav:hover { transform:scale(1.25); opacity:1; }
+  .badges .fav.on { opacity:1; }
+  .portal-tools { margin-top:12px; }
+  .toolbtn { padding:8px 14px; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer;
+    color:#fff; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); }
+  .toolbtn[aria-pressed="true"] { background:rgba(255,209,102,.3); border-color:rgba(255,209,102,.6); }
+  .newflag { font-size:10px; font-weight:800; letter-spacing:.05em; color:#0b1530; background:#ffd166;
+    padding:2px 6px; border-radius:6px; }
+  body.big-text .card h3 { font-size:22px; }
+  body.big-text .card p { font-size:16px; }
+  body.big-text .card .tag { font-size:14px; }
+  body.big-text .note, body.big-text .sub { font-size:17px; }
+  body.big-text .daily .name { font-size:21px; }
+  body.big-text .trophy .t-title { font-size:16px; }
+  body.big-text .trophy .t-desc { font-size:14px; }
+  body.big-text .chip { font-size:15px; }
 </style>
 </head>
 <body>
@@ -619,14 +662,28 @@
       <p class="sub">This whole arcade is yours — swim as a shark, drop through floors, match crystals, type fast, and dress up however you imagine. Have fun, be brave, and try to beat your own best.</p>
       <p class="note" id="note"></p>
       <div class="progress" id="progress" aria-live="polite"></div>
+      <div class="portal-tools">
+        <button type="button" id="textsize" class="toolbtn" aria-pressed="false" title="Toggle bigger text">🔤 Bigger text</button>
+      </div>
     </header>
 
     <a class="continue" id="continue" href="#" hidden></a>
 
-    <section class="featured" id="featured" aria-label="Amber's favorites" hidden>
-      <div class="section-head"><h2>⭐ Amber's Favorites</h2><div class="blurb">Your most-played adventures</div></div>
+    <a class="daily" id="daily" href="#" hidden></a>
+
+    <section class="featured" id="featured" aria-label="Most played" hidden>
+      <div class="section-head"><h2>🔥 Most Played</h2><div class="blurb">Your most-played adventures</div></div>
       <div class="grid featured-grid" id="featured-grid"></div>
     </section>
+
+    <section class="trophies" id="trophies" aria-label="Amber's trophy shelf" hidden>
+      <div class="section-head"><h2>🏅 Trophy Shelf</h2><div class="blurb" id="trophy-count"></div></div>
+      <div class="trophy-grid" id="trophy-grid"></div>
+    </section>
+
+    <div class="searchbar">
+      <input id="search" type="search" placeholder="🔍 Find a game…" aria-label="Search games" autocomplete="off">
+    </div>
 
     <nav class="filters" id="filters" aria-label="Game categories"></nav>
 
@@ -660,6 +717,7 @@
   </button>
 
 <script src="playtime.js?v=2"></script>
+<script src="trophies.js?v=1"></script>
 <script src="hardening.js?v=2"></script>
 <script>if(window.AmberHardening)AmberHardening.installErrorOverlay();</script>
 <script src="pwa.js"></script>
@@ -877,7 +935,7 @@
       accent: "linear-gradient(135deg, rgba(91,200,255,0.35), rgba(185,108,255,0.25))"
     },
     {
-      title: "Amber's Big Drop",
+      title: "Amber's Quick Drop",
       file: "next100.html",
       icon: "\u2B07\uFE0F",
       tag: "Play",
@@ -904,6 +962,14 @@
     { id: "learn", label: "Learn", blurb: "Brain power, superstar" },
     { id: "create", label: "Create", blurb: "Your style, your rules" },
   ];
+
+  /* Rough session length so Amber can pick for the time she has (iteration 2). */
+  const LEN_BY_FILE = {
+    'farm/index.html': 'epic', 'odyssey/index.html': 'epic', 'solartour_v2.html': 'epic',
+    'bigtwo/index.html': 'medium', 'monopoly/index.html': 'medium', 'castle/index.html': 'medium',
+    'dressup.html': 'medium', 'salon.html': 'medium', 'shark/index.html': 'medium'
+  };
+  function gameLen(file) { return LEN_BY_FILE[file] || 'quick'; }
 
   const NOTES = [
     "Amber, you get better every time you play — one more try can make a new best!",
@@ -1156,7 +1222,7 @@
   let filter = 'all';
   try {
     const saved = localStorage.getItem('amber_portal_filter');
-    if (saved && GROUPS.some(g => g.id === saved)) filter = saved;
+    if (saved && (saved === 'favs' || saved === 'quick' || GROUPS.some(g => g.id === saved))) filter = saved;
   } catch (e) {}
 
   const elProgress = document.getElementById('progress');
@@ -1224,6 +1290,7 @@
     grid.querySelectorAll('a.card').forEach(a => {
       a.addEventListener('click', () => setLast(a.getAttribute('data-file')));
     });
+    wireFavToggles(grid);
   }
   renderFeatured();
 
@@ -1233,9 +1300,12 @@
   }
 
   function renderFilters() {
-    elFilters.innerHTML = GROUPS.map(g =>
-      '<button type="button" class="chip' + (filter === g.id ? ' on' : '') + '" data-f="' + g.id + '">' +
-        g.label + '<span class="n">' + countGroup(g.id) + '</span>' +
+    const chips = GROUPS.map(g => ({ id: g.id, label: g.label, n: countGroup(g.id) }));
+    chips.splice(1, 0, { id: 'favs', label: '⭐ Favorites', n: favs.length });
+    chips.splice(2, 0, { id: 'quick', label: '⚡ Quick', n: GAMES.filter(g => gameLen(g.file) === 'quick').length });
+    elFilters.innerHTML = chips.map(c =>
+      '<button type="button" class="chip' + (filter === c.id ? ' on' : '') + '" data-f="' + c.id + '">' +
+        c.label + '<span class="n">' + c.n + '</span>' +
       '</button>'
     ).join('');
     elFilters.querySelectorAll('[data-f]').forEach(btn => {
@@ -1366,6 +1436,20 @@
     });
   })();
 
+  /* --- favourites + search state (iteration 2) --- */
+  const FAV_KEY = 'amber_portal_favs';
+  let favs = [];
+  try { const f = JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); if (Array.isArray(f)) favs = f; } catch (e) {}
+  function isFav(file) { return favs.indexOf(file) !== -1; }
+  function saveFavs() { try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch (e) {} }
+  function toggleFav(file) {
+    const i = favs.indexOf(file);
+    if (i === -1) favs.push(file); else favs.splice(i, 1);
+    saveFavs();
+    renderFilters(); renderSections(); renderFeatured();
+  }
+  let searchQuery = '';
+
   function cardHtml(g, i) {
     const best = getBest(g.file);
     const playMs = getPlayMs(g.file);
@@ -1381,11 +1465,13 @@
         '<div class="top">' +
           '<div class="icon" aria-hidden="true">' + g.icon + '</div>' +
           '<div class="badges">' +
+            '<span class="fav' + (isFav(g.file) ? ' on' : '') + '" role="button" tabindex="0" aria-label="Favorite" data-fav="' + g.file + '">' + (isFav(g.file) ? '⭐' : '☆') + '</span>' +
+            ((g.added && (Date.now() - g.added) < 2592000000) ? '<span class="newflag">NEW</span>' : '') +
             '<span class="idx">' + String(i + 1).padStart(2, '0') + '</span>' +
             playedBadge +
           '</div>' +
         '</div>' +
-        '<span class="tag">' + g.tag + '</span>' +
+        '<span class="tag">' + g.tag + ' ' + ({ quick: '⚡', medium: '⏳', epic: '🌳' }[gameLen(g.file)] || '') + '</span>' +
         '<h3>' + g.title + '</h3>' +
         '<p>' + g.desc + '</p>' +
         bestStat +
@@ -1395,32 +1481,53 @@
     );
   }
 
+  function matchesSearch(g) {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (g.title + ' ' + g.desc + ' ' + g.tag).toLowerCase().indexOf(q) !== -1;
+  }
+  function wireFavToggles(root) {
+    root.querySelectorAll('.fav').forEach(f => {
+      const act = (e) => { e.preventDefault(); e.stopPropagation(); toggleFav(f.getAttribute('data-fav')); };
+      f.addEventListener('click', act);
+      f.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') act(e); });
+    });
+  }
   function renderSections() {
-    const showGroups = filter === 'all'
-      ? GROUPS.filter(g => g.id !== 'all')
-      : GROUPS.filter(g => g.id === filter);
-
     let html = '';
     let any = false;
     let globalIdx = 0;
-
-    for (const grp of showGroups) {
-      const list = GAMES.filter(g => g.group === grp.id);
-      if (!list.length) continue;
+    const flat = (title, blurb, list) => {
+      if (!list.length) return '';
       any = true;
-      html += '<section class="section" aria-label="' + grp.label + '">';
-      if (filter === 'all') {
-        html +=
-          '<div class="section-head">' +
-            '<h2>' + grp.label + '<span>' + list.length + '</span></h2>' +
-            '<div class="blurb">' + (grp.blurb || '') + '</div>' +
-          '</div>';
+      let h = '<section class="section"><div class="section-head"><h2>' + title + '<span>' + list.length + '</span></h2>' +
+        (blurb ? '<div class="blurb">' + blurb + '</div>' : '') + '</div><div class="grid">';
+      for (const g of list) h += cardHtml(g, globalIdx++);
+      return h + '</div></section>';
+    };
+    if (searchQuery) {
+      html = flat('🔍 Results', 'Matching "' + searchQuery + '"', GAMES.filter(matchesSearch));
+    } else if (filter === 'favs') {
+      html = flat('⭐ Favorites', 'The games you starred', GAMES.filter(g => isFav(g.file)));
+    } else if (filter === 'quick') {
+      html = flat('⚡ Quick plays', 'Short and snappy — perfect for a few minutes', GAMES.filter(g => gameLen(g.file) === 'quick'));
+    } else {
+      const showGroups = filter === 'all'
+        ? GROUPS.filter(g => g.id !== 'all')
+        : GROUPS.filter(g => g.id === filter);
+      for (const grp of showGroups) {
+        const list = GAMES.filter(g => g.group === grp.id);
+        if (!list.length) continue;
+        any = true;
+        html += '<section class="section" aria-label="' + grp.label + '">';
+        if (filter === 'all') {
+          html += '<div class="section-head"><h2>' + grp.label + '<span>' + list.length + '</span></h2>' +
+            '<div class="blurb">' + (grp.blurb || '') + '</div></div>';
+        }
+        html += '<div class="grid">';
+        for (const g of list) html += cardHtml(g, globalIdx++);
+        html += '</div></section>';
       }
-      html += '<div class="grid">';
-      for (const g of list) {
-        html += cardHtml(g, globalIdx++);
-      }
-      html += '</div></section>';
     }
 
     elSections.innerHTML = html;
@@ -1429,7 +1536,91 @@
     elSections.querySelectorAll('a.card').forEach(a => {
       a.addEventListener('click', () => setLast(a.getAttribute('data-file')));
     });
+    wireFavToggles(elSections);
   }
+
+  /* --- search wiring (iteration 2) --- */
+  const elSearch = document.getElementById('search');
+  if (elSearch) {
+    elSearch.addEventListener('input', () => {
+      searchQuery = elSearch.value.trim();
+      renderSections();
+    });
+  }
+
+  /* --- bigger-text toggle (accessibility, iteration 2) --- */
+  (function wireTextSize() {
+    const btn = document.getElementById('textsize');
+    if (!btn) return;
+    const KEY = 'amber_portal_bigtext';
+    const apply = (on) => {
+      document.body.classList.toggle('big-text', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.textContent = on ? '🔤 Normal text' : '🔤 Bigger text';
+    };
+    let on = false;
+    try { on = localStorage.getItem(KEY) === '1'; } catch (e) {}
+    apply(on);
+    btn.addEventListener('click', () => {
+      on = !on;
+      try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+      apply(on);
+    });
+  })();
+
+  /* --- daily adventure: one deterministic pick per day --- */
+  (function renderDaily() {
+    const el = document.getElementById('daily');
+    if (!el || !GAMES.length) return;
+    const d = new Date();
+    const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+    const pick = GAMES[seed % GAMES.length];
+    el.classList.add('show'); el.hidden = false;
+    el.href = pick.file;
+    el.innerHTML = '<div class="ico" aria-hidden="true">' + pick.icon + '</div><div class="body">' +
+      '<div class="kicker">✨ Today\'s adventure</div><div class="name">' + pick.title + '</div>' +
+      '<div class="meta">' + pick.tag + '</div></div><span class="go">Play →</span>';
+    el.addEventListener('click', () => setLast(pick.file));
+  })();
+
+  /* --- trophy shelf: derive generic badges, render earned + locked --- */
+  (function renderTrophies() {
+    if (!window.AmberTrophies) return;
+    const T = window.AmberTrophies;
+    const scored = GAMES.filter(g => getBest(g.file) > 0);
+    const groupsScored = { play: false, learn: false, create: false };
+    scored.forEach(g => { if (Object.prototype.hasOwnProperty.call(groupsScored, g.group)) groupsScored[g.group] = true; });
+    let totalPlayMs = 0, streakDays = 0;
+    try {
+      const snap = window.AmberPlaytime ? window.AmberPlaytime.getSnapshot() : null;
+      if (snap) {
+        totalPlayMs = snap.totalMs || 0;
+        const days = snap.days || {};
+        const has = (dt) => {
+          const k = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+          return (days[k] || 0) > 0;
+        };
+        let cur = new Date();
+        if (!has(cur)) cur.setDate(cur.getDate() - 1);
+        while (has(cur)) { streakDays++; cur.setDate(cur.getDate() - 1); }
+      }
+    } catch (e) {}
+    T.syncDerived({ totalPlayMs: totalPlayMs, scoredCount: scored.length, groupsScored: groupsScored, streakDays: streakDays });
+    const earned = T.earned();
+    const el = document.getElementById('trophies');
+    const grid = document.getElementById('trophy-grid');
+    const count = document.getElementById('trophy-count');
+    if (!el || !grid) return;
+    const earnedCount = T.CATALOG.filter(t => earned[t.id]).length;
+    el.hidden = false;
+    if (count) count.textContent = earnedCount + ' of ' + T.CATALOG.length + ' earned';
+    grid.innerHTML = T.CATALOG.map(t => {
+      const got = !!earned[t.id];
+      return '<div class="trophy' + (got ? '' : ' locked') + '">' +
+        '<span class="t-ico" aria-hidden="true">' + (got ? t.icon : '🔒') + '</span>' +
+        '<span><span class="t-title">' + t.title + '</span><br><span class="t-desc">' + t.desc + '</span></span></div>';
+    }).join('');
+  })();
 
   renderFilters();
   renderSections();
