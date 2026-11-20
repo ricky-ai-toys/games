@@ -150,5 +150,35 @@
     });
   };
 
+  // ---------- Portal button (every game gets a way home) ----------
+  // The PWA runs standalone (no browser back button), so a game with no
+  // back-link traps the player. Inject a small floating home button on any
+  // page that is NOT the portal (the portal has #sections).
+  H.installPortalButton = function () {
+    try {
+      var doc = global.document;
+      if (doc.getElementById('sections')) return;        // this is the portal
+      if (doc.getElementById('__amberPortalBtn')) return; // already added
+      var url = 'portal.html';
+      try {
+        var s = doc.currentScript;
+        if (s && s.src) url = s.src.replace(/hardening\.js.*$/, 'portal.html');
+      } catch (e) {}
+      var a = doc.createElement('a');
+      a.id = '__amberPortalBtn';
+      a.href = url;
+      a.textContent = '\uD83C\uDFE0';
+      a.setAttribute('aria-label', "Back to Amber's Games");
+      a.title = "Back to Amber's Games";
+      a.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:2147483646;' +
+        'width:44px;height:44px;display:flex;align-items:center;justify-content:center;' +
+        'font-size:22px;border-radius:50%;background:rgba(11,21,48,.72);' +
+        'border:1px solid rgba(255,255,255,.28);text-decoration:none;' +
+        'box-shadow:0 4px 14px rgba(0,0,0,.4);';
+      doc.body.appendChild(a);
+    } catch (e) {}
+  };
+  H.installPortalButton();
+
   global.AmberHardening = H;
 })(window);

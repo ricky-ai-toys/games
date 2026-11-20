@@ -1251,7 +1251,7 @@ const root = ReactDOM.createRoot(document.getElementById('app'));
 root.render(<ErrorBoundary><App /></ErrorBoundary>);
 document.addEventListener('visibilitychange',function(){if(document.hidden){if(typeof audioCtx!=='undefined'&&audioCtx&&audioCtx.suspend)audioCtx.suspend();}else{if(typeof audioCtx!=='undefined'&&audioCtx&&audioCtx.resume)audioCtx.resume().catch(function(){});}});
 </script>
-<script src="hardening.js?v=2"></script>
+<script src="hardening.js?v=3"></script>
 <script src="playtime.js?v=2"></script>
 <script src="pwa.js"></script>
 </body>
