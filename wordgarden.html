@@ -1,0 +1,989 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Word Garden">
+<meta name="theme-color" content="#0f2e1d">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="description" content="Spell words to grow a beautiful flower garden in Amber's Word Garden!">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230f2e1d'/%3E%3Ctext y='.9em' x='.1em' font-size='80'%3E%F0%9F%8C%B7%3C/text%3E%3C/svg%3E">
+<title>Amber's Word Garden</title>
+<style>
+  :root {
+    --primary-1: #FF9EBB;
+    --primary-2: #F06292;
+    --primary-shadow: #AD1457;
+    --secondary-1: #9CCC65;
+    --secondary-2: #558B2F;
+    --secondary-shadow: #33691E;
+    --gold: #FFD54F;
+    --green: #81C784;
+    --bg: #0f2e1d;
+    --bg-deep: #081c11;
+    --card-bg: rgba(255,255,255,0.06);
+    --card-border: rgba(255,255,255,0.14);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: ui-rounded, 'PingFang TC', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg-deep); color: #fff;
+    user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  #app {
+    width: 100vw; height: 100vh; height: 100dvh; position: relative; overflow: hidden;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(156,204,101,0.14), transparent 60%),
+      radial-gradient(900px 500px at 85% 110%, rgba(240,98,146,0.12), transparent 60%),
+      linear-gradient(180deg, #123524 0%, #0f2e1d 55%, #081c11 100%);
+  }
+  .hidden { display: none !important; }
+
+  /* ---------- floating background decor ---------- */
+  .decor { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+  .decor span {
+    position: absolute; font-size: 26px; opacity: 0.28;
+    animation: drift 14s ease-in-out infinite;
+  }
+  @keyframes drift {
+    0%, 100% { transform: translateY(0) rotate(-6deg); }
+    50% { transform: translateY(-26px) rotate(8deg); }
+  }
+
+  /* ---------- shared buttons / panels ---------- */
+  .btn {
+    background: linear-gradient(135deg, var(--primary-1), var(--primary-2)); color: #3a0d1f;
+    border: none; padding: 14px 32px; font-size: 17px; font-weight: 800;
+    border-radius: 14px; cursor: pointer;
+    box-shadow: 0 5px 0 var(--primary-shadow), 0 8px 18px rgba(0,0,0,0.35);
+    transition: transform 0.08s, box-shadow 0.08s;
+    font-family: inherit; letter-spacing: 1px;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--primary-shadow), 0 10px 22px rgba(0,0,0,0.35); }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--primary-shadow), 0 4px 8px rgba(0,0,0,0.35); }
+  .btn-secondary {
+    background: linear-gradient(135deg, var(--secondary-1), var(--secondary-2)); color: #fff;
+    box-shadow: 0 5px 0 var(--secondary-shadow), 0 8px 18px rgba(0,0,0,0.35);
+  }
+  .btn-secondary:hover { box-shadow: 0 7px 0 var(--secondary-shadow), 0 10px 22px rgba(0,0,0,0.35); }
+  .btn-secondary:active { box-shadow: 0 2px 0 var(--secondary-shadow), 0 4px 8px rgba(0,0,0,0.35); }
+  .btn-ghost {
+    background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: none;
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.15); box-shadow: none; transform: none; }
+  .btn-ghost:active { transform: none; }
+  .btn-small { padding: 10px 18px; font-size: 14px; }
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+
+  .overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; z-index: 10; pointer-events: none;
+    padding: 16px; overflow-y: auto;
+  }
+  .overlay > * { pointer-events: auto; }
+  .menu-screen { background: rgba(8, 24, 15, 0.82); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .menu-card {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 22px; padding: 26px 28px; box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    display: flex; flex-direction: column; align-items: center;
+    width: 100%; max-width: 680px; margin: auto;
+  }
+  .title {
+    font-size: clamp(30px, 7vw, 56px); font-weight: 900; letter-spacing: 2px;
+    text-shadow: 0 4px 16px rgba(0,0,0,0.6); margin-bottom: 8px; text-align: center;
+    background: linear-gradient(135deg, #FF9EBB, #FFD54F);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: titlePulse 2.4s ease-in-out infinite;
+  }
+  @keyframes titlePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  .subtitle { font-size: clamp(13px, 2.4vw, 17px); opacity: 0.85; margin-bottom: 16px; text-align: center; padding: 0 12px; line-height: 1.45; }
+  .mascot-row { font-size: clamp(34px, 7vw, 52px); margin-bottom: 10px; letter-spacing: 8px; }
+  .best { margin-top: 14px; font-size: 14px; opacity: 0.8; text-align: center; line-height: 1.6; }
+  .record { color: var(--gold); font-weight: 800; }
+
+  .diff-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; margin: 6px 0 16px; }
+  .diff-card {
+    flex: 1 1 150px; max-width: 200px; min-height: 108px;
+    background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.16);
+    border-radius: 16px; padding: 14px 10px; cursor: pointer; text-align: center;
+    transition: transform 0.12s, background 0.12s, border-color 0.12s;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-family: inherit; color: #fff;
+  }
+  .diff-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.1); }
+  .diff-card.active {
+    background: linear-gradient(135deg, rgba(255,158,187,0.2), rgba(240,98,146,0.2));
+    border-color: var(--primary-2);
+    box-shadow: 0 0 0 2px rgba(240,98,146,0.35), 0 12px 28px rgba(0,0,0,0.4);
+  }
+  .diff-card .d-emoji { font-size: 30px; line-height: 1; }
+  .diff-card .d-name { font-size: 17px; font-weight: 900; }
+  .diff-card .d-desc { font-size: 11.5px; opacity: 0.75; line-height: 1.3; }
+  .diff-card .d-best { font-size: 11.5px; color: var(--gold); font-weight: 700; }
+
+  .corner-link {
+    position: absolute; top: max(12px, env(safe-area-inset-top, 12px)); left: 14px; z-index: 12;
+    background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.18);
+    color: #fff; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-size: 13px;
+    font-weight: 700; text-decoration: none; font-family: inherit;
+  }
+  .corner-link:hover { background: rgba(0,0,0,0.6); }
+
+  /* ---------- HUD ---------- */
+  .hud {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding: 10px 14px; padding-top: max(10px, env(safe-area-inset-top, 10px));
+    display: flex; justify-content: space-between; align-items: center;
+    pointer-events: none; z-index: 5; font-weight: 800; font-size: 15px;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.7); gap: 8px;
+  }
+  .hud-left { display: flex; flex-direction: column; gap: 2px; }
+  .hud-left .score { color: var(--gold); font-size: 18px; white-space: nowrap; }
+  .hud-left .meta { font-size: 12px; opacity: 0.85; letter-spacing: 0.5px; }
+  .hud-buttons { display: flex; gap: 6px; align-items: center; pointer-events: auto; }
+  .icon-btn {
+    pointer-events: auto; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.18);
+    color: #fff; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-size: 14px;
+    font-weight: 700; backdrop-filter: blur(2px); font-family: inherit;
+    text-decoration: none; display: inline-block; line-height: 1;
+  }
+  .icon-btn:hover { background: rgba(0,0,0,0.6); }
+
+  /* ---------- play area ---------- */
+  .play-area {
+    position: absolute; left: 0; right: 0; top: 62px; bottom: 112px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 8px 12px; overflow-y: auto; z-index: 2;
+  }
+  .word-card {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 22px; padding: 16px 22px 14px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+    max-width: 94vw; position: relative;
+  }
+  .big-emoji { font-size: clamp(52px, 11vw, 84px); line-height: 1.1; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4)); }
+  .hint { font-size: clamp(14px, 2.6vw, 18px); opacity: 0.9; text-align: center; line-height: 1.35; max-width: 480px; }
+  .slots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+  .slot {
+    width: clamp(36px, 9vw, 58px); height: clamp(36px, 9vw, 58px);
+    border: 3px dashed rgba(255,255,255,0.35); border-radius: 13px;
+    background: rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(20px, 5vw, 30px); font-weight: 900; color: #fff;
+    text-transform: uppercase;
+  }
+  .slot.filled {
+    border-style: solid; border-color: var(--primary-2);
+    background: rgba(240,98,146,0.22);
+    animation: popIn 0.16s ease-out;
+  }
+  @keyframes popIn { 0% { transform: scale(0.7); } 70% { transform: scale(1.12); } 100% { transform: scale(1); } }
+  .slots.shake { animation: shake 0.5s ease-in-out; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-7px); } 40% { transform: translateX(7px); }
+    60% { transform: translateX(-5px); } 80% { transform: translateX(5px); }
+  }
+  .slots.happy .slot.filled { border-color: var(--green); background: rgba(129,199,132,0.25); }
+  .message {
+    min-height: 26px; font-size: clamp(14px, 2.6vw, 18px); font-weight: 800;
+    color: var(--gold); text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+  .message.soft { color: #B9E4C9; }
+
+  .bank-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 94vw; }
+  .bank { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 620px; }
+  .tile {
+    width: clamp(44px, 10vw, 62px); height: clamp(44px, 10vw, 62px);
+    border-radius: 14px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #FFF6E5, #FFE0B2); color: #5D4037;
+    font-size: clamp(22px, 5vw, 30px); font-weight: 900; font-family: inherit;
+    text-transform: uppercase;
+    box-shadow: 0 4px 0 #C8A165, 0 6px 14px rgba(0,0,0,0.3);
+    transition: transform 0.08s, box-shadow 0.08s, opacity 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tile:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #C8A165, 0 8px 16px rgba(0,0,0,0.3); }
+  .tile:active { transform: translateY(2px); box-shadow: 0 2px 0 #C8A165, 0 3px 8px rgba(0,0,0,0.3); }
+  .tile.used { opacity: 0.22; transform: scale(0.88); pointer-events: none; box-shadow: none; }
+  .tile.wiggle { animation: shake 0.4s ease-in-out; }
+
+  .star-burst { position: absolute; font-size: 24px; pointer-events: none; animation: starUp 1s ease-out forwards; z-index: 6; }
+  @keyframes starUp {
+    0% { transform: translateY(0) scale(0.6); opacity: 1; }
+    100% { transform: translateY(-90px) scale(1.3); opacity: 0; }
+  }
+
+  /* ---------- garden strip ---------- */
+  .garden {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 112px; z-index: 3;
+    background: linear-gradient(180deg, rgba(27,77,46,0.0) 0%, rgba(27,77,46,0.85) 26%, #14371f 100%);
+    border-top: 2px solid rgba(156,204,101,0.25);
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
+    pointer-events: none;
+  }
+  .garden-label { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; opacity: 0.7; margin-bottom: 2px; text-transform: uppercase; }
+  .plots { display: flex; gap: clamp(4px, 1.4vw, 14px); align-items: flex-end; justify-content: center; }
+  .plot { width: clamp(38px, 8vw, 62px); display: flex; flex-direction: column; align-items: center; }
+  .plot .flower {
+    font-size: clamp(26px, 5.6vw, 42px); line-height: 1;
+    transform: scale(0); transform-origin: bottom center;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+  }
+  .plot.grown .flower { animation: grow 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+  @keyframes grow {
+    0% { transform: scale(0) rotate(-20deg); }
+    60% { transform: scale(1.25) rotate(8deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  .plot .soil {
+    width: 82%; height: 12px; border-radius: 50%;
+    background: radial-gradient(ellipse at center, #6D4C41 0%, #4E342E 75%);
+    box-shadow: inset 0 -2px 4px rgba(0,0,0,0.4);
+    margin-top: -3px;
+  }
+  .plot .sprout { font-size: 13px; line-height: 1; margin-bottom: -2px; opacity: 0.85; }
+  .plot.grown .sprout { display: none; }
+
+  .result-garden { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; font-size: clamp(26px, 5vw, 38px); margin: 8px 0 4px; min-height: 40px; }
+  .result-garden span { animation: grow 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+
+  /* ---------- results ---------- */
+  .big-score { font-size: clamp(38px, 8vw, 60px); font-weight: 900; color: var(--gold); text-shadow: 0 4px 14px rgba(0,0,0,0.5); }
+  .stat-line { font-size: 15px; opacity: 0.9; margin-top: 6px; text-align: center; line-height: 1.6; }
+  .new-best {
+    background: linear-gradient(135deg, #FFD54F, #FFB300); color: #4E342E;
+    font-weight: 900; padding: 6px 16px; border-radius: 999px; font-size: 14px;
+    margin-top: 10px; animation: titlePulse 1.6s ease-in-out infinite;
+  }
+
+  /* ---------- pause ---------- */
+  .pause-title { font-size: clamp(28px, 6vw, 44px); font-weight: 900; margin-bottom: 14px; text-shadow: 0 4px 14px rgba(0,0,0,0.5); }
+
+  /* ---------- toast ---------- */
+  #toast {
+    position: absolute; top: max(64px, calc(env(safe-area-inset-top, 0px) + 56px)); left: 50%;
+    transform: translateX(-50%) translateY(-16px);
+    background: linear-gradient(135deg, #FFD54F, #FFB300); color: #4E342E;
+    font-weight: 900; font-size: 15px; padding: 10px 20px; border-radius: 999px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45); z-index: 30;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s;
+    max-width: 92vw; text-align: center;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-height: 560px) {
+    .play-area { top: 54px; bottom: 92px; gap: 8px; }
+    .garden { height: 92px; }
+    .big-emoji { font-size: 44px; }
+    .word-card { padding: 10px 16px; gap: 5px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="decor" aria-hidden="true">
+    <span style="left:6%;  top:14%; animation-delay:0s;">🌸</span>
+    <span style="left:88%; top:10%; animation-delay:2s;">🍃</span>
+    <span style="left:14%; top:70%; animation-delay:4s;">✨</span>
+    <span style="left:80%; top:62%; animation-delay:1s;">🌼</span>
+    <span style="left:46%; top:6%;  animation-delay:3s;">🦋</span>
+    <span style="left:64%; top:80%; animation-delay:5s;">🌷</span>
+  </div>
+
+  <!-- HUD (play screen) -->
+  <div id="hud" class="hud hidden">
+    <div class="hud-left">
+      <div class="score">⭐ <span id="hudScore">0</span></div>
+      <div class="meta"><span id="hudProgress">Word 1 of 8</span> · <span id="hudDiff">Easy</span></div>
+    </div>
+    <div class="hud-buttons">
+      <button id="muteBtn" class="icon-btn" title="Sound on/off">🔊</button>
+      <button id="pauseBtn" class="icon-btn" title="Pause">⏸ Pause</button>
+      <a class="icon-btn" href="portal.html" title="Back to portal">🏠 Portal</a>
+    </div>
+  </div>
+
+  <!-- Play area -->
+  <div id="playArea" class="play-area hidden">
+    <div id="wordCard" class="word-card">
+      <div id="bigEmoji" class="big-emoji">🌷</div>
+      <div id="hint" class="hint"></div>
+      <div id="slots" class="slots"></div>
+      <div id="message" class="message"></div>
+    </div>
+    <div class="bank-wrap">
+      <div id="bank" class="bank"></div>
+      <button id="undoBtn" class="btn btn-ghost btn-small">⌫ Undo letter</button>
+    </div>
+  </div>
+
+  <!-- Garden strip -->
+  <div id="garden" class="garden hidden">
+    <div class="garden-label">Your garden</div>
+    <div id="plots" class="plots"></div>
+  </div>
+
+  <!-- Menu -->
+  <div id="menu" class="overlay menu-screen">
+    <a class="corner-link" href="portal.html">🏠 Portal</a>
+    <div class="menu-card">
+      <div class="mascot-row">🌷🌻🌸</div>
+      <div class="title">Amber's Word Garden</div>
+      <div class="subtitle">Spell the word to plant a flower!<br>Tap the letter tiles or type on your keyboard. 🌱</div>
+      <div class="diff-row">
+        <button class="diff-card active" data-diff="easy">
+          <span class="d-emoji">🌱</span>
+          <span class="d-name">Easy</span>
+          <span class="d-desc">3–4 letter words</span>
+          <span class="d-best" id="bestEasy">Best: 0</span>
+        </button>
+        <button class="diff-card" data-diff="med">
+          <span class="d-emoji">🌿</span>
+          <span class="d-name">Medium</span>
+          <span class="d-desc">5–6 letter words</span>
+          <span class="d-best" id="bestMed">Best: 0</span>
+        </button>
+        <button class="diff-card" data-diff="hard">
+          <span class="d-emoji">🌳</span>
+          <span class="d-name">Hard</span>
+          <span class="d-desc">6–8 letter words</span>
+          <span class="d-best" id="bestHard">Best: 0</span>
+        </button>
+      </div>
+      <button id="startBtn" class="btn">🌱 Start Growing</button>
+      <div class="best">🌼 Words grown so far: <span class="record" id="lifetimeMenu">0</span></div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results" class="overlay menu-screen hidden">
+    <div class="menu-card">
+      <div class="mascot-row" id="resultEmoji">🎉🌷🎉</div>
+      <div class="title" style="font-size:clamp(26px,6vw,44px);" id="resultTitle">Lovely garden!</div>
+      <div class="big-score"><span id="resultScore">0</span> / <span id="resultTotal">8</span></div>
+      <div class="stat-line">words spelled correctly</div>
+      <div id="resultGarden" class="result-garden"></div>
+      <div id="newBestBadge" class="new-best hidden">🏆 New best score!</div>
+      <div class="stat-line">
+        Best on <span id="resultDiffName">Easy</span>: <span class="record" id="resultBest">0</span><br>
+        🌼 Words grown so far: <span class="record" id="lifetimeResult">0</span>
+      </div>
+      <div class="btn-row">
+        <button id="againBtn" class="btn">🌱 Play again</button>
+        <button id="levelBtn" class="btn btn-secondary">🌿 Change level</button>
+        <a class="btn btn-ghost" href="portal.html" style="text-decoration:none;">🏠 Portal</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pause -->
+  <div id="pauseOv" class="overlay menu-screen hidden">
+    <div class="menu-card" style="max-width:420px;">
+      <div class="pause-title">Paused 🌙</div>
+      <div class="subtitle">Your garden is waiting for you.</div>
+      <div class="btn-row">
+        <button id="resumeBtn" class="btn">▶️ Resume</button>
+        <button id="restartBtn" class="btn btn-secondary">🔄 Restart</button>
+        <a class="btn btn-ghost" href="portal.html" style="text-decoration:none;">🏠 Portal</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================= word bank ================= */
+  var WORDS = {
+    easy: [
+      { w: 'cat',  e: '🐱', h: 'A furry pet that says meow' },
+      { w: 'dog',  e: '🐶', h: 'A friendly pet that says woof' },
+      { w: 'sun',  e: '☀️', h: 'It shines bright in the sky' },
+      { w: 'hat',  e: '🎩', h: 'You wear it on your head' },
+      { w: 'pig',  e: '🐷', h: 'A pink farm animal that says oink' },
+      { w: 'bug',  e: '🐞', h: 'A tiny creepy-crawly insect' },
+      { w: 'cup',  e: '🥤', h: 'You drink from it' },
+      { w: 'bed',  e: '🛏️', h: 'You sleep in it at night' },
+      { w: 'fox',  e: '🦊', h: 'A clever animal with a bushy tail' },
+      { w: 'bus',  e: '🚌', h: 'A big vehicle that takes you to school' },
+      { w: 'egg',  e: '🥚', h: 'A chicken lays one' },
+      { w: 'ant',  e: '🐜', h: 'A tiny insect that lives in a colony' },
+      { w: 'owl',  e: '🦉', h: 'A wise night bird that says hoo' },
+      { w: 'bee',  e: '🐝', h: 'It makes honey and goes buzz' },
+      { w: 'cow',  e: '🐮', h: 'A farm animal that gives milk' },
+      { w: 'duck', e: '🦆', h: 'A bird that says quack and swims' },
+      { w: 'fish', e: '🐟', h: 'It swims and lives in water' },
+      { w: 'frog', e: '🐸', h: 'A green hopper that says ribbit' },
+      { w: 'star', e: '⭐', h: 'It twinkles in the night sky' },
+      { w: 'moon', e: '🌙', h: 'It glows in the night sky' },
+      { w: 'tree', e: '🌳', h: 'It is tall with leaves and branches' },
+      { w: 'book', e: '📖', h: 'You read stories in it' },
+      { w: 'cake', e: '🎂', h: 'A sweet treat for birthdays' },
+      { w: 'milk', e: '🥛', h: 'A white drink from cows' },
+      { w: 'rain', e: '🌧️', h: 'Water that falls from clouds' },
+      { w: 'snow', e: '❄️', h: 'Soft white flakes in winter' },
+      { w: 'play', e: '🎈', h: 'What you do with toys and friends' },
+      { w: 'jump', e: '🦘', h: 'What a kangaroo loves to do' },
+      { w: 'ship', e: '🚢', h: 'A big boat on the sea' },
+      { w: 'kite', e: '🪁', h: 'It flies on a string in the wind' }
+    ],
+    med: [
+      { w: 'apple',  e: '🍎', h: 'A crunchy red or green fruit' },
+      { w: 'house',  e: '🏠', h: 'The place where you live' },
+      { w: 'green',  e: '🟢', h: 'The color of grass' },
+      { w: 'happy',  e: '😊', h: 'How you feel when you smile' },
+      { w: 'water',  e: '💧', h: 'You drink it every day' },
+      { w: 'bread',  e: '🍞', h: 'You make toast from it' },
+      { w: 'chair',  e: '🪑', h: 'You sit on it' },
+      { w: 'clock',  e: '⏰', h: 'It tells you the time' },
+      { w: 'cloud',  e: '☁️', h: 'A fluffy white thing in the sky' },
+      { w: 'flower', e: '🌸', h: 'It blooms in a garden' },
+      { w: 'tiger',  e: '🐯', h: 'A big striped cat' },
+      { w: 'panda',  e: '🐼', h: 'A black and white bear that eats bamboo' },
+      { w: 'zebra',  e: '🦓', h: 'A horse with stripes' },
+      { w: 'horse',  e: '🐴', h: 'You can ride it' },
+      { w: 'sheep',  e: '🐑', h: 'A fluffy farm animal that says baa' },
+      { w: 'mouse',  e: '🐭', h: 'A tiny animal that likes cheese' },
+      { w: 'pizza',  e: '🍕', h: 'A round cheesy treat with toppings' },
+      { w: 'grape',  e: '🍇', h: 'A tiny round fruit that grows in bunches' },
+      { w: 'lemon',  e: '🍋', h: 'A sour yellow fruit' },
+      { w: 'peach',  e: '🍑', h: 'A soft fuzzy pink fruit' },
+      { w: 'train',  e: '🚂', h: 'It rides on rails and goes choo choo' },
+      { w: 'plane',  e: '✈️', h: 'It flies high in the sky' },
+      { w: 'beach',  e: '🏖️', h: 'A sandy place by the sea' },
+      { w: 'night',  e: '🌃', h: 'When the sky is dark and stars come out' },
+      { w: 'light',  e: '💡', h: 'It helps you see in the dark' },
+      { w: 'music',  e: '🎵', h: 'Sounds you love to sing and dance to' },
+      { w: 'robot',  e: '🤖', h: 'A machine that can move and help' },
+      { w: 'candy',  e: '🍬', h: 'A sweet little treat' },
+      { w: 'cookie', e: '🍪', h: 'A sweet baked snack with chips' },
+      { w: 'banana', e: '🍌', h: 'A long yellow fruit' }
+    ],
+    hard: [
+      { w: 'rabbit',   e: '🐰', h: 'A hoppy animal with long ears' },
+      { w: 'garden',   e: '🌷', h: 'Where flowers and veggies grow' },
+      { w: 'yellow',   e: '🌻', h: 'The color of the sun' },
+      { w: 'orange',   e: '🍊', h: 'A round juicy citrus fruit' },
+      { w: 'purple',   e: '💜', h: 'The color of grapes' },
+      { w: 'monkey',   e: '🐵', h: 'A playful animal that climbs trees' },
+      { w: 'turtle',   e: '🐢', h: 'A slow animal with a shell' },
+      { w: 'spider',   e: '🕷️', h: 'An eight-legged web spinner' },
+      { w: 'ladybug',  e: '🐞', h: 'A red beetle with black spots' },
+      { w: 'penguin',  e: '🐧', h: 'A black and white bird that cannot fly' },
+      { w: 'dolphin',  e: '🐬', h: 'A clever swimmer that jumps in the sea' },
+      { w: 'giraffe',  e: '🦒', h: 'The tallest animal with a long neck' },
+      { w: 'elephant', e: '🐘', h: 'The biggest land animal with a trunk' },
+      { w: 'dinosaur', e: '🦕', h: 'A giant animal from long, long ago' },
+      { w: 'rainbow',  e: '🌈', h: 'A colorful arc in the sky after rain' },
+      { w: 'umbrella', e: '☂️', h: 'It keeps you dry in the rain' },
+      { w: 'pancake',  e: '🥞', h: 'A flat round breakfast treat' },
+      { w: 'popcorn',  e: '🍿', h: 'A fluffy snack you eat at the movies' },
+      { w: 'cupcake',  e: '🧁', h: 'A tiny cake with frosting on top' },
+      { w: 'sandwich', e: '🥪', h: 'Two slices of bread with a yummy filling' },
+      { w: 'broccoli', e: '🥦', h: 'A green veggie that looks like a tiny tree' },
+      { w: 'carrot',   e: '🥕', h: 'An orange veggie that bunnies love' },
+      { w: 'potato',   e: '🥔', h: 'A brown veggie that makes french fries' },
+      { w: 'tomato',   e: '🍅', h: 'A red juicy fruit for salads' },
+      { w: 'rocket',   e: '🚀', h: 'It blasts off into space' },
+      { w: 'planet',   e: '🪐', h: 'A big round world in space' },
+      { w: 'castle',   e: '🏰', h: 'A big stone home for kings and queens' },
+      { w: 'dragon',   e: '🐉', h: 'A magical fire-breathing creature' },
+      { w: 'unicorn',  e: '🦄', h: 'A magical horse with a horn' },
+      { w: 'mermaid',  e: '🧜‍♀️', h: 'A sea creature who is half fish' },
+      { w: 'wizard',   e: '🧙', h: 'A magic person with a wand' }
+    ]
+  };
+
+  var FLOWERS = ['🌷', '🌸', '🌼', '🌻', '🌺', '🌹', '💐', '🏵️'];
+  var RUN_LENGTH = 8;
+  var DIFF_NAMES = { easy: 'Easy', med: 'Medium', hard: 'Hard' };
+  var BEST_KEYS = { easy: 'wordgarden_best_easy', med: 'wordgarden_best_med', hard: 'wordgarden_best_hard' };
+  var TOTAL_KEY = 'wordgarden_total';
+  var MUTE_KEY = 'wordgarden_muted';
+
+  var CORRECT_MSGS = [
+    'Beautiful! 🌟', 'You grew a flower! 🌸', 'Super spelling! ✨',
+    'Wow, well done! 🌟', 'Your garden loves it! 🌷', 'Amazing! 🐝',
+    'Fantastic spelling! 🌟', 'Bloom-tastic! 🌼'
+  ];
+  var RETRY_MSGS = [
+    'Almost! Try again 🌱', 'So close! Have another go 💪',
+    'Good try! One more time 🌷', 'Nearly there! You can do it 🍀'
+  ];
+
+  /* ================= storage helpers ================= */
+  function lsGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+  function lsSet(key, val) { try { localStorage.setItem(key, String(val)); } catch (e) {} }
+  function getBest(diff) { var n = parseInt(lsGet(BEST_KEYS[diff]) || '0', 10); return isNaN(n) ? 0 : n; }
+  function getTotal() { var n = parseInt(lsGet(TOTAL_KEY) || '0', 10); return isNaN(n) ? 0 : n; }
+
+  /* ================= state ================= */
+  var S = {
+    screen: 'menu',          // menu | play | results
+    diff: 'easy',
+    words: [],
+    idx: 0,
+    score: 0,
+    phase: 'idle',           // spelling | locked | celebrate
+    tiles: [],               // { ch, used, el }
+    answer: [],              // tile indices in chosen order
+    paused: false,
+    muted: lsGet(MUTE_KEY) === '1',
+    timer: null,
+    resumeAction: null       // advance | check | reset
+  };
+
+  /* ================= dom ================= */
+  function $(id) { return document.getElementById(id); }
+  var elMenu = $('menu'), elResults = $('results'), elPause = $('pauseOv');
+  var elHud = $('hud'), elPlay = $('playArea'), elGarden = $('garden');
+  var elSlots = $('slots'), elBank = $('bank'), elEmoji = $('bigEmoji'), elHint = $('hint');
+  var elMsg = $('message'), elPlots = $('plots'), elToast = $('toast');
+  var elWordCard = $('wordCard');
+
+  /* ================= audio (WebAudio beeps only) ================= */
+  var audioCtx = null;
+  function ensureAudio() {
+    if (S.muted) return null;
+    try {
+      if (!audioCtx) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        audioCtx = new AC();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    } catch (e) { return null; }
+  }
+  function beep(freq, dur, type, gain, delay) {
+    var ctx = ensureAudio();
+    if (!ctx) return;
+    try {
+      var t0 = ctx.currentTime + (delay || 0);
+      var osc = ctx.createOscillator();
+      var g = ctx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(gain || 0.12, t0 + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(t0); osc.stop(t0 + dur + 0.05);
+    } catch (e) {}
+  }
+  function sTap()    { beep(560, 0.07, 'triangle', 0.1); }
+  function sUndo()   { beep(320, 0.07, 'triangle', 0.08); }
+  function sCorrect() {
+    beep(523.25, 0.14, 'triangle', 0.13, 0);
+    beep(659.25, 0.14, 'triangle', 0.13, 0.1);
+    beep(783.99, 0.16, 'triangle', 0.13, 0.2);
+    beep(1046.5, 0.28, 'triangle', 0.14, 0.3);
+  }
+  function sGrow()   { beep(1318.5, 0.12, 'sine', 0.08, 0.42); beep(1568, 0.18, 'sine', 0.08, 0.52); }
+  function sWrong()  { beep(233, 0.16, 'sine', 0.07, 0); beep(196, 0.22, 'sine', 0.07, 0.14); }
+  function sPause()  { beep(440, 0.1, 'sine', 0.08); }
+
+  function updateMuteBtn() { $('muteBtn').textContent = S.muted ? '🔇' : '🔊'; }
+  function toggleMute() {
+    S.muted = !S.muted;
+    lsSet(MUTE_KEY, S.muted ? '1' : '0');
+    updateMuteBtn();
+    if (!S.muted) { ensureAudio(); sTap(); }
+  }
+
+  /* ================= toast ================= */
+  var toastTimer = null;
+  function showToast(text) {
+    elToast.textContent = text;
+    elToast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { elToast.classList.remove('show'); }, 2600);
+  }
+
+  /* ================= trophies ================= */
+  function checkTrophies(total) {
+    if (!window.AmberTrophies) return;
+    try {
+      if (total >= 10 && window.AmberTrophies.award('word_10')) {
+        showToast('🌸 New trophy: Word Sprout!');
+      }
+      if (total >= 50 && window.AmberTrophies.award('word_50')) {
+        showToast('🌻 New trophy: Word Bloom!');
+      }
+    } catch (e) {}
+  }
+
+  /* ================= helpers ================= */
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function currentWord() { return S.words[S.idx]; }
+
+  /* ================= screens ================= */
+  function showScreen(name) {
+    S.screen = name;
+    elMenu.classList.toggle('hidden', name !== 'menu');
+    elResults.classList.toggle('hidden', name !== 'results');
+    elHud.classList.toggle('hidden', name !== 'play');
+    elPlay.classList.toggle('hidden', name !== 'play');
+    elGarden.classList.toggle('hidden', name !== 'play');
+    elPause.classList.add('hidden');
+    S.paused = false;
+  }
+
+  function refreshMenuStats() {
+    $('bestEasy').textContent = 'Best: ' + getBest('easy');
+    $('bestMed').textContent = 'Best: ' + getBest('med');
+    $('bestHard').textContent = 'Best: ' + getBest('hard');
+    $('lifetimeMenu').textContent = String(getTotal());
+  }
+
+  /* ================= garden ================= */
+  function buildGarden() {
+    elPlots.innerHTML = '';
+    for (var i = 0; i < RUN_LENGTH; i++) {
+      var plot = document.createElement('div');
+      plot.className = 'plot';
+      plot.innerHTML = '<span class="flower"></span><span class="sprout">🌱</span><span class="soil"></span>';
+      elPlots.appendChild(plot);
+    }
+  }
+  function growFlower(i) {
+    var plot = elPlots.children[i];
+    if (!plot) return;
+    plot.querySelector('.flower').textContent = FLOWERS[i % FLOWERS.length];
+    plot.classList.add('grown');
+  }
+
+  /* ================= run setup ================= */
+  function startRun(diff) {
+    S.diff = diff;
+    S.words = shuffle(WORDS[diff]).slice(0, RUN_LENGTH);
+    S.idx = 0;
+    S.score = 0;
+    S.paused = false;
+    clearTimer();
+    buildGarden();
+    showScreen('play');
+    updateHud();
+    renderWord();
+  }
+
+  function updateHud() {
+    $('hudScore').textContent = String(S.score);
+    $('hudProgress').textContent = 'Word ' + Math.min(S.idx + 1, RUN_LENGTH) + ' of ' + RUN_LENGTH;
+    $('hudDiff').textContent = DIFF_NAMES[S.diff];
+  }
+
+  function clearTimer() {
+    if (S.timer) { clearTimeout(S.timer); S.timer = null; }
+    S.resumeAction = null;
+  }
+
+  /* ================= word rendering ================= */
+  function renderWord() {
+    var word = currentWord();
+    S.phase = 'spelling';
+    S.answer = [];
+    clearTimer();
+
+    elEmoji.textContent = word.e;
+    elHint.textContent = word.h;
+    elMsg.textContent = 'Spell the word! 🌱';
+    elMsg.classList.add('soft');
+    elSlots.classList.remove('shake', 'happy');
+
+    // slots
+    elSlots.innerHTML = '';
+    for (var i = 0; i < word.w.length; i++) {
+      var slot = document.createElement('div');
+      slot.className = 'slot';
+      elSlots.appendChild(slot);
+    }
+
+    // scrambled tiles (never in the answer order)
+    var letters = word.w.split('');
+    var scrambled = shuffle(letters);
+    if (letters.length > 1) {
+      var tries = 0;
+      while (scrambled.join('') === word.w && tries < 12) { scrambled = shuffle(letters); tries++; }
+    }
+    S.tiles = [];
+    elBank.innerHTML = '';
+    for (var j = 0; j < scrambled.length; j++) {
+      (function (idx) {
+        var btn = document.createElement('button');
+        btn.className = 'tile';
+        btn.textContent = scrambled[idx];
+        btn.addEventListener('click', function () { tapTile(idx); });
+        elBank.appendChild(btn);
+        S.tiles.push({ ch: scrambled[idx], used: false, el: btn });
+      })(j);
+    }
+    updateSlots();
+  }
+
+  function updateSlots() {
+    var slots = elSlots.children;
+    for (var i = 0; i < slots.length; i++) {
+      if (i < S.answer.length) {
+        slots[i].textContent = S.tiles[S.answer[i]].ch;
+        slots[i].classList.add('filled');
+      } else {
+        slots[i].textContent = '';
+        slots[i].classList.remove('filled');
+      }
+    }
+  }
+
+  /* ================= input ================= */
+  function tapTile(idx) {
+    if (S.screen !== 'play' || S.paused || S.phase !== 'spelling') return;
+    var tile = S.tiles[idx];
+    if (!tile || tile.used) return;
+    ensureAudio();
+    tile.used = true;
+    tile.el.classList.add('used');
+    S.answer.push(idx);
+    sTap();
+    updateSlots();
+    if (S.answer.length === currentWord().w.length) {
+      S.phase = 'locked';
+      S.resumeAction = 'check';
+      S.timer = setTimeout(checkAnswer, 240);
+    }
+  }
+
+  function typeLetter(ch) {
+    if (S.screen !== 'play' || S.paused || S.phase !== 'spelling') return;
+    for (var i = 0; i < S.tiles.length; i++) {
+      if (!S.tiles[i].used && S.tiles[i].ch === ch) { tapTile(i); return; }
+    }
+    // letter not in this word — gentle wiggle of the bank, no pressure
+    elBank.classList.remove('shake');
+    void elBank.offsetWidth;
+    elBank.classList.add('shake');
+  }
+
+  function undo() {
+    if (S.screen !== 'play' || S.paused || S.phase !== 'spelling') return;
+    if (!S.answer.length) return;
+    var idx = S.answer.pop();
+    S.tiles[idx].used = false;
+    S.tiles[idx].el.classList.remove('used');
+    sUndo();
+    updateSlots();
+  }
+
+  /* ================= answer checking ================= */
+  function checkAnswer() {
+    S.timer = null;
+    S.resumeAction = null;
+    var word = currentWord();
+    var spelled = S.answer.map(function (i) { return S.tiles[i].ch; }).join('');
+    if (spelled === word.w) {
+      onCorrect();
+    } else {
+      onWrong();
+    }
+  }
+
+  function onCorrect() {
+    S.phase = 'celebrate';
+    S.score++;
+    var total = getTotal() + 1;
+    lsSet(TOTAL_KEY, total);
+    checkTrophies(total);
+
+    elSlots.classList.add('happy');
+    elMsg.classList.remove('soft');
+    elMsg.textContent = pick(CORRECT_MSGS);
+    sCorrect();
+    sGrow();
+    growFlower(S.idx);
+    burstStars();
+    updateHud();
+
+    S.resumeAction = 'advance';
+    S.timer = setTimeout(nextWord, 1600);
+  }
+
+  function onWrong() {
+    S.phase = 'locked';
+    elSlots.classList.remove('shake');
+    void elSlots.offsetWidth;
+    elSlots.classList.add('shake');
+    elMsg.classList.add('soft');
+    elMsg.textContent = pick(RETRY_MSGS);
+    sWrong();
+    S.resumeAction = 'reset';
+    S.timer = setTimeout(resetAnswer, 750);
+  }
+
+  function resetAnswer() {
+    S.timer = null;
+    S.resumeAction = null;
+    for (var i = 0; i < S.tiles.length; i++) {
+      S.tiles[i].used = false;
+      S.tiles[i].el.classList.remove('used');
+    }
+    S.answer = [];
+    elSlots.classList.remove('shake');
+    updateSlots();
+    S.phase = 'spelling';
+  }
+
+  function burstStars() {
+    var glyphs = ['⭐', '✨', '🌟', '✨'];
+    for (var i = 0; i < 6; i++) {
+      var sp = document.createElement('span');
+      sp.className = 'star-burst';
+      sp.textContent = glyphs[i % glyphs.length];
+      sp.style.left = (12 + Math.random() * 76) + '%';
+      sp.style.top = (20 + Math.random() * 40) + '%';
+      sp.style.animationDelay = (i * 0.07) + 's';
+      elWordCard.appendChild(sp);
+      (function (node) { setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, 1400); })(sp);
+    }
+  }
+
+  function nextWord() {
+    S.timer = null;
+    S.resumeAction = null;
+    S.idx++;
+    if (S.idx >= S.words.length) { finishRun(); return; }
+    updateHud();
+    renderWord();
+  }
+
+  /* ================= results ================= */
+  function finishRun() {
+    var prevBest = getBest(S.diff);
+    var isNewBest = S.score > prevBest;
+    if (isNewBest) lsSet(BEST_KEYS[S.diff], S.score);
+
+    $('resultScore').textContent = String(S.score);
+    $('resultTotal').textContent = String(RUN_LENGTH);
+    $('resultDiffName').textContent = DIFF_NAMES[S.diff];
+    $('resultBest').textContent = String(Math.max(prevBest, S.score));
+    $('lifetimeResult').textContent = String(getTotal());
+    $('newBestBadge').classList.toggle('hidden', !isNewBest);
+
+    var title, emoji;
+    if (S.score === RUN_LENGTH) { title = 'Perfect garden! 🌟'; emoji = '🏆🌷🏆'; }
+    else if (S.score >= RUN_LENGTH / 2) { title = 'Lovely garden! 🌸'; emoji = '🎉🌷🎉'; }
+    else { title = 'Nice growing! 🌱'; emoji = '🌱🌷🌱'; }
+    $('resultTitle').textContent = title;
+    $('resultEmoji').textContent = emoji;
+
+    var rg = $('resultGarden');
+    rg.innerHTML = '';
+    for (var i = 0; i < S.score; i++) {
+      var sp = document.createElement('span');
+      sp.textContent = FLOWERS[i % FLOWERS.length];
+      sp.style.animationDelay = (i * 0.1) + 's';
+      rg.appendChild(sp);
+    }
+    if (!S.score) {
+      var seed = document.createElement('span');
+      seed.textContent = '🌱';
+      rg.appendChild(seed);
+    }
+    showScreen('results');
+  }
+
+  /* ================= pause ================= */
+  function pauseGame() {
+    if (S.screen !== 'play' || S.paused) return;
+    S.paused = true;
+    if (S.timer) { clearTimeout(S.timer); S.timer = null; }
+    elPause.classList.remove('hidden');
+    sPause();
+  }
+  function resumeGame() {
+    if (!S.paused) return;
+    S.paused = false;
+    elPause.classList.add('hidden');
+    var action = S.resumeAction;
+    S.resumeAction = null;
+    if (action === 'advance') { S.timer = setTimeout(nextWord, 900); }
+    else if (action === 'check') { S.timer = setTimeout(checkAnswer, 250); }
+    else if (action === 'reset') { resetAnswer(); }
+  }
+  function togglePause() {
+    if (S.screen !== 'play') return;
+    if (S.paused) resumeGame(); else pauseGame();
+  }
+
+  /* ================= wiring ================= */
+  var diffCards = document.querySelectorAll('.diff-card');
+  for (var d = 0; d < diffCards.length; d++) {
+    (function (card) {
+      card.addEventListener('click', function () {
+        ensureAudio(); sTap();
+        S.diff = card.getAttribute('data-diff');
+        for (var k = 0; k < diffCards.length; k++) diffCards[k].classList.remove('active');
+        card.classList.add('active');
+      });
+    })(diffCards[d]);
+  }
+
+  $('startBtn').addEventListener('click', function () { ensureAudio(); sTap(); startRun(S.diff); });
+  $('againBtn').addEventListener('click', function () { ensureAudio(); sTap(); startRun(S.diff); });
+  $('levelBtn').addEventListener('click', function () { ensureAudio(); sTap(); refreshMenuStats(); showScreen('menu'); });
+  $('pauseBtn').addEventListener('click', function () { ensureAudio(); togglePause(); });
+  $('resumeBtn').addEventListener('click', function () { ensureAudio(); sTap(); resumeGame(); });
+  $('restartBtn').addEventListener('click', function () { ensureAudio(); sTap(); startRun(S.diff); });
+  $('muteBtn').addEventListener('click', function () { toggleMute(); });
+  $('undoBtn').addEventListener('click', function () { ensureAudio(); undo(); });
+
+  document.addEventListener('keydown', function (ev) {
+    if (S.screen === 'menu') {
+      if (ev.key === 'Enter') { ensureAudio(); startRun(S.diff); }
+      return;
+    }
+    if (S.screen !== 'play') return;
+    if (ev.key === 'Escape' || ev.key === 'p' || ev.key === 'P') { ev.preventDefault(); togglePause(); return; }
+    if (S.paused) return;
+    if (ev.key === 'Backspace') { ev.preventDefault(); undo(); return; }
+    if (ev.key.length === 1 && /^[a-zA-Z]$/.test(ev.key)) {
+      ensureAudio();
+      typeLetter(ev.key.toLowerCase());
+    }
+  });
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && S.screen === 'play' && !S.paused) pauseGame();
+  });
+
+  /* ================= init ================= */
+  updateMuteBtn();
+  refreshMenuStats();
+  showScreen('menu');
+})();
+</script>
+<script src="hardening.js?v=3"></script>
+<script>if(window.AmberHardening)AmberHardening.installErrorOverlay();</script>
+<script src="playtime.js?v=2"></script>
+<script src="trophies.js?v=2"></script>
+<script src="pwa.js"></script>
+</body>
+</html>

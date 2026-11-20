@@ -935,6 +935,28 @@
       accent: "linear-gradient(135deg, rgba(91,200,255,0.35), rgba(185,108,255,0.25))"
     },
     {
+      title: "Amber's Word Garden",
+      file: "wordgarden.html",
+      icon: "🌸",
+      tag: "Words",
+      group: "learn",
+      stat: "Best score",
+      desc: "Spell words to grow a magical garden — tap the letters or type them, and watch your flowers bloom!",
+      accent: "linear-gradient(135deg, rgba(124,179,66,0.35), rgba(255,138,176,0.28))",
+      added: 1795159103662
+    },
+    {
+      title: "Amber's Fraction Pizza",
+      file: "fractionpizza.html",
+      icon: "🍕",
+      tag: "Math",
+      group: "learn",
+      stat: "Best score",
+      desc: "Run a pizza shop! Top each pizza with the right fraction of slices and serve it up — halves, thirds, and more.",
+      accent: "linear-gradient(135deg, rgba(255,138,101,0.35), rgba(255,209,102,0.28))",
+      added: 1795159103662
+    },
+    {
       title: "Amber's Quick Drop",
       file: "next100.html",
       icon: "\u2B07\uFE0F",
@@ -983,6 +1005,22 @@
   ];
 
   const BEST_BY_FILE = {
+    'wordgarden.html': () => {
+      let best = 0;
+      for (const l of ['easy', 'med', 'hard']) {
+        const v = parseInt(localStorage.getItem('wordgarden_best_' + l) || '0', 10) || 0;
+        if (v > best) best = v;
+      }
+      return best;
+    },
+    'fractionpizza.html': () => {
+      let best = 0;
+      for (const l of ['easy', 'med', 'hard']) {
+        const v = parseInt(localStorage.getItem('fractionpizza_best_' + l) || '0', 10) || 0;
+        if (v > best) best = v;
+      }
+      return best;
+    },
     'solartour_v2.html': () => {
       const lvls = ['easy','med','hard'];
       let best = 0;
@@ -1292,7 +1330,6 @@
     });
     wireFavToggles(grid);
   }
-  renderFeatured();
 
   function countGroup(id) {
     if (id === 'all') return GAMES.length;
@@ -1624,6 +1661,7 @@
 
   renderFilters();
   renderSections();
+  renderFeatured();
   renderPlaytime();
   // Tick the big session clock every second (cheap DOM write)
   setInterval(function () {
