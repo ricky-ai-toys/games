@@ -1,0 +1,1189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Amber's Zen Garden">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="description" content="A quiet sand garden. Place stones, plants and lanterns, switch between day and night, and breathe.">
+<title>Amber's Zen Garden</title>
+<style>
+  :root {
+    --garden-size: min(540px, 94vw, 56vh);
+    --ink: #f6f1e6;
+    --ink-dim: rgba(246, 241, 230, 0.66);
+    --panel: rgba(255, 255, 255, 0.07);
+    --panel-border: rgba(255, 255, 255, 0.16);
+    --panel-hover: rgba(255, 255, 255, 0.13);
+    --sand: #e9d8ae;
+    --sand-shadow: rgba(0, 0, 0, 0.45);
+    --accent: #ffd08a;
+    --accent-soft: rgba(255, 208, 138, 0.4);
+    --btn1: #ffd9a0;
+    --btn2: #f2b169;
+    --btn-shadow: #b57a3e;
+    --btn-ink: #2c2010;
+    --glow: 0, 0, 0;
+  }
+  body.night {
+    --ink: #eaf0ff;
+    --ink-dim: rgba(228, 236, 255, 0.62);
+    --panel: rgba(255, 255, 255, 0.06);
+    --panel-border: rgba(190, 214, 255, 0.18);
+    --panel-hover: rgba(255, 255, 255, 0.12);
+    --sand: #2a3552;
+    --sand-shadow: rgba(0, 0, 0, 0.6);
+    --accent: #a9c8ff;
+    --accent-soft: rgba(150, 190, 255, 0.4);
+    --btn1: #a8c9ff;
+    --btn2: #82a9ee;
+    --btn-shadow: #3d5b8f;
+    --btn-ink: #101b2e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    font-family: ui-rounded, 'PingFang TC', 'Segoe UI', system-ui, sans-serif;
+    background: #10171a; color: var(--ink);
+    user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    overflow: hidden;
+  }
+  body { transition: color 0.8s ease; }
+
+  /* ---------- two-layer sky so day/night can cross-fade ---------- */
+  .sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .sky-layer { position: absolute; inset: 0; transition: opacity 1s ease; }
+  .sky-day {
+    background:
+      radial-gradient(ellipse at 50% -10%, #4a5a2f 0%, #27341f 48%, #141a13 100%),
+      radial-gradient(circle at 82% 12%, rgba(255, 214, 140, 0.20), transparent 46%);
+    opacity: 1;
+  }
+  .sky-night {
+    background:
+      radial-gradient(ellipse at 50% -10%, #2a3d6b 0%, #131d3a 50%, #070b17 100%),
+      radial-gradient(circle at 18% 10%, rgba(180, 205, 255, 0.16), transparent 42%);
+    opacity: 0;
+  }
+  body.night .sky-day { opacity: 0; }
+  body.night .sky-night { opacity: 1; }
+  .sky-stars {
+    position: absolute; inset: 0; opacity: 0; transition: opacity 1.4s ease;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(255,255,255,0.85) 1px, transparent 2px),
+      radial-gradient(circle at 34% 8%,  rgba(255,255,255,0.7) 1px, transparent 2px),
+      radial-gradient(circle at 58% 24%, rgba(255,255,255,0.6) 1px, transparent 2px),
+      radial-gradient(circle at 76% 9%,  rgba(255,255,255,0.75) 1px, transparent 2px),
+      radial-gradient(circle at 88% 30%, rgba(255,255,255,0.55) 1px, transparent 2px),
+      radial-gradient(circle at 22% 38%, rgba(255,255,255,0.45) 1px, transparent 2px),
+      radial-gradient(circle at 68% 42%, rgba(255,255,255,0.4) 1px, transparent 2px);
+    background-size: 420px 420px, 380px 380px, 460px 460px, 340px 340px, 500px 500px, 400px 400px, 440px 440px;
+  }
+  body.night .sky-stars { opacity: 0.9; }
+
+  /* ---------- shell ---------- */
+  #app {
+    position: relative; z-index: 1;
+    width: 100%; height: 100vh; height: 100dvh;
+    display: flex; flex-direction: column;
+  }
+
+  .topbar {
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    padding-top: max(10px, env(safe-area-inset-top, 10px));
+  }
+  .home {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 44px; padding: 8px 14px;
+    border-radius: 999px; text-decoration: none;
+    color: var(--ink); font-size: 14px; font-weight: 800; letter-spacing: 0.02em;
+    background: var(--panel); border: 1px solid var(--panel-border);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+    transition: background 0.2s ease, transform 0.12s ease, border-color 0.4s ease;
+    white-space: nowrap;
+  }
+  .home:hover { background: var(--panel-hover); transform: translateY(-1px); }
+  .home:active { transform: translateY(1px); }
+
+  .brand {
+    flex: 1 1 auto; min-width: 0;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-weight: 800; letter-spacing: 0.06em; font-size: clamp(15px, 2.4vw, 19px);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    white-space: nowrap; overflow: hidden;
+  }
+  .brand-emoji {
+    font-size: 1.4em; line-height: 1;
+    display: inline-block; animation: sway 7s ease-in-out infinite;
+    transform-origin: 50% 90%;
+  }
+  @keyframes sway {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+  }
+  .brand-text { overflow: hidden; text-overflow: ellipsis; }
+
+  .top-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; }
+  .pill {
+    min-height: 44px; min-width: 44px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 14px; border-radius: 999px; cursor: pointer;
+    font-family: inherit; font-size: 14px; font-weight: 800; color: var(--ink);
+    background: var(--panel); border: 1px solid var(--panel-border);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    transition: background 0.2s ease, transform 0.12s ease, border-color 0.4s ease, color 0.6s ease;
+    white-space: nowrap;
+  }
+  .pill:hover { background: var(--panel-hover); transform: translateY(-1px); }
+  .pill:active { transform: translateY(1px); }
+  .pill-icon { padding: 8px 12px; font-size: 17px; }
+  .pill.armed { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+
+  /* ---------- stage ---------- */
+  .stage {
+    flex: 1 1 auto; min-height: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: clamp(10px, 1.8vh, 18px);
+    padding: 4px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+  .whisper {
+    font-size: clamp(12px, 1.9vw, 14px); font-style: italic;
+    color: var(--ink-dim); text-align: center; min-height: 18px;
+    letter-spacing: 0.02em; transition: color 0.6s ease, opacity 0.4s ease;
+    padding: 0 10px;
+  }
+
+  .garden-wrap {
+    position: relative;
+    width: var(--garden-size); height: var(--garden-size);
+    border-radius: 28px;
+    background: var(--sand);
+    padding: 10px;
+    box-shadow:
+      0 22px 46px var(--sand-shadow),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+      inset 0 12px 28px rgba(0, 0, 0, 0.10);
+    transition: background 1s ease, box-shadow 1s ease;
+    flex: 0 0 auto;
+  }
+  .garden-wrap::before {
+    content: ''; position: absolute; inset: 4px; border-radius: 24px;
+    pointer-events: none; opacity: 0.55; transition: opacity 1s ease;
+    background: repeating-linear-gradient(0deg,
+      rgba(120, 92, 52, 0.10) 0 1px, transparent 1px 9px);
+  }
+  body.night .garden-wrap::before {
+    opacity: 0.5;
+    background: repeating-linear-gradient(0deg,
+      rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 11px);
+  }
+  .garden-wrap::after {
+    content: ''; position: absolute; inset: 0; border-radius: 28px; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.16), transparent 62%);
+    opacity: 1; transition: opacity 1s ease;
+  }
+  body.night .garden-wrap::after {
+    background: radial-gradient(ellipse at 50% 0%, rgba(150, 190, 255, 0.14), transparent 65%);
+  }
+
+  .garden {
+    position: relative; z-index: 2;
+    width: 100%; height: 100%;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    gap: 4px;
+  }
+
+  .cell {
+    position: relative;
+    appearance: none; -webkit-appearance: none;
+    border: 0; padding: 0; margin: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 9px; cursor: pointer; color: inherit; font: inherit; line-height: 1;
+    background: rgba(255, 255, 255, 0.10);
+    box-shadow: inset 0 0 0 1px rgba(120, 92, 52, 0.13);
+    transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
+  }
+  body.night .cell {
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 0 0 1px rgba(200, 220, 255, 0.07);
+  }
+  .cell:hover { background: rgba(255, 255, 255, 0.22); }
+  body.night .cell:hover { background: rgba(255, 255, 255, 0.12); }
+  .cell:active { transform: scale(0.94); }
+  .cell.filled {
+    background: rgba(255, 250, 232, 0.24);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 2px 6px rgba(90, 66, 30, 0.14);
+  }
+  body.night .cell.filled {
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 2px 10px rgba(0, 0, 0, 0.4);
+  }
+  .cell.t-pond.filled { background: rgba(112, 176, 214, 0.42); }
+  body.night .cell.t-pond.filled { background: rgba(96, 148, 214, 0.34); }
+  .cell.t-path.filled { background: rgba(168, 130, 88, 0.30); }
+  body.night .cell.t-path.filled { background: rgba(150, 120, 96, 0.20); }
+
+  .cell .glyph {
+    font-size: calc(var(--garden-size) / 8 * 0.60);
+    line-height: 1;
+    pointer-events: none;
+    transition: transform 0.25s ease, filter 0.7s ease;
+    filter: drop-shadow(0 2px 3px rgba(60, 44, 18, 0.28));
+  }
+  body.night .cell .glyph { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)); }
+
+  /* lanterns and ponds glow once the sun goes down */
+  body.night .cell.t-lantern .glyph {
+    filter: drop-shadow(0 0 9px rgba(255, 196, 120, 0.95)) drop-shadow(0 0 20px rgba(255, 170, 80, 0.5));
+  }
+  body.night .cell.t-lantern.filled::before {
+    content: ''; position: absolute; inset: -26%; border-radius: 16px;
+    background: radial-gradient(circle, rgba(255, 186, 104, 0.42), rgba(255, 160, 90, 0.12) 48%, transparent 72%);
+    pointer-events: none;
+    animation: lanternGlow 5.5s ease-in-out infinite;
+  }
+  @keyframes lanternGlow {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+  body.night .cell.t-pond .glyph {
+    filter: drop-shadow(0 0 8px rgba(140, 200, 255, 0.8));
+  }
+  body.night .cell.t-flower .glyph {
+    filter: drop-shadow(0 0 6px rgba(255, 190, 220, 0.5));
+  }
+
+  .cell.pop .glyph { animation: popIn 0.36s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  @keyframes popIn {
+    0% { transform: scale(0.4) translateY(4px); opacity: 0.2; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  .fireflies { position: absolute; inset: 0; border-radius: 28px; overflow: hidden; pointer-events: none; z-index: 3; }
+  .firefly {
+    position: absolute; width: 7px; height: 7px; border-radius: 50%;
+    background: #ffefb8; opacity: 0;
+    box-shadow:
+      0 0 8px 3px rgba(255, 232, 150, 0.75),
+      0 0 20px 7px rgba(255, 208, 110, 0.30);
+    animation-name: flicker; animation-iteration-count: infinite; animation-timing-function: ease-in-out;
+  }
+  @keyframes flicker {
+    0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.7); }
+    18% { opacity: 0.95; }
+    50% { opacity: 0.38; transform: translate3d(var(--dx), var(--dy), 0) scale(1); }
+    82% { opacity: 0.85; }
+    100% { opacity: 0; transform: translate3d(calc(var(--dx) * -0.55), calc(var(--dy) * 1.25), 0) scale(0.8); }
+  }
+
+  /* ---------- toolbar ---------- */
+  .palette {
+    display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px;
+    width: clamp(var(--garden-size), 46vw, 560px);
+  }
+  .tool {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    min-height: 62px; padding: 8px 4px;
+    border-radius: 16px; cursor: pointer; font-family: inherit; color: var(--ink);
+    background: var(--panel); border: 1.5px solid var(--panel-border);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    transition: background 0.2s ease, transform 0.12s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .tool .t-emoji { font-size: clamp(17px, 2.4vw, 22px); line-height: 1.1; }
+  .tool .t-name { font-size: 10px; font-weight: 800; letter-spacing: 0.02em; color: var(--ink-dim); }
+  .tool .t-key {
+    position: absolute; top: 3px; right: 6px;
+    font-size: 9px; font-weight: 700; color: var(--ink-dim); opacity: 0.5;
+  }
+  .tool:hover { background: var(--panel-hover); transform: translateY(-2px); }
+  .tool:active { transform: translateY(1px); }
+  .tool.active {
+    background: linear-gradient(160deg, rgba(255, 216, 160, 0.30), rgba(255, 178, 120, 0.16));
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-soft), 0 10px 20px rgba(0, 0, 0, 0.30);
+    transform: translateY(-2px);
+  }
+  .tool.active .t-name { color: var(--ink); }
+  .tool.active .t-key { opacity: 0.8; }
+  body.night .tool.active {
+    background: linear-gradient(160deg, rgba(160, 198, 255, 0.28), rgba(120, 160, 240, 0.16));
+  }
+  .palette.nudge { animation: nudge 0.5s ease; }
+  @keyframes nudge {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  .toolbar-side {
+    display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+  }
+  .btn {
+    background: linear-gradient(160deg, var(--btn1), var(--btn2)); color: var(--btn-ink);
+    border: none; padding: 14px 26px; font-size: 16px; font-weight: 800;
+    border-radius: 14px; cursor: pointer; font-family: inherit; letter-spacing: 0.02em;
+    box-shadow: 0 5px 0 var(--btn-shadow), 0 10px 20px rgba(0, 0, 0, 0.32);
+    transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.6s ease, color 0.6s ease;
+    min-height: 48px;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--btn-shadow), 0 12px 24px rgba(0, 0, 0, 0.32); }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--btn-shadow), 0 4px 10px rgba(0, 0, 0, 0.32); }
+  .btn-ghost {
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--panel-border); box-shadow: none;
+  }
+  .btn-ghost:hover { background: var(--panel-hover); box-shadow: none; }
+  .btn-ghost:active { box-shadow: none; }
+  .btn-small { padding: 11px 18px; font-size: 13px; min-height: 44px; }
+
+  .hint {
+    font-size: 12px; color: var(--ink-dim); text-align: center; line-height: 1.55;
+    letter-spacing: 0.02em; padding: 0 8px; max-width: 560px; opacity: 0.95;
+  }
+  .hint kbd {
+    font-family: inherit; font-weight: 800; font-size: 10px;
+    padding: 1px 5px; border-radius: 5px;
+    background: rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+
+  /* ---------- breathe overlay ---------- */
+  .breathe {
+    position: fixed; inset: 0; z-index: 80;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; padding: 24px;
+    background:
+      radial-gradient(circle at 50% 44%, #22424a 0%, #0a141c 62%, #05090e 100%);
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.7s ease, visibility 0.7s ease;
+  }
+  .breathe.open { opacity: 1; visibility: visible; }
+
+  .orb-stage {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    width: min(78vmin, 460px); height: min(78vmin, 460px);
+  }
+  .orb-halo {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(circle, rgba(160, 235, 212, 0.20) 0%, rgba(160, 235, 212, 0.06) 46%, transparent 66%);
+    animation: haloPulse 12s ease-in-out infinite both;
+    animation-play-state: paused;
+  }
+  .breathe.open .orb-halo { animation-play-state: running; }
+  @keyframes haloPulse {
+    0% { transform: scale(0.58); opacity: 0.25; }
+    33.33% { transform: scale(1); opacity: 0.75; }
+    50% { transform: scale(1); opacity: 0.55; }
+    100% { transform: scale(0.58); opacity: 0.25; }
+  }
+  .orb {
+    position: relative;
+    width: 58%; height: 58%; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 34% 28%, rgba(226, 255, 244, 0.92), rgba(138, 220, 196, 0.72) 44%, rgba(52, 124, 134, 0.55) 78%);
+    box-shadow:
+      0 0 42px rgba(150, 236, 214, 0.42),
+      0 0 100px rgba(90, 180, 180, 0.24),
+      inset 0 0 34px rgba(255, 255, 255, 0.36);
+    animation: breatheOrb 12s infinite both;
+    animation-play-state: paused;
+    will-change: transform;
+  }
+  .breathe.open .orb.run { animation-play-state: running; }
+  @keyframes breatheOrb {
+    0% { transform: scale(0.58); animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1); }
+    33.33% { transform: scale(1); animation-timing-function: linear; }
+    50% { transform: scale(1); animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1); }
+    100% { transform: scale(0.58); }
+  }
+  .orb-icon { font-size: clamp(26px, 6vmin, 44px); opacity: 0.62; filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.5)); }
+
+  .breathe-words {
+    margin-top: clamp(14px, 3.4vh, 34px);
+    font-size: clamp(19px, 3.4vw, 27px); font-weight: 700; letter-spacing: 0.08em;
+    color: #ecfaf6; text-shadow: 0 2px 18px rgba(120, 230, 210, 0.4);
+    min-height: 1.4em;
+  }
+  .breathe-words.swap { animation: wordIn 0.7s ease; }
+  @keyframes wordIn {
+    0% { opacity: 0; transform: translateY(7px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .breathe-sub {
+    font-size: 13px; color: rgba(220, 245, 240, 0.5); letter-spacing: 0.05em;
+    text-align: center; margin-top: 4px;
+  }
+  .breathe-close {
+    position: absolute; top: max(14px, env(safe-area-inset-top, 14px)); right: 14px;
+    width: 48px; height: 48px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: inherit; font-size: 18px; font-weight: 700; color: #eafaf4;
+    background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: background 0.2s ease, transform 0.12s ease;
+  }
+  .breathe-close:hover { background: rgba(255, 255, 255, 0.18); }
+  .breathe-close:active { transform: scale(0.94); }
+  .breathe-tip {
+    position: absolute; bottom: max(18px, env(safe-area-inset-bottom, 18px));
+    font-size: 12px; color: rgba(220, 245, 240, 0.38); letter-spacing: 0.05em; text-align: center;
+    padding: 0 20px;
+  }
+
+  /* ---------- confirm sheet ---------- */
+  .sheet-wrap {
+    position: fixed; inset: 0; z-index: 70;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    background: rgba(6, 12, 18, 0.62);
+    backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+    opacity: 0; visibility: hidden; transition: opacity 0.28s ease, visibility 0.28s ease;
+  }
+  .sheet-wrap.open { opacity: 1; visibility: visible; }
+  .sheet {
+    width: 100%; max-width: 380px;
+    background: linear-gradient(170deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px; padding: 26px 24px 20px;
+    box-shadow: 0 26px 60px rgba(0, 0, 0, 0.55);
+    text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;
+    transform: translateY(10px) scale(0.97); transition: transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  .sheet-wrap.open .sheet { transform: translateY(0) scale(1); }
+  .sheet-emoji { font-size: 40px; line-height: 1; }
+  .sheet h2 { font-size: 21px; font-weight: 800; letter-spacing: 0.02em; }
+  .sheet p { font-size: 13.5px; line-height: 1.55; color: var(--ink-dim); margin-top: 2px; }
+  .sheet-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; justify-content: center; }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  /* ---------- small screens ---------- */
+  @media (max-width: 620px) {
+    :root { --garden-size: min(94vw, 52vh); }
+    .palette { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; width: min(96vw, 440px); }
+    .tool { min-height: 58px; padding: 7px 3px; border-radius: 14px; }
+    .tool .t-emoji { font-size: 18px; }
+    .tool .t-name { font-size: 9.5px; letter-spacing: 0; }
+    .tool .t-key { right: 4px; font-size: 8px; }
+    .brand { font-size: 14px; gap: 5px; }
+    .brand-emoji { font-size: 1.15em; }
+    .home { padding: 8px 11px; font-size: 13px; gap: 4px; }
+    .pill { padding: 8px 11px; font-size: 13px; }
+    .hint { font-size: 11px; }
+  }
+  @media (max-width: 380px) {
+    .brand-text { display: none; }
+    .home span { display: none; }
+    .home { padding: 8px 12px; }
+  }
+
+  /* short windows (laptops, small tablets): reclaim a little vertical room */
+  @media (max-height: 660px) and (min-width: 621px) {
+    .stage { gap: 8px; padding-bottom: 8px; }
+    .whisper { font-size: 11.5px; min-height: 14px; }
+    .hint { font-size: 11px; line-height: 1.4; }
+  }
+
+  /* landscape phones / short windows: garden left, tools right */
+  @media (orientation: landscape) and (max-height: 560px) {
+    :root { --garden-size: min(80vh, 46vw); }
+    .stage {
+      display: grid; grid-template-columns: auto auto; align-items: center; justify-content: center;
+      column-gap: clamp(12px, 3vw, 28px); row-gap: 8px;
+    }
+    .whisper { display: none; }
+    .hint { display: none; }
+    .toolbar-side { flex-direction: column; align-items: stretch; }
+    .toolbar-side .btn { width: 100%; }
+    .palette { grid-template-columns: repeat(4, minmax(58px, 1fr)); width: auto; }
+    .tool { min-height: 54px; }
+    .palette { align-self: center; }
+    .stage > .garden-wrap { grid-row: span 2; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .brand-emoji { animation: none; }
+    .firefly { animation: none !important; opacity: 0.7; }
+    .orb-halo { animation: none !important; opacity: 0.4; }
+    .cell.pop .glyph { animation: none; }
+    .palette.nudge { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sky" aria-hidden="true">
+  <div class="sky-layer sky-day"></div>
+  <div class="sky-layer sky-night"></div>
+  <div class="sky-stars"></div>
+</div>
+
+<div id="app">
+  <header class="topbar">
+    <a class="home" href="portal.html" aria-label="Back to the portal">🏠 <span>Portal</span></a>
+    <div class="brand">
+      <span class="brand-emoji" aria-hidden="true">🪴</span>
+      <span class="brand-text">Zen Garden</span>
+    </div>
+    <div class="top-actions">
+      <button id="modeBtn" class="pill" type="button" aria-pressed="false" title="Switch to night">
+        <span id="modeIcon" aria-hidden="true">☀️</span><span id="modeLabel">Day</span>
+      </button>
+      <button id="muteBtn" class="pill pill-icon" type="button" aria-pressed="false" aria-label="Sound on — tap to mute">🔊</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <p class="whisper" id="whisper">A quiet corner to arrange. Take your time.</p>
+
+    <div class="garden-wrap">
+      <div class="garden" id="garden" role="group" aria-label="Garden, 8 by 8 spots"></div>
+      <div class="fireflies" id="fireflies" aria-hidden="true"></div>
+    </div>
+
+    <div class="palette" id="palette" role="group" aria-label="Pieces to place"></div>
+
+    <div class="toolbar-side">
+      <button id="breatheBtn" class="btn" type="button">🌬️ Breathe</button>
+      <button id="clearBtn" class="btn btn-ghost btn-small" type="button">Clear garden</button>
+    </div>
+
+    <p class="hint">
+      Tap a piece, then tap a spot. Tap something you placed to lift it away.
+      <br>
+      <kbd>1</kbd>–<kbd>7</kbd> pieces · <kbd>D</kbd> day / night · <kbd>B</kbd> breathe · <kbd>Esc</kbd> close
+    </p>
+  </main>
+</div>
+
+<div class="breathe" id="breathe" role="dialog" aria-modal="true" aria-label="Breathe with the garden" aria-hidden="true">
+  <button id="breatheClose" class="breathe-close" type="button" aria-label="Close breathing">✕</button>
+  <div class="orb-stage">
+    <div class="orb-halo" id="orbHalo" aria-hidden="true"></div>
+    <div class="orb" id="orb" aria-hidden="true"><span class="orb-icon">🪷</span></div>
+  </div>
+  <div class="breathe-words" id="breatheWords">Breathe in…</div>
+  <div class="breathe-sub">Nothing here is in a hurry.</div>
+  <div class="breathe-tip">Tap ✕ whenever you are ready.</div>
+</div>
+
+<div class="sheet-wrap" id="confirm" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Clear the garden">
+    <div class="sheet-emoji" aria-hidden="true">🪴</div>
+    <h2>Clear the garden?</h2>
+    <p>Every stone, leaf and lantern floats away. You can always plant new ones.</p>
+    <div class="sheet-actions">
+      <button id="keepBtn" class="btn btn-ghost btn-small" type="button">Keep it</button>
+      <button id="clearYes" class="btn btn-small" type="button">Clear it</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var KEY = 'zengarden_layout_v1';
+  var MUTE_KEY = 'zengarden_muted';
+  var COLS = 8;
+  var ROWS = 8;
+  var N = COLS * ROWS;
+
+  var TOOLS = [
+    { id: 'stone',   emoji: '\uD83E\uDEA8', name: 'Stone',   note: 196.00 },
+    { id: 'plant',   emoji: '\uD83C\uDF3F', name: 'Plant',   note: 293.66 },
+    { id: 'flower',  emoji: '\uD83C\uDF38', name: 'Flower',  note: 329.63 },
+    { id: 'bamboo',  emoji: '\uD83C\uDF8B', name: 'Bamboo',  note: 392.00 },
+    { id: 'lantern', emoji: '\u26E9\uFE0F', name: 'Lantern', note: 440.00 },
+    { id: 'pond',    emoji: '\uD83D\uDCA7', name: 'Pond',    note: 261.63 },
+    { id: 'path',    emoji: '\uD83D\uDFEB', name: 'Path',    note: 174.61 }
+  ];
+  var TOOL_MAP = {};
+  for (var ti = 0; ti < TOOLS.length; ti++) { TOOLS[ti].index = ti; TOOL_MAP[TOOLS[ti].id] = TOOLS[ti]; }
+
+  var layout = [];
+  for (var li = 0; li < N; li++) layout.push(null);
+
+  var night = false;
+  var selected = 'flower';
+  var muted = false;
+  try { muted = localStorage.getItem(MUTE_KEY) === '1'; } catch (e) { muted = false; }
+
+  var reduced = false;
+  try { reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) {}
+
+  function $(id) { return document.getElementById(id); }
+
+  var gardenEl = $('garden');
+  var firefliesEl = $('fireflies');
+  var paletteEl = $('palette');
+  var whisperEl = $('whisper');
+  var modeBtn = $('modeBtn');
+  var modeIcon = $('modeIcon');
+  var modeLabel = $('modeLabel');
+  var muteBtn = $('muteBtn');
+  var breatheBtn = $('breatheBtn');
+  var clearBtn = $('clearBtn');
+  var breatheEl = $('breathe');
+  var breatheWords = $('breatheWords');
+  var orbEl = $('orb');
+  var confirmEl = $('confirm');
+
+  var cells = [];
+
+  /* ======================= audio (very quiet, gesture only) ======================= */
+
+  var actx = null;
+  var masterGain = null;
+
+  function audio() {
+    if (muted) return null;
+    if (!actx) {
+      try {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        actx = new AC();
+        masterGain = actx.createGain();
+        masterGain.gain.value = 0.55;
+        masterGain.connect(actx.destination);
+      } catch (e) { actx = null; return null; }
+    }
+    if (actx.state === 'suspended') { try { actx.resume(); } catch (e) {} }
+    return actx;
+  }
+
+  function bell(freq, delay, dur, vol) {
+    var ctx = audio();
+    if (!ctx) return;
+    try {
+      var t0 = ctx.currentTime + (delay || 0);
+      var osc = ctx.createOscillator();
+      var over = ctx.createOscillator();
+      var gain = ctx.createGain();
+      var overGain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      over.type = 'sine';
+      over.frequency.value = freq * 2.005;
+      overGain.gain.value = 0.28;
+
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(vol, t0 + 0.035);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+      osc.connect(gain);
+      over.connect(overGain);
+      overGain.connect(gain);
+      gain.connect(masterGain);
+
+      osc.start(t0); over.start(t0);
+      osc.stop(t0 + dur + 0.05); over.stop(t0 + dur + 0.05);
+    } catch (e) {}
+  }
+
+  function sndPick() { bell(523.25, 0, 0.22, 0.018); }
+  function sndPlace(tool) {
+    bell(tool.note, 0, 0.85, 0.055);
+    bell(tool.note * 1.5, 0.08, 0.6, 0.024);
+  }
+  function sndRemove() {
+    bell(329.63, 0, 0.32, 0.034);
+    bell(246.94, 0.09, 0.42, 0.022);
+  }
+  function sndMode(toNight) {
+    if (toNight) { bell(261.63, 0, 0.9, 0.038); bell(196.00, 0.13, 1.1, 0.03); }
+    else { bell(329.63, 0, 0.7, 0.038); bell(440.00, 0.11, 0.8, 0.026); }
+  }
+  function sndClear() {
+    var notes = [392.00, 329.63, 261.63, 196.00];
+    for (var i = 0; i < notes.length; i++) bell(notes[i], i * 0.11, 0.95, 0.032);
+  }
+
+  /* ======================= palette ======================= */
+
+  function buildPalette() {
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < TOOLS.length; i++) {
+      var t = TOOLS[i];
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'tool';
+      btn.setAttribute('data-tool', t.id);
+      btn.setAttribute('aria-pressed', 'false');
+      btn.title = t.name + ' (key ' + (i + 1) + ')';
+
+      var key = document.createElement('span');
+      key.className = 't-key';
+      key.setAttribute('aria-hidden', 'true');
+      key.textContent = String(i + 1);
+
+      var emo = document.createElement('span');
+      emo.className = 't-emoji';
+      emo.setAttribute('aria-hidden', 'true');
+      emo.textContent = t.emoji;
+
+      var name = document.createElement('span');
+      name.className = 't-name';
+      name.textContent = t.name;
+
+      btn.appendChild(key);
+      btn.appendChild(emo);
+      btn.appendChild(name);
+      btn.addEventListener('click', function (ev) {
+        selectTool(ev.currentTarget.getAttribute('data-tool'));
+      });
+      frag.appendChild(btn);
+    }
+    paletteEl.appendChild(frag);
+  }
+
+  function selectTool(id, quiet) {
+    if (id && !TOOL_MAP[id]) id = null;
+    selected = id;
+    var btns = paletteEl.querySelectorAll('.tool');
+    for (var i = 0; i < btns.length; i++) {
+      var on = btns[i].getAttribute('data-tool') === id;
+      btns[i].classList.toggle('active', on);
+      btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    if (!quiet) sndPick();
+  }
+
+  function nudgePalette() {
+    paletteEl.classList.remove('nudge');
+    void paletteEl.offsetWidth;
+    paletteEl.classList.add('nudge');
+    setTimeout(function () { paletteEl.classList.remove('nudge'); }, 600);
+    flashWhisper('Pick a piece below first 🌸');
+  }
+
+  /* ======================= garden cells ======================= */
+
+  function buildGarden() {
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < N; i++) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cell';
+      b.setAttribute('data-i', String(i));
+      b.setAttribute('aria-label', 'Empty spot, row ' + (Math.floor(i / COLS) + 1) + ', column ' + (i % COLS + 1) + '.');
+      var g = document.createElement('span');
+      g.className = 'glyph';
+      b.appendChild(g);
+      b.addEventListener('click', onCellClick);
+      frag.appendChild(b);
+      cells.push(b);
+    }
+    gardenEl.appendChild(frag);
+  }
+
+  function onCellClick(ev) {
+    var i = parseInt(ev.currentTarget.getAttribute('data-i'), 10);
+    tapCell(i);
+  }
+
+  function tapCell(i) {
+    if (!(i >= 0 && i < N)) return;
+    var current = layout[i];
+
+    if (current) {
+      layout[i] = null;
+      sndRemove();
+      paint(i);
+      popCell(i);
+      save();
+      flashWhisper('Lifted away. The spot is open again.');
+      return;
+    }
+
+    if (!selected) { nudgePalette(); return; }
+
+    layout[i] = selected;
+    sndPlace(TOOL_MAP[selected]);
+    paint(i);
+    popCell(i);
+    save();
+    updateWhisper();
+  }
+
+  function paint(i) {
+    var el = cells[i];
+    var toolId = layout[i];
+    var tool = toolId ? TOOL_MAP[toolId] : null;
+    var glyph = el.firstChild;
+
+    el.classList.remove('filled');
+    for (var k = 0; k < TOOLS.length; k++) el.classList.remove('t-' + TOOLS[k].id);
+
+    if (tool) {
+      el.classList.add('filled');
+      el.classList.add('t-' + tool.id);
+      glyph.textContent = tool.emoji;
+      var rot = ((i * 37) % 7 - 3) * 1.6;
+      var sc = 0.94 + ((i * 13) % 5) * 0.02;
+      glyph.style.transform = 'rotate(' + rot.toFixed(1) + 'deg) scale(' + sc.toFixed(2) + ')';
+      el.setAttribute('aria-label',
+        tool.name + ' at row ' + (Math.floor(i / COLS) + 1) + ', column ' + (i % COLS + 1) + '. Tap to lift it away.');
+    } else {
+      glyph.textContent = '';
+      glyph.style.transform = '';
+      el.setAttribute('aria-label',
+        'Empty spot, row ' + (Math.floor(i / COLS) + 1) + ', column ' + (i % COLS + 1) + '.');
+    }
+  }
+
+  function popCell(i) {
+    var el = cells[i];
+    el.classList.remove('pop');
+    void el.offsetWidth;
+    el.classList.add('pop');
+    setTimeout(function () { el.classList.remove('pop'); }, 430);
+  }
+
+  function repaintAll() {
+    for (var i = 0; i < N; i++) paint(i);
+  }
+
+  /* ======================= day / night ======================= */
+
+  var BASE_WHISPER = 'A quiet corner to arrange. Take your time.';
+  var NIGHT_WHISPER = 'The lanterns are lit. Watch the fireflies drift.';
+  var whisperTimer = null;
+
+  function updateWhisper(text, hold) {
+    if (whisperTimer) { clearTimeout(whisperTimer); whisperTimer = null; }
+    whisperEl.textContent = text;
+    if (hold) {
+      whisperTimer = setTimeout(function () {
+        whisperEl.textContent = night ? NIGHT_WHISPER : BASE_WHISPER;
+        whisperTimer = null;
+      }, hold);
+    }
+  }
+
+  function flashWhisper(text) { updateWhisper(text, 2600); }
+
+  function setNight(on, silent) {
+    night = !!on;
+    document.body.classList.toggle('night', night);
+    modeIcon.textContent = night ? '🌙' : '☀️';
+    modeLabel.textContent = night ? 'Night' : 'Day';
+    modeBtn.setAttribute('aria-pressed', night ? 'true' : 'false');
+    modeBtn.setAttribute('title', night ? 'Switch to day' : 'Switch to night');
+    if (!whisperTimer) whisperEl.textContent = night ? NIGHT_WHISPER : BASE_WHISPER;
+    if (night) spawnFireflies(); else clearFireflies();
+    if (!silent) save();
+  }
+
+  function toggleNight() {
+    setNight(!night, false);
+    sndMode(night);
+  }
+
+  function spawnFireflies() {
+    clearFireflies();
+    var box = gardenEl.clientWidth || 400;
+    var count = reduced ? 5 : 12;
+    for (var i = 0; i < count; i++) {
+      var f = document.createElement('span');
+      f.className = 'firefly';
+      var dx = (Math.random() * 2 - 1) * (box * 0.19);
+      var dy = (Math.random() * 2 - 1) * (box * 0.17);
+      f.style.left = (6 + Math.random() * 88).toFixed(2) + '%';
+      f.style.top = (7 + Math.random() * 86).toFixed(2) + '%';
+      f.style.setProperty('--dx', dx.toFixed(1) + 'px');
+      f.style.setProperty('--dy', dy.toFixed(1) + 'px');
+      f.style.animationDuration = (7 + Math.random() * 7).toFixed(2) + 's';
+      f.style.animationDelay = (Math.random() * 7).toFixed(2) + 's';
+      firefliesEl.appendChild(f);
+    }
+  }
+
+  function clearFireflies() {
+    while (firefliesEl.firstChild) firefliesEl.removeChild(firefliesEl.firstChild);
+  }
+
+  /* ======================= persistence ======================= */
+
+  function save() {
+    var out = { night: night, cells: [] };
+    for (var i = 0; i < N; i++) {
+      if (layout[i]) out.cells.push({ i: i, tool: layout[i] });
+    }
+    try { localStorage.setItem(KEY, JSON.stringify(out)); } catch (e) {}
+  }
+
+  function load() {
+    var raw = null;
+    try { raw = localStorage.getItem(KEY); } catch (e) { return null; }
+    if (!raw) return null;
+    var data = null;
+    try { data = JSON.parse(raw); } catch (e) { return null; }
+    if (!data || typeof data !== 'object' || !Array.isArray(data.cells)) return null;
+
+    var arr = [];
+    for (var i = 0; i < N; i++) arr.push(null);
+    for (var j = 0; j < data.cells.length; j++) {
+      var c = data.cells[j];
+      if (!c) continue;
+      var idx = parseInt(c.i, 10);
+      if (!(idx >= 0 && idx < N)) continue;
+      if (typeof c.tool !== 'string' || !TOOL_MAP[c.tool]) continue;
+      arr[idx] = c.tool;
+    }
+    return { night: !!data.night, cells: arr };
+  }
+
+  /* A small garden is already waiting on the very first visit. */
+  function seed() {
+    var plan = [
+      [56, 'path'], [57, 'path'], [58, 'path'], [59, 'path'], [60, 'path'], [61, 'path'], [62, 'path'], [63, 'path'],
+      [27, 'pond'], [28, 'pond'],
+      [21, 'stone'],
+      [11, 'bamboo'],
+      [13, 'flower'], [14, 'flower'],
+      [18, 'lantern']
+    ];
+    for (var i = 0; i < plan.length; i++) {
+      var idx = plan[i][0];
+      if (idx >= 0 && idx < N) layout[idx] = plan[i][1];
+    }
+  }
+
+  /* ======================= breathe ======================= */
+
+  var PHASES = [
+    { text: 'Breathe in…' },
+    { text: 'hold…' },
+    { text: 'Breathe out…' }
+  ];
+  var CYCLE_MS = 12000;
+  var breatheOpen = false;
+  var phaseIdx = -1;
+  var breatheRaf = 0;
+  var breatheStart = 0;
+
+  /* Stay glued to the same clock the CSS pulse uses, so the words always
+     match the size of the circle (and pause with it if the tab hides). */
+  function breathTime() {
+    try {
+      if (orbEl.getAnimations) {
+        var list = orbEl.getAnimations();
+        for (var i = 0; i < list.length; i++) {
+          if (list[i].animationName === 'breatheOrb' && typeof list[i].currentTime === 'number') {
+            return list[i].currentTime;
+          }
+        }
+      }
+    } catch (e) {}
+    return performance.now() - breatheStart;
+  }
+
+  function breatheLoop() {
+    if (!breatheOpen) return;
+    var t = ((breathTime() % CYCLE_MS) + CYCLE_MS) % CYCLE_MS;
+    var idx = t < 4000 ? 0 : t < 6000 ? 1 : 2;
+    if (idx !== phaseIdx) {
+      phaseIdx = idx;
+      breatheWords.textContent = PHASES[idx].text;
+      breatheWords.classList.remove('swap');
+      void breatheWords.offsetWidth;
+      breatheWords.classList.add('swap');
+    }
+    breatheRaf = requestAnimationFrame(breatheLoop);
+  }
+
+  function stopBreathing() {
+    if (breatheRaf) { cancelAnimationFrame(breatheRaf); breatheRaf = 0; }
+  }
+
+  function openBreathe() {
+    if (breatheOpen) return;
+    breatheOpen = true;
+    breatheEl.classList.add('open');
+    breatheEl.setAttribute('aria-hidden', 'false');
+
+    /* restart the 12s pulse from its resting size */
+    orbEl.style.animation = 'none';
+    void orbEl.offsetWidth;
+    orbEl.style.animation = '';
+    orbEl.classList.add('run');
+
+    breatheStart = performance.now();
+    phaseIdx = -1;
+    stopBreathing();
+    breatheLoop();
+
+    /* the shared floating home button lives above everything — tuck it
+       away while we breathe, so only the circle is on screen. */
+    try {
+      var homeBtn = document.getElementById('__amberPortalBtn');
+      if (homeBtn) { homeBtn.style.visibility = 'hidden'; homeBtn.setAttribute('data-zg-hidden', '1'); }
+    } catch (e) {}
+
+    try { $('breatheClose').focus(); } catch (e) {}
+  }
+
+  function closeBreathe() {
+    if (!breatheOpen) return;
+    breatheOpen = false;
+    breatheEl.classList.remove('open');
+    breatheEl.setAttribute('aria-hidden', 'true');
+    orbEl.classList.remove('run');
+    stopBreathing();
+    try {
+      var homeBtn = document.getElementById('__amberPortalBtn');
+      if (homeBtn && homeBtn.getAttribute('data-zg-hidden') === '1') {
+        homeBtn.style.visibility = '';
+        homeBtn.removeAttribute('data-zg-hidden');
+      }
+    } catch (e) {}
+    try { breatheBtn.focus(); } catch (e) {}
+  }
+
+  /* ======================= clear ======================= */
+
+  var confirmOpen = false;
+
+  function openConfirm() {
+    confirmOpen = true;
+    confirmEl.classList.add('open');
+    confirmEl.setAttribute('aria-hidden', 'false');
+    try { $('keepBtn').focus(); } catch (e) {}
+  }
+
+  function closeConfirm(returnFocus) {
+    confirmOpen = false;
+    confirmEl.classList.remove('open');
+    confirmEl.setAttribute('aria-hidden', 'true');
+    if (returnFocus) { try { clearBtn.focus(); } catch (e) {} }
+  }
+
+  function clearGarden() {
+    for (var i = 0; i < N; i++) layout[i] = null;
+    repaintAll();
+    sndClear();
+    save();
+    closeConfirm(true);
+    flashWhisper('A fresh start. Plant whatever you like. 🌱');
+  }
+
+  /* ======================= mute ======================= */
+
+  function applyMute() {
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+    muteBtn.setAttribute('aria-pressed', muted ? 'true' : 'false');
+    muteBtn.setAttribute('aria-label', muted ? 'Sound off — tap to turn sound on' : 'Sound on — tap to mute');
+    muteBtn.classList.toggle('armed', muted);
+    window.__muted = muted;
+  }
+
+  function toggleMute() {
+    muted = !muted;
+    try { localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); } catch (e) {}
+    applyMute();
+    if (!muted) bell(392.00, 0, 0.5, 0.03);
+  }
+
+  /* ======================= wiring ======================= */
+
+  modeBtn.addEventListener('click', toggleNight);
+  muteBtn.addEventListener('click', toggleMute);
+  breatheBtn.addEventListener('click', function () { bell(349.23, 0, 0.6, 0.022); openBreathe(); });
+  clearBtn.addEventListener('click', openConfirm);
+  $('breatheClose').addEventListener('click', closeBreathe);
+  $('keepBtn').addEventListener('click', function () { closeConfirm(true); });
+  $('clearYes').addEventListener('click', clearGarden);
+
+  breatheEl.addEventListener('click', function (ev) {
+    if (ev.target === breatheEl) closeBreathe();
+  });
+  confirmEl.addEventListener('click', function (ev) {
+    if (ev.target === confirmEl) closeConfirm(true);
+  });
+
+  document.addEventListener('keydown', function (ev) {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    var k = ev.key;
+
+    if (k === 'Escape') {
+      if (confirmOpen) { closeConfirm(true); ev.preventDefault(); return; }
+      if (breatheOpen) { closeBreathe(); ev.preventDefault(); return; }
+      if (selected) { selectTool(null); ev.preventDefault(); }
+      return;
+    }
+
+    if (breatheOpen || confirmOpen) return;
+
+    if (k >= '1' && k <= '7') {
+      selectTool(TOOLS[parseInt(k, 10) - 1].id);
+      ev.preventDefault();
+      return;
+    }
+    if (k === 'd' || k === 'D') { toggleNight(); ev.preventDefault(); return; }
+    if (k === 'b' || k === 'B') { openBreathe(); ev.preventDefault(); return; }
+  });
+
+  /* keep the fireflies inside a resized tray */
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    if (!night) return;
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () { if (night) spawnFireflies(); }, 260);
+  });
+
+  document.addEventListener('visibilitychange', function () {
+    try {
+      if (document.hidden) {
+        if (actx && actx.suspend) actx.suspend();
+      } else if (actx && actx.resume) {
+        actx.resume().catch(function () {});
+      }
+    } catch (e) {}
+  });
+
+  /* ======================= boot ======================= */
+
+  function boot() {
+    buildPalette();
+    buildGarden();
+
+    var saved = load();
+    if (saved) {
+      for (var i = 0; i < N; i++) layout[i] = saved.cells[i];
+      repaintAll();
+      setNight(saved.night, true);
+    } else {
+      seed();
+      repaintAll();
+      setNight(false, true);
+      save();
+    }
+
+    selectTool('flower', true);
+    applyMute();
+  }
+
+  boot();
+})();
+</script>
+
+<script src="hardening.js?v=3"></script>
+<script>if(window.AmberHardening)AmberHardening.installErrorOverlay();</script>
+<script src="playtime.js?v=2"></script>
+<script src="trophies.js?v=4"></script>
+<script src="pwa.js"></script>
+</body>
+</html>

@@ -717,7 +717,7 @@
   </button>
 
 <script src="playtime.js?v=2"></script>
-<script src="trophies.js?v=3"></script>
+<script src="trophies.js?v=4"></script>
 <script src="hardening.js?v=3"></script>
 <script>if(window.AmberHardening)AmberHardening.installErrorOverlay();</script>
 <script src="pwa.js"></script>
@@ -906,6 +906,28 @@
       added: 1795160187022
     },
     {
+      title: "Amber's Zen Garden",
+      file: "zengarden.html",
+      icon: "🪷",
+      tag: "Calm",
+      group: "create",
+      stat: "Your garden",
+      desc: "Make a peaceful little garden — place stones, flowers and ponds, switch from day to night, and take a slow breath.",
+      accent: "linear-gradient(135deg, rgba(129,199,132,0.32), rgba(100,181,246,0.25))",
+      added: 1795162734516
+    },
+    {
+      title: "Amber's Robot Commands",
+      file: "robotcommands.html",
+      icon: "🤖",
+      tag: "Code",
+      group: "learn",
+      stat: "Best level",
+      desc: "Give the robot a plan — go forward, turn, and repeat — then press Run and help it reach the star!",
+      accent: "linear-gradient(135deg, rgba(91,200,255,0.35), rgba(124,77,255,0.28))",
+      added: 1795162734516
+    },
+    {
       title: "Amber's Farm",
       file: "farm/index.html",
       icon: "\uD83C\uDF3E",
@@ -1036,6 +1058,14 @@
       let best = 0;
       for (const l of ['easy', 'med', 'hard']) {
         const v = parseInt(localStorage.getItem('beatlab_best_' + l) || '0', 10) || 0;
+        if (v > best) best = v;
+      }
+      return best;
+    },
+    'robotcommands.html': () => {
+      let best = 0;
+      for (const l of ['easy', 'med', 'hard']) {
+        const v = parseInt(localStorage.getItem('robot_best_' + l) || '0', 10) || 0;
         if (v > best) best = v;
       }
       return best;
