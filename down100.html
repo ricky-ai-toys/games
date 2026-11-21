@@ -226,6 +226,7 @@
       </div>
       <div class="btn-row">
         <button class="btn" @click="start">Start Game</button>
+        <button class="btn btn-secondary" @click="startDaily">🎯 Daily Challenge</button>
         <button class="btn btn-secondary" @click="rewardsTab='shop'; showRewards = true">💎 Shop</button>
         <button class="btn btn-secondary" @click="rewardsTab='wardrobe'; showRewards = true">🎁 Rewards</button>
         <button class="btn btn-secondary" @click="toggleMute">{{ muted ? '🔇 Muted' : '🔊 Enable Sound' }}</button>
@@ -245,6 +246,7 @@
       </div>
       <div v-if="bestFloor > 0" class="best">Best: <span class="record">Floor {{ bestFloor }}</span></div>
       <div v-else class="best">New game — good luck!</div>
+      <div class="best" style="font-size:12px;opacity:.82;">🎯 Today's challenge: best Floor <span class="record">{{ dailyBest }}</span></div>
     </div>
   </div>
 
@@ -489,14 +491,24 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
   };
 
   // ==================== Helpers ====================
-  const rand = (a, b) => a + Math.random() * (b - a);
+  let activeRng = Math.random;
+  const setRng = (fn) => { activeRng = fn || Math.random; };
+  const dailyKey = () => {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  };
+  const dailySeed = () => {
+    const d = new Date();
+    return ((d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()) * 2654435761) >>> 0;
+  };
+  const rand = (a, b) => a + activeRng() * (b - a);
   const randi = (a, b) => Math.floor(rand(a, b));
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const lerp = (a, b, t) => a + (b - a) * t;
   const mulberry32 = (a) => { let t = a | 0; return () => { t = (t + 0x6D2B79F5) | 0; let s = t; s = Math.imul(s ^ (s >>> 15), s | 1); s ^= s + Math.imul(s ^ (s >>> 7), s | 61); return ((s ^ (s >>> 14)) >>> 0) / 4294967296; }; };
 
   function rollType(floor, scale, luckyBoost) {
-    const r = Math.random();
+    const r = activeRng();
     let norm, mov, frg, spk, bnc, dsa;
     if (floor < 8) {
       norm = 0.78; mov = 0.15; frg = 0.07; spk = 0; bnc = 0; dsa = 0;
@@ -643,7 +655,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
         y: rand(140, y + 200),
         w: rand(40, 120),
         h: rand(30, 70),
-        depth: 0.15 + Math.random() * 0.1,
+        depth: 0.15 + activeRng() * 0.1,
         color: mountainColors[i % mountainColors.length],
         shape: 'mountain',
       });
@@ -654,7 +666,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
         x: rand(0, W),
         y: rand(180, y + 150),
         w: rand(6, 18),
-        depth: 0.45 + Math.random() * 0.15,
+        depth: 0.45 + activeRng() * 0.15,
         color: rockColors[i % rockColors.length],
         shape: 'circle',
       });
@@ -663,7 +675,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
     // Power-ups (spawn on normal platforms)
     const powerups = [];
     for (const plat of platforms) {
-      if (plat.type === 'normal' && !plat.victory && Math.random() < POWERUP_CHANCE && plat.y > 300) {
+      if (plat.type === 'normal' && !plat.victory && activeRng() < POWERUP_CHANCE && plat.y > 300) {
         const type = POWERUP_TYPES[randi(0, POWERUP_TYPES.length)];
         powerups.push({
           x: plat.x + plat.w / 2 - 8,
@@ -680,7 +692,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
     const gems = [];
     const gemRate = 0.08 + ((upgrades && upgrades.luckyGems) || 0) * 0.04;
     for (const plat of platforms) {
-      if (plat.type === 'normal' && !plat.victory && Math.random() < gemRate && plat.y > 300) {
+      if (plat.type === 'normal' && !plat.victory && activeRng() < gemRate && plat.y > 300) {
         gems.push({
           x: plat.x + rand(4, Math.max(8, plat.w - 12)),
           y: plat.y - 16,
@@ -824,6 +836,9 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
       const bestTime = ref((() => { try { return parseFloat(localStorage.getItem('down100_best_time_' + initDiff) || '0'); } catch(e){ return 0; } })());
       const muted = ref((() => { try { return localStorage.getItem('down100_muted') === '1'; } catch(e){ return false; } })());
       const difficulty = ref(initDiff);
+      const dailyMode = ref(false);
+      const dailyBest = ref((() => { try { return parseInt(localStorage.getItem('down100_daily_best') || '0', 10) || 0; } catch(e) { return 0; } })());
+      const dailyKeyStr = ref(dailyKey());
       const difficultyConfig = computed(() => DIFFICULTIES[difficulty.value]);
       const difficulties = Object.entries(DIFFICULTIES).map(([key, val]) => ({ key, label: val.label }));
       const showTouch = ref(false);
@@ -958,8 +973,12 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
         safeY = player.y;
       }
 
-      function start() {
+      function start() { dailyMode.value = false; startRun(); }
+      function startDaily() { dailyMode.value = true; difficulty.value = 'normal'; startRun(); }
+
+      function startRun() {
         initAudio();
+        setRng(dailyMode.value ? mulberry32(dailySeed()) : Math.random);
         showTouch.value = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
         if (showTouch.value && document.documentElement.requestFullscreen && !document.fullscreenElement) {
           document.documentElement.requestFullscreen().catch(() => {});
@@ -999,7 +1018,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
         raf = requestAnimationFrame(loop);
       }
 
-      function restart() { stopMusic(); start(); }
+      function restart() { stopMusic(); startRun(); }
 
       function backToMenu() {
         state.value = 'menu';
@@ -1195,8 +1214,22 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
         }
         return Math.max(proposedY - 200, 20);
       }
+      function recordDaily() {
+        if (!dailyMode.value) return;
+        try {
+          const k = dailyKeyStr.value;
+          const prev = parseInt(localStorage.getItem('down100_daily_' + k) || '0', 10) || 0;
+          if (floor.value > prev) localStorage.setItem('down100_daily_' + k, String(floor.value));
+          if (floor.value > dailyBest.value) {
+            dailyBest.value = floor.value;
+            localStorage.setItem('down100_daily_best', String(floor.value));
+          }
+        } catch (e) {}
+      }
+
       function handleDeathEnd() {
         if (lives.value <= 0) {
+          recordDaily();
           newRecord.value = floor.value > bestFloor.value && floor.value > 0;
           if (newRecord.value) {
             bestFloor.value = floor.value;
@@ -1225,6 +1258,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
       }
 
       function win() {
+        recordDaily();
         newRecord.value = (bestTime.value === 0 || elapsed.value < bestTime.value) && elapsed.value > 0;
         if (newRecord.value) {
           bestTime.value = elapsed.value;
@@ -2419,9 +2453,9 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
         isAndroid, installDismissed,
         hasShield, hasDoubleJump, slowmoActive,
         totalDeaths, maxDepth, gemsCollected, progress,
-        difficulty, difficulties, difficultyConfig, totalFloors,
+        difficulty, difficulties, difficultyConfig, totalFloors, dailyMode, dailyBest,
         hudVisible, showRewards, rewardsTab, showTutorial, floorPop,
-        start, restart, backToMenu, togglePause, toggleMute, setDifficulty, setInput, jump, formatTime,
+        start, startDaily, restart, backToMenu, togglePause, toggleMute, setDifficulty, setInput, jump, formatTime,
         showInstall, installApp, buyUpgrade, SHOP_ITEMS,
         OUTFITS, ACHIEVEMENTS, earnedAchievements, isEarned,
         unlockedOutfits, selectedOutfit, selectOutfit,
