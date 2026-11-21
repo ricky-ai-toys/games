@@ -284,10 +284,12 @@
       </div>
       <div class="diff-meta" id="diffMeta">8 levels &middot; obstacles from L3 &middot; normal speed</div>
       <div class="best" id="titleBest">Best (Normal): <span class="record">0</span></div>
+      <div class="best" id="dailyBestLine" style="font-size:12px;opacity:.82;">🎯 Today's challenge: best <span class="record">0</span></div>
       <div class="skin-row" id="skinRow"></div>
       <div id="achievementBoard"></div>
       <div class="btn-row">
         <button class="btn" id="startBtn">Start</button>
+        <button class="btn" id="dailyBtn" style="margin-left:8px;">🎯 Daily Challenge</button>
       </div>
       <div class="help">
         Move: <kbd>&larr;</kbd><kbd>&uarr;</kbd><kbd>&darr;</kbd><kbd>&rarr;</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
@@ -463,6 +465,7 @@
     tickMs: 140,
     targetLength: 6,
     endless: false,
+    daily: false,
     cell: 20,
     size: 300,
   };
@@ -546,13 +549,25 @@
     };
   }
 
+  let dailyRng = Math.random;
+  const dailyKey = () => {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  };
+  const dailySeed = () => {
+    const d = new Date();
+    return ((d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()) * 2654435761) >>> 0;
+  };
+
   function generateObstacles(level, difficulty) {
     const cfg = CFG[difficulty];
     if (level < cfg.obstaclesFrom) return [];
     const lvl = level - cfg.obstaclesFrom;
     const nShapes = Math.min(3, 1 + Math.floor((lvl + 1) / 2));
     const maxPatternSize = Math.min(5, 1 + lvl);
-    const seed = (level * 2654435761 + difficulty.charCodeAt(0) * 17) >>> 0;
+    const seed = state.daily
+      ? (dailySeed() + level * 7919) >>> 0
+      : (level * 2654435761 + difficulty.charCodeAt(0) * 17) >>> 0;
     const rng = mulberry32(seed);
     const obsSet = new Set(SPAWN_KEYS);
 
@@ -618,13 +633,13 @@
       if (!blocked.has(x+","+y)) free.push({x, y});
     }
     if (!free.length) { state.food = null; return; }
-    const pick = free[Math.floor(Math.random() * free.length)];
+    const pick = free[Math.floor((state.daily ? dailyRng() : Math.random()) * free.length)];
     state.food = pick;
   }
 
   function maybeSpawnBonus() {
     const cfg = CFG[state.difficulty];
-    if (Math.random() < cfg.bonusChance && !state.bonus) {
+    if ((state.daily ? dailyRng() : Math.random()) < cfg.bonusChance && !state.bonus) {
       const blocked = new Set(state.snake.map(s => s.x+","+s.y));
       state.obstacles.forEach(o => blocked.add(o.x+","+o.y));
       if (state.food) blocked.add(state.food.x+","+state.food.y);
@@ -633,7 +648,7 @@
         if (!blocked.has(x+","+y)) free.push({x, y});
       }
       if (free.length) {
-        const pick = free[Math.floor(Math.random() * free.length)];
+        const pick = free[Math.floor((state.daily ? dailyRng() : Math.random()) * free.length)];
         state.bonus = {x: pick.x, y: pick.y, expires: performance.now() + 6000};
       }
     }
@@ -731,6 +746,7 @@
     if (head) spawnParticles(head.x, head.y, 12, '#FF6E6E', 1.2);
     checkAchievements();
     state.foodStreak = 0;
+    recordSnakeDaily();
     const prev = getBest(state.difficulty);
     const isNew = state.score > prev;
     if (isNew) setBest(state.difficulty, state.score);
@@ -756,6 +772,7 @@
     const cfg = CFG[state.difficulty];
     state.score += 10;
     if (state.level >= cfg.levels && !state.endless) {
+      recordSnakeDaily();
       const prev = getBest(state.difficulty);
       const isNew = state.score > prev;
       if (isNew) setBest(state.difficulty, state.score);
@@ -786,6 +803,8 @@
     particles = [];
     state.score = 0;
     state.endless = false;
+    state.daily = false;
+    dailyRng = Math.random;
     state.starsCollected = 0;
     state.obstacleLevelsCleared = 0;
     showScreen(null);
@@ -800,6 +819,44 @@
     particles = [];
     state.score = 0;
     state.endless = true;
+    state.daily = false;
+    dailyRng = Math.random;
+    state.starsCollected = 0;
+    state.obstacleLevelsCleared = 0;
+    showScreen(null);
+    if (isTouchDevice) touchDpad.hidden = false;
+    startLevel(1);
+    state.alive = true;
+    scheduleTick();
+    startRaf();
+  }
+
+  function recordSnakeDaily() {
+    if (!state.daily) return;
+    try {
+      const k = dailyKey();
+      const prev = parseInt(lsGet('snake_daily_' + k, '0'), 10) || 0;
+      if (state.score > prev) lsSet('snake_daily_' + k, String(state.score));
+      const best = parseInt(lsGet('snake_daily_best', '0'), 10) || 0;
+      if (state.score > best) lsSet('snake_daily_best', String(state.score));
+    } catch (e) {}
+    updateDailyLine();
+  }
+
+  function updateDailyLine() {
+    const el = document.getElementById('dailyBestLine');
+    if (!el) return;
+    const best = parseInt(lsGet('snake_daily_best', '0'), 10) || 0;
+    el.innerHTML = `🎯 Today's challenge: best <span class="record">${best}</span>`;
+  }
+
+  function startDaily() {
+    dailyRng = mulberry32(dailySeed());
+    particles = [];
+    state.score = 0;
+    state.endless = false;
+    state.daily = true;
+    state.difficulty = 'normal';
     state.starsCollected = 0;
     state.obstacleLevelsCleared = 0;
     showScreen(null);
@@ -1185,6 +1242,9 @@
   });
 
   document.getElementById("startBtn").addEventListener("click", () => { getAudio(); startGame(); });
+  const dailyBtnEl = document.getElementById("dailyBtn");
+  if (dailyBtnEl) dailyBtnEl.addEventListener("click", () => { getAudio(); startDaily(); });
+  updateDailyLine();
   document.getElementById("retryBtn").addEventListener("click", startGame);
   document.getElementById("endlessBtn").addEventListener("click", startEndless);
   document.getElementById("resumeBtn").addEventListener("click", togglePause);
