@@ -495,7 +495,33 @@ const UI = (() => {
       </div>`;
     }
     html += '</div>';
+
+    // My animals — every named friend, with friendship hearts (click to rename)
+    const esc = (s) => String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const animals = (Game.state.animals || []);
+    if (animals.length) {
+      html += '<h3 style="margin-top:16px;">My Animals</h3><div class="ach-list">';
+      for (const a of animals) {
+        const def = (typeof ANIMAL_DEFS !== 'undefined') ? ANIMAL_DEFS[a.type] : null;
+        const n = Math.max(0, Math.min(5, a.hearts || 0));
+        html += `<div class="ach-item" data-rename-animal="${esc(a.id)}" style="cursor:pointer;">
+          <span>${(def && def.emoji) || '🐾'}</span>
+          <div><strong>${esc(a.name || 'Unnamed')}</strong><br><small>${esc((def && def.name) || a.type)} · ${'♥'.repeat(n)}${'♡'.repeat(5 - n)}</small></div>
+          <span>✏️</span>
+        </div>`;
+      }
+      html += '</div>';
+    }
+
     body.innerHTML = html;
+    body.querySelectorAll('[data-rename-animal]').forEach((el) => {
+      el.addEventListener('click', () => {
+        const id = el.getAttribute('data-rename-animal');
+        const a = (Game.state.animals || []).find((x) => x.id === id);
+        if (a) { closeModals(); openAnimalCard(a); }
+      });
+    });
     show('modal-journal');
   }
 
