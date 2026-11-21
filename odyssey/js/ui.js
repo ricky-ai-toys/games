@@ -490,6 +490,7 @@ const UI = (() => {
       header(ctx, kind === 'museum' ? '🏺 The Museum' : '🎁 Your Chest of Mementos', 60, 60, 840, 420);
       drawX(ctx);
       const keys = ['comb', 'lotus', 'jar', 'winds', 'oar', 'moly', 'bough', 'feather', 'medallion', 'rib', 'discus', 'bow'];
+      const ownedCount = keys.filter((k) => s.mementos.includes(k)).length;
       for (let i = 0; i < 12; i++) {
         const cx = 160 + (i % 4) * 165;
         const cy = 100 + Math.floor(i / 4) * 84;
@@ -508,6 +509,11 @@ const UI = (() => {
         ctx.fillText(owned ? art.name : 'Not collected yet', cx + 75, cy + 52);
         ctx.textAlign = 'left';
       }
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 13px Georgia, serif';
+      ctx.fillStyle = ownedCount >= 12 ? C.gold : '#4A3826';
+      ctx.fillText(ownedCount >= 12 ? '🏆 Collection complete — a true wanderer!' : ('Collected ' + ownedCount + ' / 12 mementos'), 480, 358);
+      ctx.textAlign = 'left';
       const shown = sel || (s.mementos[0] || null);
       if (shown) {
         const art = ARTIFACTS[shown];
