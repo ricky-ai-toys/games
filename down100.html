@@ -1230,6 +1230,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
       function handleDeathEnd() {
         if (lives.value <= 0) {
           recordDaily();
+          if (floor.value >= 50 && window.AmberTrophies) window.AmberTrophies.award('quick_dropper');
           newRecord.value = floor.value > bestFloor.value && floor.value > 0;
           if (newRecord.value) {
             bestFloor.value = floor.value;
@@ -1259,6 +1260,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
 
       function win() {
         recordDaily();
+        if (window.AmberTrophies) window.AmberTrophies.award('quick_dropper');
         newRecord.value = (bestTime.value === 0 || elapsed.value < bestTime.value) && elapsed.value > 0;
         if (newRecord.value) {
           bestTime.value = elapsed.value;
@@ -2466,6 +2468,7 @@ window.addEventListener('error', function(e){ if(window.AmberHardening && AmberH
 </script>
 <script src="hardening.js?v=3"></script>
 <script src="playtime.js?v=2"></script>
+<script src="trophies.js?v=5"></script>
 <script src="pwa.js"></script>
 </body>
 </html>

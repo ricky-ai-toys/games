@@ -22,6 +22,8 @@
     { id: 'word_50',      icon: '🌻', title: 'Word Bloom',   desc: 'Spell 50 words in Word Garden' },
     { id: 'fraction_chef', icon: '🍕', title: 'Fraction Chef', desc: 'Serve 20 perfect pizzas' },
     { id: 'beat_maker',   icon: '🥁', title: 'Beat Maker',   desc: 'Build and play your own beat loop' },
+    { id: 'robot_coder',  icon: '🤖', title: 'Robot Coder',  desc: 'Program a robot to reach its goal' },
+    { id: 'quick_dropper', icon: '⬇️', title: 'Deep Dropper', desc: 'Reach floor 50 in Big Drop' },
     { id: 'solar_reader', icon: '📚', title: 'Star Reader',  desc: 'Visit every planet on Solar Tour' }
   ];
 
